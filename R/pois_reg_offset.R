@@ -34,12 +34,12 @@ solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
       y = y,
       c = c,
       method = "BFGS",
-      control = list(trace = 6) # verbose for now
+      control = list(trace = 0) # verbose for now
     )
 
   } else {
 
-    is_constrained <- (y == 0) & (c > 0)
+    is_constrained <- (c > 0)
 
     # TODO: ensure feasible initialization
     sol <- constrOptim(
@@ -52,7 +52,7 @@ solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
       y = y,
       c = c,
       method = "BFGS",
-      control = list(trace = 6) # verbose for now
+      control = list(trace = 0) # verbose for now
     )
 
   }
@@ -80,7 +80,8 @@ solve_pois_reg_offset_c <- function(X, y, b) {
   sol <- optimize(
     f = pois_reg_offset_objective_c,
     interval = c(-max(y), min(exp_eta) - .Machine$double.neg.eps),
-    exp_eta = exp_eta
+    exp_eta = exp_eta,
+    y = y
   )$minimum
   return(sol)
 
