@@ -10,7 +10,7 @@ pois_reg_offset_gradient_b <- function(b, X, y, c) {
 
   n <- length(y)
   exp_eta <- exp(X %*% b)
-  grad <- drop(t((-y / (exp_eta - c)) * exp_eta) %*% X + t(exp_eta) %*% X)
+  grad <- drop(t(((-y / (exp_eta - c)) + 1) * exp_eta) %*% X)
   return(grad / n)
 
 }
@@ -59,7 +59,7 @@ solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
 
   if (sol$convergence != 0) {
 
-    stop("Optimization did not converge")
+    warning("Optimization did not converge")
 
   }
 
@@ -74,12 +74,12 @@ pois_reg_offset_objective_c <- function(c, exp_eta, y) {
 
 }
 
-solve_pois_reg_offset_c <- function(X, y, b) {
+solve_pois_reg_offset_c <- function(X, y, b, ymax) {
 
   exp_eta <- exp(X %*% b)
   sol <- optimize(
     f = pois_reg_offset_objective_c,
-    interval = c(-max(y), min(exp_eta) - .Machine$double.neg.eps),
+    interval = c(-ymax, min(exp_eta) - .Machine$double.neg.eps),
     exp_eta = exp_eta,
     y = y
   )$minimum
