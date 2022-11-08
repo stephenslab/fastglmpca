@@ -8,10 +8,9 @@ pois_reg_offset_objective_b <- function(b, X, y, c) {
 
 pois_reg_offset_gradient_b <- function(b, X, y, c) {
 
-  n <- length(y)
   exp_eta <- exp(X %*% b)
   grad <- drop(t(((-y / (exp_eta - c)) + 1) * exp_eta) %*% X)
-  return(grad / n)
+  return(grad / length(y))
 
 }
 
