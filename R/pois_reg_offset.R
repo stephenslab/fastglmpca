@@ -74,16 +74,32 @@ pois_reg_offset_objective_c <- function(c, exp_eta, y) {
 
 }
 
-solve_pois_reg_offset_c <- function(X, y, b, ymax) {
+pois_reg_offset_gradient_c <- function(c, exp_eta, y) {
+
+  grad <- mean(y / (exp_eta - c)) - 1
+  return(grad)
+
+}
+
+solve_pois_reg_offset_c <- function(X, y, b, c_init = NULL) {
+
+  if (is.null(c_init)) {
+
+    c_init <- 0
+
+  }
 
   exp_eta <- exp(X %*% b)
-  sol <- optimize(
-    f = pois_reg_offset_objective_c,
-    interval = c(-ymax, min(exp_eta) - .Machine$double.neg.eps),
+  sol <- optim(
+    par = c_init,
+    fn = pois_reg_offset_objective_c,
+    gr = pois_reg_offset_gradient_c,
+    method = "L-BFGS-B",
+    upper =  min(exp_eta) - .Machine$double.neg.eps,
     exp_eta = exp_eta,
     y = y
-  )$minimum
-  return(sol)
+  )
+  return(sol$par)
 
 }
 

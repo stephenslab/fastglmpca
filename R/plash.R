@@ -31,7 +31,6 @@ plash <- function(
 
   if (update_c) {
 
-    row_maxs <- apply(Y, 1, max)
     cc <- rep(0, n)
 
   } else {
@@ -116,7 +115,7 @@ plash <- function(
       for (i in 1:n) {
 
         cc[i] <- solve_pois_reg_offset_c(
-          X = FF_T, y = Y[i, ], b = LL[, i], ymax = row_maxs[i]
+          X = FF_T, y = Y[i, ], b = LL[, i], cc[i]
         )
 
       }
