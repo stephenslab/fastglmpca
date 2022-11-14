@@ -3,7 +3,7 @@ plash_lik <- function(Y, LL, FF, cc) {
 
   n <- nrow(Y)
   p <- ncol(Y)
-  Lambda <- exp(t(LL) %*% FF) - matrix(data = rep(cc, p), ncol = p)
+  Lambda <- exp(crossprod(LL, FF)) - matrix(data = rep(cc, p), ncol = p)
   lik <- dpois(x = drop(Y), lambda = drop(Lambda), log = TRUE)
   return(mean(lik))
 
@@ -233,7 +233,7 @@ plash_parallel <- function(
       ) %dopar% {
 
         solve_pois_reg_offset_b(
-          X = FF_T, y = Y[i, ], c = cc[i], b_init = LL[, i]
+          X_T = FF, X = FF_T, y = Y[i, ], c = cc[i], b_init = LL[, i]
         )
 
       }
@@ -251,15 +251,12 @@ plash_parallel <- function(
       ) %dopar% {
 
         solve_pois_reg_offset_b(
-          X = LL_T, y = Y[, j], c = cc, b_init = FF[, j]
+          X_T = LL, X = LL_T, y = Y[, j], c = cc, b_init = FF[, j]
         )
 
       }
 
     }
-
-    # get updated transpose of F
-    FF_T <- t(FF)
 
     print("updating c...")
     if (update_c) {
@@ -270,7 +267,7 @@ plash_parallel <- function(
       ) %dopar% {
 
         solve_pois_reg_offset_c(
-          X = FF_T, y = Y[i, ], b = LL[, i], cc[i]
+          X_T = FF, y = Y[i, ], b = LL[, i], cc[i]
         )
 
       }

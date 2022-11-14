@@ -1,24 +1,24 @@
-pois_reg_offset_objective_b <- function(b, X, y, c) {
+pois_reg_offset_objective_b <- function(b, X_T, y, c) {
 
-  exp_eta <- exp(X %*% b)
+  exp_eta <- exp(crossprod(X_T, b))
   obj <- mean(-y * log(exp_eta - c) + exp_eta)
   return(obj)
 
 }
 
-pois_reg_offset_gradient_b <- function(b, X, y, c) {
+pois_reg_offset_gradient_b <- function(b, X_T, y, c) {
 
-  exp_eta <- exp(X %*% b)
-  grad <- drop(t(((-y / (exp_eta - c)) + 1) * exp_eta) %*% X)
+  exp_eta <- exp(crossprod(X_T, b))
+  grad <- drop(tcrossprod(t(((-y / (exp_eta - c)) + 1) * exp_eta), X_T))
   return(grad / length(y))
 
 }
 
-solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
+solve_pois_reg_offset_b <- function(X_T, X, y, c, b_init = NULL) {
 
   if (is.null(b_init)) {
 
-    p <- ncol(X)
+    p <- nrow(X_T)
     b_init <- rep(0, p)
 
   }
@@ -29,7 +29,7 @@ solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
       par = b_init,
       fn = pois_reg_offset_objective_b,
       gr = pois_reg_offset_gradient_b,
-      X = X,
+      X_T = X_T,
       y = y,
       c = c,
       method = "BFGS",
@@ -40,14 +40,13 @@ solve_pois_reg_offset_b <- function(X, y, c, b_init = NULL) {
 
     is_constrained <- (c > 0)
 
-    # TODO: ensure feasible initialization
     sol <- constrOptim(
       theta = b_init,
       f = pois_reg_offset_objective_b,
       grad = pois_reg_offset_gradient_b,
       ui = X[is_constrained, ],
       ci = log(.Machine$double.eps + c[is_constrained]),
-      X = X,
+      X_T = X_T,
       y = y,
       c = c,
       method = "BFGS",
@@ -80,7 +79,7 @@ pois_reg_offset_gradient_c <- function(c, exp_eta, y) {
 
 }
 
-solve_pois_reg_offset_c <- function(X, y, b, c_init = NULL) {
+solve_pois_reg_offset_c <- function(X_T, y, b, c_init = NULL) {
 
   if (is.null(c_init)) {
 
@@ -88,13 +87,14 @@ solve_pois_reg_offset_c <- function(X, y, b, c_init = NULL) {
 
   }
 
-  exp_eta <- exp(X %*% b)
+  exp_eta <- exp(crossprod(X_T, b))
   sol <- optim(
     par = c_init,
     fn = pois_reg_offset_objective_c,
     gr = pois_reg_offset_gradient_c,
     method = "L-BFGS-B",
-    upper =  min(exp_eta) - .Machine$double.neg.eps,
+    upper =  min(exp_eta) - .Machine$double.eps,
+    lower = 0,
     exp_eta = exp_eta,
     y = y
   )
