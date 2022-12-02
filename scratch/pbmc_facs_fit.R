@@ -21,13 +21,20 @@ my.cluster <- parallel::makeCluster(
 
 doParallel::registerDoParallel(cl = my.cluster)
 
-plash_fit_L_c_sep <- plash::plash_omni(
-  Y = count_mat, K = 6, offset = TRUE, intercept = TRUE, tol = 1e-4, parallel = TRUE, update_c = TRUE
+pbmc_plash_fit_L_c_sep_c_first <- plash::plash_omni(
+  Y = count_mat, K = 6, offset = TRUE, intercept = TRUE, tol = 1e-4, parallel = TRUE, update_c = TRUE,
+  update_c_first = TRUE
 )
 
+pbmc_plash_fit_L_c_sep_c_last <- plash::plash_omni(
+  Y = count_mat, K = 6, offset = TRUE, intercept = TRUE, tol = 1e-4, parallel = TRUE, update_c = TRUE,
+  update_c_first = FALSE
+)
 
-
-
+pbmc_plash_fit_L_c_simul <- plash::plash_omni(
+  Y = count_mat, K = 6, offset = TRUE, intercept = TRUE, tol = 1e-4, parallel = TRUE, update_c = TRUE,
+  update_L_c_simul = TRUE
+)
 
 plash_fit_c_v2 <- plash::plash_parallel_optim_v2(
   Y = count_mat, cluster = my.cluster, K = 6, tol = 1e-4
