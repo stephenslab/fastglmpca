@@ -39,7 +39,7 @@ solve_pois_reg_offset_b <- function(X_T, X, y, c, b_init = NULL) {
   } else {
 
     is_constrained <- (c > 0)
-
+    
     sol <- constrOptim(
       theta = b_init,
       f = pois_reg_offset_objective_b,
@@ -53,6 +53,28 @@ solve_pois_reg_offset_b <- function(X_T, X, y, c, b_init = NULL) {
       control = list(trace = 0) # verbose for now
     )
 
+    # tryCatch(
+    #   {
+    #     
+    #     sol <- constrOptim(
+    #       theta = b_init,
+    #       f = pois_reg_offset_objective_b,
+    #       grad = pois_reg_offset_gradient_b,
+    #       ui = X[is_constrained, ],
+    #       ci = log(.Machine$double.eps + c[is_constrained]),
+    #       X_T = X_T,
+    #       y = y,
+    #       c = c,
+    #       method = "BFGS",
+    #       control = list(trace = 0) # verbose for now
+    #     )
+    #     
+    #   }, 
+    #   error = function(e) {
+    #     browser()
+    #   }
+    # )
+
   }
 
   if (sol$convergence != 0) {
@@ -65,21 +87,26 @@ solve_pois_reg_offset_b <- function(X_T, X, y, c, b_init = NULL) {
 
 }
 
-pois_reg_offset_objective_c <- function(c, exp_eta, y) {
+pois_reg_offset_objective_c <- function(c, exp_eta, y, size) {
 
-  obj <- mean(-y * log(exp_eta - c) - c)
+  if (any(exp_eta - size * c <= 0)) {
+    
+    print(0)
+    
+  }
+  obj <- mean(-y * log(exp_eta - size * c) - size * c)
   return(obj)
 
 }
 
-pois_reg_offset_gradient_c <- function(c, exp_eta, y) {
+pois_reg_offset_gradient_c <- function(c, exp_eta, y, size) {
 
-  grad <- mean(y / (exp_eta - c)) - 1
+  grad <- mean(y * size / (exp_eta - c) - size)
   return(grad)
 
 }
 
-solve_pois_reg_offset_c <- function(X_T, y, b, c_init = NULL) {
+solve_pois_reg_offset_c <- function(X_T, y, b, size, c_init = NULL) {
 
   if (is.null(c_init)) {
 
@@ -93,11 +120,19 @@ solve_pois_reg_offset_c <- function(X_T, y, b, c_init = NULL) {
     fn = pois_reg_offset_objective_c,
     gr = pois_reg_offset_gradient_c,
     method = "L-BFGS-B",
-    upper =  min(exp_eta) - .Machine$double.eps,
+    upper =  min(exp_eta / size) - 1e-10,
     lower = 0,
     exp_eta = exp_eta,
-    y = y
+    y = y,
+    size = size
   )
+  
+  if (any((exp_eta - sol$par) == 0)) {
+    
+    browser()
+    
+  }
+  
   return(sol$par)
 
 }
