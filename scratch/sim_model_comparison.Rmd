@@ -1,0 +1,290 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-12-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(glmpca)
+library(fastTopics)
+```
+
+```{r}
+get_lik_nmf <- function(Y, ft_fit) {
+  
+  Lambda <- tcrossprod(ft_fit$L, ft_fit$F)
+  lik <- dpois(drop(Y), drop(Lambda), log = FALSE)
+  return(mean(lik))
+  
+}
+
+get_lik_glmpca <- function(Y, glmpca_fit) {
+  
+  Lambda <- predict(glmpca_fit)
+  loglik <- dpois(drop(Y), drop(Lambda), log = TRUE)
+  return(mean(loglik))
+  
+}
+```
+
+Now, want to build functions to simulate from the two different models. For NMF, I should be able to simply use Peter's code. For GLMPCA, I might need to get a bit more creative. 
+
+```{r}
+simulate_scRNA_data <- function(n_cells, n_genes, K, method = c("glmpca", "nmf")) {
+  
+  if (method == "nmf") {
+    
+    sim <- fastTopics::simulate_multinom_gene_data(n = n_cells, m = n_genes, k = K)
+    return(sim$X)
+    
+  } else if (method == "glmpca") {
+    
+    # TODO
+    
+  }
+  
+}
+```
+
+It seems like GLMPCA might actually be having a pretty hard time handling data simulated from a topic model. However, it's a bit surprising to me that essentially nothing is being fit here. I imagine this shouldn't be the case. 
+
+```{r}
+sim_data <- simulate_scRNA_data(n_cells = 1000, n_genes = 2500, K = 5, method = "nmf")
+
+sim_data <- sim_data[rowMeans(sim_data) > 0, ]
+
+nmf_fit <- fastTopics::fit_poisson_nmf(sim_data, k = 5)
+
+nmf_lik_nmf_data <- get_lik_nmf(sim_data, nmf_fit)
+
+# Now, try and fit my algo
+n.cores <- parallel::detectCores() - 1
+my.cluster <- parallel::makeCluster(
+  n.cores,
+  type = "PSOCK"
+)
+
+doParallel::registerDoParallel(cl = my.cluster)
+
+plash_fit_c_0 <- plash::plash_omni(
+  Y = t(sim_data),
+  K = 5, 
+  offset = TRUE,
+  intercept = TRUE,
+  update_c = FALSE,
+  init_cc = rep(0, ncol(sim_data)),
+  parallel = TRUE,
+  tol = 1e-4
+)
+
+# Now fit plash with c large
+init_out <- plash:::get_feasible_init(t(sim_data), K= 5, cc = rep(1000, ncol(sim_data)), offset = TRUE, intercept = TRUE, constant_offset = TRUE)
+
+plash_fit_c_1000 <- plash::plash_omni(
+  Y = t(sim_data),
+  K = 5, 
+  offset = TRUE,
+  intercept = TRUE,
+  update_c = FALSE,
+  init_cc = rep(1000, ncol(sim_data)),
+  parallel = TRUE,
+  tol = 1e-5,
+  init_LL = init_out$LL,
+  init_FF = init_out$FF
+)
+```
+
+For now, my impression is that for nmf data, the models perform essentially equivalently. However, for plash data, the nmf model seems to perform poorly. I'm curious what else I can figure out. I think it's also interesting to look at the analogous case of poisson regression with a log link vs. an identity link.
+
+So, clearly for data generated from an NMF, the NMF model will in fact do better. An interesting question is if for large c, I can recover a reasonably good fit from my model. Let's try and see if I can implement this...
+
+Now that I have an initialization, this question is if I am able to reproduce the topic model fit via a large value of c. I know that I've initialized things correctly. The next step is to see how the fit behaves for various values of c. 
+
+```{r}
+sim_data <- plash:::generate_plash_data(1000, 2500, 5)
+```
+
+```{r}
+nmf_plash_fit <- fastTopics::fit_poisson_nmf(t(sim_data$Y), k = 5)
+
+nmf_plash_lik <- get_lik_nmf(t(sim_data$Y), nmf_plash_fit)
+```
+
+```{r}
+plash_fit_c_0_plash_data <- plash::plash_omni(
+  Y = sim_data$Y,
+  K = 5, 
+  offset = TRUE,
+  intercept = TRUE,
+  update_c = FALSE,
+  init_cc = rep(0, nrow(sim_data$Y)),
+  parallel = TRUE,
+  tol = 1e-4
+)
+
+init_out <- plash:::get_feasible_init(sim_data$Y, K= 5, cc = rep(10000, nrow(sim_data$Y)), offset = TRUE, intercept = TRUE, constant_offset = TRUE)
+
+plash_fit_c_1000_plash_data <- plash::plash_omni(
+  Y = sim_data$Y,
+  K = 5, 
+  offset = TRUE,
+  intercept = TRUE,
+  update_c = FALSE,
+  init_cc = rep(10000, nrow(sim_data$Y)),
+  parallel = TRUE,
+  tol = 1e-5,
+  init_LL = init_out$LL,
+  init_FF = init_out$FF
+)
+```
+
+It would also be interesting to think about the somewhat analogous case of logistic regression with a log link and logistic regression with an identity link.
+
+```{r}
+simulate_pois_reg_data_log_link <- function(n, p) {
+  
+  X_mod <- matrix(
+    data = sample(c(0, 1), size = n * p, replace = TRUE, prob = c(.5, .5)), nrow = n, ncol = p
+  )
+  
+  X <- matrix(
+    data = runif(n = n * p, min = 0, max = 3), nrow = n, ncol = p
+  )
+  X <- X * X_mod
+  
+  b_mod <- sample(c(0, 1), size = p, replace = TRUE)
+  b <- runif(n = p, min = 0, max = 1.25) * b_mod
+  
+  eta <- X %*% b
+  y <- rpois(n = n, lambda = exp(eta))
+  
+  return(
+    list(
+      y = y, X = X, b = b
+    )
+  )
+  
+}
+
+simulate_pois_reg_data_id_link <- function(n, p) {
+  
+  X_mod <- matrix(
+    data = sample(c(0, 1), size = n * p, replace = TRUE, prob = c(.65, .35)), nrow = n, ncol = p
+  )
+  X <- matrix(
+    data = runif(n = n * p, min = 0, max = 7), nrow = n, ncol = p
+  )
+  X <- X * X_mod
+  
+  b_mod <- sample(c(0, 1), size = p, replace = TRUE)
+  b <- runif(n = p, min = 0, max = 6)
+  b <- b_mod * b
+  
+  eta <- X %*% b
+  y <- rpois(n = n, lambda = eta)
+  
+  return(
+    list(
+      y = y, X = X, b = b
+    )
+  )
+  
+}
+```
+
+It would be useful to set up a loop here to run a bunch of simulations in order to understand if GLM-PCA is really able to perform as well on NMF data as what my simulations suggest. I'm not really sure if this is true, but it would at the very least be useful to understand. Eventually, I can add c large here if needed. However, it would inherently be interesting to see if this is the case that GLM-PCA is able to outperform FastTopics on the same data
+
+```{r}
+# Now, try and fit my algo
+n.cores <- parallel::detectCores() - 1
+my.cluster <- parallel::makeCluster(
+  n.cores,
+  type = "PSOCK"
+)
+
+doParallel::registerDoParallel(cl = my.cluster)
+```
+
+
+```{r}
+n_sims_per_iter <- 10
+n_cells_vec <- c()
+n_genes_vec <- c()
+K_vec <- c()
+glmpca_ll_vec <- c()
+nmf_ll_vec <- c()
+
+for (n_cells in c(250, 500, 1000, 2000, 3500)) {
+  
+  n_genes <- 2 * n_cells
+  for (K in c(2, 5, 10, 20)) {
+    
+    avg_glmpca_ll <- 0
+    avg_nfm_ll <- 0
+    
+    for (i in 1:n_sims_per_iter) {
+      
+      nmf_data <- simulate_scRNA_data(
+        n_cells = n_cells, n_genes = n_genes, K = K, method = "nmf"
+      )
+      
+      nmf_fit <- fastTopics::fit_poisson_nmf(nmf_data, k = K)
+      glmpca_fit <- plash::plash_omni(
+                      Y = t(nmf_data),
+                      K = K, 
+                      offset = TRUE,
+                      intercept = FALSE,
+                      update_c = FALSE,
+                      init_cc = rep(0, n_genes),
+                      parallel = TRUE,
+                      tol = 5e-5,
+                      min_iter = 3
+                    )
+      
+      nmf_lik <- get_lik_nmf(nmf_data, nmf_fit)
+      glmpca_lik <- glmpca_fit$lik / (n_genes * n_cells)
+      
+      avg_glmpca_ll <- avg_glmpca_ll + (1 / n_sims_per_iter) * glmpca_lik
+      avg_nfm_ll <- avg_nfm_ll + (1 / n_sims_per_iter) * nmf_lik
+      
+    }
+    
+    n_cells_vec <- c(n_cells_vec, n_cells)
+    n_genes_vec <- c(n_genes_vec, n_genes)
+    K_vec <- c(K_vec, K)
+    glmpca_ll_vec <- c(glmpca_ll_vec, avg_glmpca_ll)
+    nmf_ll_vec <- c(nmf_ll_vec, avg_nfm_ll)
+    
+  }
+  
+}
+
+sim_df <- data.frame(
+  n_genes = n_genes_vec,
+  n_cells = n_cells_vec,
+  K = K_vec,
+  glmpca_loglik = glmpca_ll_vec,
+  nmf_loglik = nmf_ll_vec
+)
+```
+
+```{r}
+set.seed(1)
+data <- plash:::generate_plash_data(500, 250, 20)
+plash::plash_omni(
+    Y = data$Y,
+    K = 20, 
+    offset = TRUE,
+    intercept = FALSE,
+    update_c = FALSE,
+    init_cc = rep(0, 500),
+    parallel = TRUE,
+    tol = 5e-5,
+    min_iter = 5
+)
+```
+

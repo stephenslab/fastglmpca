@@ -4,7 +4,7 @@ plash_lik <- function(Y, LL, FF, cc, size) {
   n <- nrow(Y)
   p <- ncol(Y)
   Lambda <- exp(crossprod(LL, FF)) - outer(cc, size)
-  lik <- dpois(x = drop(Y), lambda = drop(Lambda), log = TRUE)
+  lik <- dpois(drop(Y), drop(Lambda), log = FALSE)
   return(mean(lik))
 
 }
@@ -636,7 +636,8 @@ plash_omni <- function(
   Y, K, offset = FALSE, intercept = FALSE,
   constant_offset = TRUE, parallel = TRUE,
   tol = 1e-8, update_L = T, update_F = T, update_c = T, update_L_c_simul = FALSE,
-  init_LL = NULL, init_FF = NULL, init_cc = NULL, update_c_first = TRUE
+  init_LL = NULL, init_FF = NULL, init_cc = NULL, update_c_first = TRUE,
+  min_iter = 3, max_iter = 30
 ) {
   
   if (parallel) {
@@ -656,7 +657,7 @@ plash_omni <- function(
   n <- nrow(Y)
   p <- ncol(Y)
   
-  cm <- colMeans(Y)
+  cm <- Matrix::colMeans(Y)
   
   if (offset) {
     
@@ -735,7 +736,7 @@ plash_omni <- function(
   
   t <- 1
   
-  while (!converged) {
+  while ((!converged && t <= max_iter) || t <= min_iter) {
     
     print(t)
     print(current_lik)
@@ -744,9 +745,9 @@ plash_omni <- function(
     
     if (!update_L_c_simul) {
       
-      print("updating c...")
       if (update_c && update_c_first) {
         
+        print("Updating c...")
         cc <- foreach::foreach(
           i = 1:n,
           .combine = 'c'
@@ -854,32 +855,29 @@ plash_omni <- function(
     if (!update_L_c_simul && !update_c_first && update_c) {
       
       print("updating c...")
-      if (update_c && update_c_first) {
         
-        cc <- foreach::foreach(
-          i = 1:n,
-          .combine = 'c'
-        ) %loopdo% {
+      cc <- foreach::foreach(
+        i = 1:n,
+        .combine = 'c'
+      ) %loopdo% {
           
-          solve_pois_reg_offset_c(
-            X_T = FF, y = Y[i, ], b = LL[, i], c_init = cc[i], size = constant_offset_vec
-          )
+        solve_pois_reg_offset_c(
+          X_T = FF, y = Y[i, ], b = LL[, i], c_init = cc[i], size = constant_offset_vec
+        )
           
         }
-        
-      }
       
     }
     
     new_lik <- plash_lik(Y, LL, FF, cc, constant_offset_vec)
-    if (new_lik < current_lik) {
+    if (new_lik < current_lik && t >= min_iter) {
       
       converged <- TRUE
       
     } else {
       
       rel_improvement <- abs((new_lik - current_lik) / current_lik)
-      if (rel_improvement < tol) {
+      if (rel_improvement < tol && t >= min_iter) {
         
         converged <- TRUE
         
@@ -903,4 +901,103 @@ plash_omni <- function(
   
 }
 
-
+get_feasible_init <- function(
+    Y, K, cc, offset = FALSE, intercept = FALSE, constant_offset = TRUE  
+  ) {
+  
+  K_total <- K + offset + intercept
+  K_fixed_LL <- as.numeric(offset)
+  K_fixed_FF <- K_total - K
+  
+  n <- nrow(Y)
+  p <- ncol(Y)
+  
+  cm <- Matrix::colMeans(Y)
+  
+  if (offset) {
+    
+    offset_vec <- log(cm)
+    
+  } else {
+    
+    offset_vec <- 0
+    
+  }
+  
+  if (constant_offset && offset) {
+    
+    constant_offset_vec <- cm
+    
+  } else {
+    
+    constant_offset_vec <- rep(1, p)
+    
+  }
+  
+  LL <- matrix(
+    data = 1, nrow = K_total, ncol = n
+  )
+  
+  FF <- matrix(
+    data = 1, nrow = K_total, ncol = p
+  )
+  
+  if (offset && intercept) {
+    
+    # Offset
+    LL[1, ] <- 1
+    FF[1, ] <- offset_vec
+    
+    min_offset <- min(offset_vec)
+    
+    # Intercept + rest of rows set
+    FF[2:K_total, ] <- 1
+    
+    for (j in 1:n) {
+      
+      LL[2:K_total, j] <- ((log(cc[j]) - min_offset) / K) + 1e-10
+      
+    }
+    
+  } else if (offset) {
+    
+    # Offset
+    LL[1, ] <- 1
+    FF[1, ] <- offset_vec
+    
+    for (j in 1:n) {
+      
+      LL[2:K_total, j] <- ((log(cc[j]) - min_offset) / K) + 1e-10
+      
+    }
+    
+  } else if (intercept) {
+    
+    # Intercept
+    FF[1, ] <- 1
+    
+    for (j in 1:n) {
+      
+      LL[, j] <- (log(cc[j]) / K) + 1e-10
+      
+    }
+    
+  }
+  
+  # Now, check for feasibility
+  Lambda <- exp(crossprod(LL, FF)) - outer(cc, constant_offset_vec)
+  if (all(drop(Lambda) >= 0)) {
+    
+    print("SUCCESS!!!!!!!!!!!!")
+    
+  } else {
+    
+    print("You messed up :(")
+    
+  }
+  
+  return(list(
+    LL = LL, FF = FF
+  ))
+  
+}

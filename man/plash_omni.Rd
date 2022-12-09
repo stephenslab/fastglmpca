@@ -18,7 +18,8 @@ plash_omni(
   update_L_c_simul = FALSE,
   init_LL = NULL,
   init_FF = NULL,
-  init_cc = NULL
+  init_cc = NULL,
+  update_c_first = TRUE
 )
 }
 \arguments{

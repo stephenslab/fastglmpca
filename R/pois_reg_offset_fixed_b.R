@@ -3,6 +3,8 @@ pois_reg_offset_objective_fixed_b <- function(b, fixed_b, X_T, y, c) {
   
   cat_b <- c(fixed_b, b)
   exp_eta <- exp(crossprod(X_T, cat_b))
+  # fix here to deal with numerical issues at initialization
+  exp_eta <- pmax(exp_eta, .Machine$double.eps)
   obj <- mean(-y * log(exp_eta - c) + exp_eta)
   return(obj)
   
@@ -52,11 +54,21 @@ solve_pois_reg_offset_fixed_b <- function(X_T, X, y, c, fixed_b = NULL, b_init =
       
     }
     
+    if (ncol(X) - (fixed_p + 1) == 0) {
+      
+      ui <- matrix(data = X[is_constrained, (fixed_p + 1):ncol(X)], ncol = 1)
+      
+    } else {
+      
+      ui <- X[is_constrained, (fixed_p + 1):ncol(X)]
+      
+    }
+    
     sol <- constrOptim(
       theta = b_init,
       f = pois_reg_offset_objective_fixed_b,
       grad = pois_reg_offset_gradient_fixed_b,
-      ui = X[is_constrained, (fixed_p + 1):ncol(X)],
+      ui = ui,
       ci = log(.Machine$double.eps + c[is_constrained]) - ci_fixed,
       X_T = X_T,
       y = y,

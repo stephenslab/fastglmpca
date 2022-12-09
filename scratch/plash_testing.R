@@ -65,9 +65,19 @@ my.cluster <- parallel::makeCluster(
 doParallel::registerDoParallel(cl = my.cluster)
 
 # this should give essentially the same fit as glmpca
-plash_fit_L_c_sep <- plash::plash_omni(
-  Y = p_out$Y, K = 5, offset = TRUE, intercept = TRUE, tol = 1e-5, parallel = TRUE,
-  init_cc = rep(0, nrow(p_out$Y)), update_c = TRUE
+plash_fit_L_c_sep_c_first <- plash::plash_omni(
+  Y = p_out$Y, K = 5, offset = TRUE, intercept = TRUE, tol = 5e-5, parallel = TRUE,
+  init_cc = rep(0, nrow(p_out$Y)), update_c = TRUE, update_c_first = TRUE
+)
+
+plash_fit_L_c_sep_c_last <- plash::plash_omni(
+  Y = p_out$Y, K = 5, offset = TRUE, intercept = TRUE, tol = 5e-5, parallel = TRUE,
+  init_cc = rep(0, nrow(p_out$Y)), update_c = TRUE, update_c_first = FALSE
+)
+
+plash_fit_L_c_siuml <- plash::plash_omni(
+  Y = p_out$Y, K = 5, offset = TRUE, intercept = TRUE, tol = 5e-5, parallel = TRUE,
+  init_cc = rep(0, nrow(p_out$Y)), update_c = TRUE, update_L_c_simul = TRUE
 )
 
 # Now, I will attempt to see if the code works when I update L and c simultaneously
