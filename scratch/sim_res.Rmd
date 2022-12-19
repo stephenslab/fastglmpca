@@ -1,0 +1,33 @@
+---
+title: "Sim Results"
+output: html_document
+date: "2022-12-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+nmf_csv <- readr::read_csv("/Users/ericweine/Documents/plash/scratch/nmf_data_sim_res.csv")
+nmf_csv <- nmf_csv %>%
+  dplyr::mutate(glmpca_loglik = glmpca_loglik * n_cells * n_genes)
+nmf_csv <- nmf_csv %>%
+  dplyr::mutate(glmpca_loglik = round(glmpca_loglik, 2),
+                nmf_loglik = round(nmf_loglik, 2)) %>%
+  dplyr::rename(glmpca_avg_lik = glmpca_loglik, nmf_avg_lik = nmf_loglik)
+knitr::kable(nmf_csv, caption = "Data Simulated from Poisson NMF")
+```
+
+```{r}
+glmpca_csv <- readr::read_csv("/Users/ericweine/Documents/plash/scratch/glmpca_data_sim_res.csv")
+glmpca_csv <- glmpca_csv %>%
+  dplyr::mutate(glmpca_loglik = glmpca_loglik * n_cells * n_genes)
+glmpca_csv <- glmpca_csv %>%
+  dplyr::mutate(glmpca_loglik = round(glmpca_loglik, 2),
+                nmf_loglik = round(nmf_loglik, 2)) %>%
+  dplyr::rename(glmpca_avg_lik = glmpca_loglik, nmf_avg_lik = nmf_loglik)
+knitr::kable(glmpca_csv, caption = "Data Simulated from GLMPCA")
+```
+

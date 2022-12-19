@@ -19,7 +19,9 @@ plash_omni(
   init_LL = NULL,
   init_FF = NULL,
   init_cc = NULL,
-  update_c_first = TRUE
+  update_c_first = TRUE,
+  min_iter = 3,
+  max_iter = 30
 )
 }
 \arguments{

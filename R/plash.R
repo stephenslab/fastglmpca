@@ -1,11 +1,9 @@
 # likelihood of full model
 plash_lik <- function(Y, LL, FF, cc, size) {
 
-  n <- nrow(Y)
-  p <- ncol(Y)
   Lambda <- exp(crossprod(LL, FF)) - outer(cc, size)
-  lik <- dpois(drop(Y), drop(Lambda), log = FALSE)
-  return(mean(lik))
+  lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
+  return(sum(lik))
 
 }
 
@@ -870,6 +868,15 @@ plash_omni <- function(
     }
     
     new_lik <- plash_lik(Y, LL, FF, cc, constant_offset_vec)
+    if (new_lik == -Inf) {
+      
+      return(
+        list(
+          LL = LL, FF = FF, cc = cc, lik = new_lik
+        )
+      )
+      
+    }
     if (new_lik < current_lik && t >= min_iter) {
       
       converged <- TRUE
@@ -895,7 +902,7 @@ plash_omni <- function(
   
   return(
     list(
-      LL = LL, FF = FF, cc = cc, lik = new_lik
+      LL = LL, FF = FF, cc = cc, lik = new_lik, size = constant_offset_vec
     )
   )
   
@@ -961,6 +968,7 @@ get_feasible_init <- function(
     
   } else if (offset) {
     
+    min_offset <- min(offset_vec)
     # Offset
     LL[1, ] <- 1
     FF[1, ] <- offset_vec

@@ -1,9 +1,23 @@
-library(fastTopics)
+# Again, I want to have a good understanding of when the NMF model
+# will perform better than the GLMPCA model
+
+# Once I know that, these becomes candidates for when my model will perform better 
+# than GLMPCA
+
+# I'm not too worried about my model being correct, as I've verified it repeatedly
+
+get_lik_glmpca <- function(Y, glmpca_fit) {
+  
+  Lambda <- exp(crossprod(glmpca_fit$LL, glmpca_fit$FF)) - outer(glmpca_fit$cc, glmpca_fit$size)
+  lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
+  return(mean(lik))
+  
+}
 
 get_lik_nmf <- function(Y, ft_fit) {
   
   Lambda <- tcrossprod(ft_fit$L, ft_fit$F)
-  lik <- dpois(drop(Y), drop(Lambda), log = FALSE)
+  lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
   return(mean(lik))
   
 }
@@ -12,8 +26,8 @@ simulate_scRNA_data <- function(n_cells, n_genes, K, method = c("glmpca", "nmf")
   
   if (method == "nmf") {
     
-    sim <- fastTopics::simulate_multinom_gene_data(n = n_cells, m = n_genes, k = K)
-    return(sim$X)
+    sim <- plash::simulate_poisson_gene_data(n = n_cells, m = n_genes, k = K, s =3, sparse = TRUE)
+    return(sim)
     
   } else if (method == "glmpca") {
     
@@ -53,11 +67,11 @@ for (n_cells in c(250, 500, 1000, 2000, 3500)) {
         n_cells = n_cells, n_genes = n_genes, K = K, method = "nmf"
       )
       
-      nmf_fit <- fastTopics::fit_poisson_nmf(nmf_data, k = K)
+      nmf_fit <- fastTopics::fit_poisson_nmf(nmf_data$X_train, k = K)
       glmpca_fit <- plash::plash_omni(
-        Y = t(nmf_data),
+        Y = t(as.matrix(nmf_data$X_train)),
         K = K, 
-        offset = TRUE,
+        offset = FALSE,
         intercept = FALSE,
         update_c = FALSE,
         init_cc = rep(0, n_genes),
@@ -66,8 +80,8 @@ for (n_cells in c(250, 500, 1000, 2000, 3500)) {
         min_iter = 3
       )
       
-      nmf_lik <- get_lik_nmf(nmf_data, nmf_fit)
-      glmpca_lik <- glmpca_fit$lik / (n_genes * n_cells)
+      nmf_lik <- get_lik_nmf(as.matrix(nmf_data$X_test), nmf_fit)
+      glmpca_lik <- get_lik_glmpca(t(as.matrix(nmf_data$X_test)), glmpca_fit)
       
       avg_glmpca_ll <- avg_glmpca_ll + (1 / n_sims_per_iter) * glmpca_lik
       avg_nfm_ll <- avg_nfm_ll + (1 / n_sims_per_iter) * nmf_lik
