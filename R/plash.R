@@ -872,7 +872,7 @@ plash_omni <- function(
       
       return(
         list(
-          LL = LL, FF = FF, cc = cc, lik = new_lik
+          LL = LL, FF = FF, cc = cc, lik = new_lik, size = constant_offset_vec
         )
       )
       
