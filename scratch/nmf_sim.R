@@ -9,6 +9,7 @@
 get_lik_glmpca <- function(Y, glmpca_fit) {
   
   Lambda <- exp(crossprod(glmpca_fit$LL, glmpca_fit$FF)) - outer(glmpca_fit$cc, glmpca_fit$size)
+  Lambda <- pmax(Lambda, .Machine$double.eps)
   lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
   return(mean(lik))
   
@@ -46,16 +47,16 @@ my.cluster <- parallel::makeCluster(
 
 doParallel::registerDoParallel(cl = my.cluster)
 
-n_sims_per_iter <- 10
+n_sims_per_iter <- 5
 n_cells_vec <- c()
 n_genes_vec <- c()
 K_vec <- c()
 glmpca_ll_vec <- c()
 nmf_ll_vec <- c()
 
-for (n_cells in c(250, 500, 1000, 2000, 3500)) {
+for (n_cells in c(1000)) {
   
-  n_genes <- 2 * n_cells
+  n_genes <- ceiling(1.75 * n_cells)
   for (K in c(2, 5, 10, 20)) {
     
     avg_glmpca_ll <- 0

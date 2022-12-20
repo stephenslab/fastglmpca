@@ -2,6 +2,7 @@
 plash_lik <- function(Y, LL, FF, cc, size) {
 
   Lambda <- exp(crossprod(LL, FF)) - outer(cc, size)
+  Lambda <- pmax(Lambda, .Machine$double.eps)
   lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
   return(sum(lik))
 
