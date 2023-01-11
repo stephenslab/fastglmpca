@@ -8,629 +8,31 @@ plash_lik <- function(Y, LL, FF, cc, size) {
 
 }
 
-#' Title
+#' Fit Poisson Matrix Factorization Algorithm
 #'
-#' @param Y
-#' @param K
-#' @param tol
-#' @param update_L
-#' @param update_F
-#' @param update_c
-#'
-#' @return
-#' @export
-#'
-plash <- function(
-  Y, K, tol = 1e-8, update_L = T, update_F = F, update_c = F,
-  true_LL = NULL, true_FF = NULL, true_cc = NULL
-  ) {
-
-  n <- nrow(Y)
-  p <- ncol(Y)
-
-  if (update_c) {
-
-    cc <- rep(0, n)
-
-  } else {
-
-    cc <- true_cc
-
-  }
-
-  if (update_L) {
-
-    LL <- matrix(
-      data = runif(K * n), nrow = K, ncol = n
-    )
-
-  } else {
-
-    LL <- true_LL
-
-  }
-
-  if (update_F) {
-
-    FF <- matrix(
-      data = runif(K * n), nrow = K, ncol = p
-    )
-
-  } else {
-
-    FF <- true_FF
-
-  }
-
-  current_lik <- plash_lik(Y, LL, FF, cc)
-  converged <- FALSE
-
-  t <- 1
-
-  while (!converged) {
-
-    print(t)
-    print(current_lik)
-
-    FF_T <- t(FF)
-
-    print("Updating L...")
-    if (update_L) {
-
-      # Update L
-      for (i in 1:n) {
-
-        LL[, i] <- solve_pois_reg_offset_b(
-          X = FF_T, y = Y[i, ], c = cc[i], b_init = LL[, i]
-        )
-
-      }
-
-    }
-
-    LL_T <- t(LL)
-
-    print("Updating F...")
-    if (update_F) {
-
-      # Update F
-      for (j in 1:p) {
-
-        FF[, j] <- solve_pois_reg_offset_b(
-          X = LL_T, y = Y[, j], c = cc, b_init = FF[, j]
-        )
-
-      }
-
-    }
-
-    # get updated transpose of F
-    FF_T <- t(FF)
-
-    print("updating c...")
-    if (update_c) {
-
-      # Update c
-      for (i in 1:n) {
-
-        cc[i] <- solve_pois_reg_offset_c(
-          X = FF_T, y = Y[i, ], b = LL[, i], cc[i]
-        )
-
-      }
-
-    }
-
-    new_lik <- plash_lik(Y, LL, FF, cc)
-    if (new_lik < current_lik) {
-
-      converged <- TRUE
-
-    } else {
-
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
-      if (rel_improvement < tol) {
-
-        converged <- TRUE
-
-      } else {
-
-        current_lik <- new_lik
-
-      }
-
-    }
-
-    t <- t + 1
-
-  }
-
-  return(
-    list(
-      LL = LL, FF = FF, cc = cc
-    )
-  )
-
-}
-
-#' Title
-#'
-#' @param Y
-#' @param K
-#' @param tol
-#' @param update_L
-#' @param update_F
-#' @param update_c
+#' @param Y n x p data matrix
+#' @param K number of factors to fit
+#' @param offset boolean indicating if cell specific offset should be used
+#' @param intercept boolean indicating if gene specific intercept should be used
+#' @param constant_offset boolean indicating if c should be multiplied by cell specific offset 
+#' in link function
+#' @param parallel boolean indicating if the algorithm should be run in parallel
+#' @param tol relative tolerance of log likelihood for convergence
+#' @param update_L boolean indicating if L should be updated
+#' @param update_F boolean indicating if F should be updated
+#' @param update_c boolean indicating if c should be updated
+#' @param update_L_c_simul boolean indicating if 
+#' @param init_LL 
+#' @param init_FF 
+#' @param init_cc 
+#' @param update_c_first 
+#' @param min_iter 
+#' @param max_iter 
 #'
 #' @return
 #' @export
 #'
-plash_parallel <- function(
-  Y, K, cluster, tol = 1e-8, update_L = T, update_F = T, update_c = T,
-  true_LL = NULL, true_FF = NULL, true_cc = NULL
-) {
-
-  n <- nrow(Y)
-  p <- ncol(Y)
-
-  library(foreach)
-
-  doParallel::registerDoParallel(cl = cluster)
-
-  if (update_c) {
-
-    cc <- rep(0, n)
-
-  } else {
-
-    cc <- true_cc
-
-  }
-
-  if (update_L) {
-
-    LL <- matrix(
-      data = runif(K * n), nrow = K, ncol = n
-    )
-
-  } else {
-
-    LL <- true_LL
-
-  }
-
-  if (update_F) {
-
-    FF <- matrix(
-      data = runif(K * p), nrow = K, ncol = p
-    )
-
-  } else {
-
-    FF <- true_FF
-
-  }
-
-  current_lik <- plash_lik(Y, LL, FF, cc)
-  converged <- FALSE
-
-  t <- 1
-
-  while (!converged) {
-
-    print(t)
-    print(current_lik)
-
-    FF_T <- t(FF)
-
-    print("Updating L...")
-    if (update_L) {
-
-      LL <- foreach::foreach(
-        i = 1:n,
-        .combine = 'cbind'
-      ) %dopar% {
-
-        solve_pois_reg_offset_b(
-          X_T = FF, X = FF_T, y = Y[i, ], c = cc[i], b_init = LL[, i]
-        )
-
-      }
-
-    }
-
-    LL_T <- t(LL)
-
-    print("Updating F...")
-    if (update_F) {
-
-      FF <- foreach::foreach(
-        j = 1:p,
-        .combine = 'cbind'
-      ) %dopar% {
-
-        solve_pois_reg_offset_b(
-          X_T = LL, X = LL_T, y = Y[, j], c = cc, b_init = FF[, j]
-        )
-
-      }
-
-    }
-
-    print("updating c...")
-    if (update_c) {
-
-      cc <- foreach::foreach(
-        i = 1:n,
-        .combine = 'c'
-      ) %dopar% {
-
-        solve_pois_reg_offset_c(
-          X_T = FF, y = Y[i, ], b = LL[, i], cc[i]
-        )
-
-      }
-
-    }
-    
-    print(max(cc))
-
-    new_lik <- plash_lik(Y, LL, FF, cc)
-    if (new_lik < current_lik) {
-
-      converged <- TRUE
-
-    } else {
-
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
-      if (rel_improvement < tol) {
-
-        converged <- TRUE
-
-      } else {
-
-        current_lik <- new_lik
-
-      }
-
-    }
-
-    t <- t + 1
-
-  }
-
-  return(
-    list(
-      LL = LL, FF = FF, cc = cc, lik = new_lik
-    )
-  )
-
-}
-
-#' Title
-#'
-#' @param Y
-#' @param K
-#' @param tol
-#' @param update_L
-#' @param update_F
-#' @param update_c
-#'
-#' @return
-#' @export
-#'
-plash_parallel_optim_v2 <- function(
-  Y, K, cluster, tol = 1e-8, update_L = T, update_F = T, update_c = T,
-  true_LL = NULL, true_FF = NULL, true_cc = NULL
-) {
-  
-  n <- nrow(Y)
-  p <- ncol(Y)
-  
-  library(foreach)
-  
-  doParallel::registerDoParallel(cl = cluster)
-  
-  if (update_L) {
-    
-    LL <- matrix(
-      data = runif(K * n), nrow = K, ncol = n
-    )
-    
-    cc <- rep(0, n)
-    
-  } else {
-    
-    LL <- true_LL
-    cc <- true_cc
-    
-  }
-  
-  if (update_F) {
-    
-    FF <- matrix(
-      data = runif(K * p), nrow = K, ncol = p
-    )
-    
-  } else {
-    
-    FF <- true_FF
-    
-  }
-  
-  current_lik <- plash_lik(Y, LL, FF, cc)
-  converged <- FALSE
-  
-  t <- 1
-  
-  while (!converged) {
-    
-    print(t)
-    print(current_lik)
-    
-    FF_T <- t(FF)
-    
-    print("Updating L and c...")
-    if (update_L) {
-      
-      LL_cc <- foreach::foreach(
-        i = 1:n,
-        .combine = 'cbind'
-      ) %dopar% {
-        
-        solve_pois_reg_unknown_offset(X = FF_T, y = Y[i, ], init = c(cc[i], LL[, i]))
-        
-      }
-      
-    }
-    
-    LL <- LL_cc[-1, ]
-    cc <- pmax(LL_cc[1, ], 0)
-    LL_T <- t(LL)
-    print(glue::glue("max c = {max(cc)}"))
-    
-    print("Updating F...")
-    if (update_F) {
-      
-      FF <- foreach::foreach(
-        j = 1:p,
-        .combine = 'cbind'
-      ) %dopar% {
-        
-        solve_pois_reg_offset_b(
-          X_T = LL, X = LL_T, y = Y[, j], c = cc, b_init = FF[, j]
-        )
-        
-      }
-      
-    }
-    
-    new_lik <- plash_lik(Y, LL, FF, cc)
-    if (new_lik < current_lik) {
-      
-      converged <- TRUE
-      
-    } else {
-      
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
-      if (rel_improvement < tol) {
-        
-        converged <- TRUE
-        
-      } else {
-        
-        current_lik <- new_lik
-        
-      }
-      
-    }
-    
-    t <- t + 1
-    
-  }
-  
-  return(
-    list(
-      LL = LL, FF = FF, cc = cc, lik = new_lik
-    )
-  )
-  
-}
-
-# Write function to fit L and F with c 0 and a potential offset and intercept
-# Then, compare this to the offset of glmpca to ensure that things are consistent. 
-#' Title
-#'
-#' @param Y
-#' @param K
-#' @param tol
-#' @param update_L
-#' @param update_F
-#' @param update_c
-#'
-#' @return
-#' @export
-#'
-plash_parallel_glmpca <- function(
-  Y, K, cluster, offset = FALSE, offset_vec = NULL, intercept = FALSE,
-  tol = 1e-8, update_L = T, update_F = T, update_c = F,
-  true_LL = NULL, true_FF = NULL, true_cc = NULL
-) {
-  
-  K_total <- K + offset + intercept
-  K_fixed_LL <- as.numeric(offset)
-  K_fixed_FF <- K_total - K
-  
-  n <- nrow(Y)
-  p <- ncol(Y)
-  
-  library(foreach)
-  
-  doParallel::registerDoParallel(cl = cluster)
-  
-  if (update_L) {
-    
-    LL <- matrix(
-      data = runif(K_total * n), nrow = K_total, ncol = n
-    )
-    
-    cc <- rep(0, n)
-    
-  } else {
-    
-    LL <- true_LL
-    cc <- true_cc
-    
-  }
-  
-  if (update_F) {
-    
-    FF <- matrix(
-      data = runif(K_total * p), nrow = K_total, ncol = p
-    )
-    
-  } else {
-    
-    FF <- true_FF
-    
-  }
-  
-  if (offset && intercept) {
-    
-    # Offset
-    LL[1, ] <- 1
-    FF[1, ] <- offset_vec
-    
-    # Intercept
-    FF[2, ] <- 1
-    
-  } else if (offset) {
-    
-    # Offset
-    LL[1, ] <- 1
-    FF[1, ] <- offset_vec
-    
-  } else if (intercept) {
-    
-    # Intercept
-    FF[1, ] <- 1
-    
-  }
-  
-  current_lik <- plash_lik(Y, LL, FF, cc)
-  converged <- FALSE
-  
-  t <- 1
-  
-  while (!converged) {
-    
-    print(t)
-    print(current_lik)
-    
-    FF_T <- t(FF)
-    
-    print("Updating L...")
-    if (update_L) {
-      
-      LL <- foreach::foreach(
-        i = 1:n,
-        .combine = 'cbind'
-      ) %do% {
-        
-        if (K_fixed_LL > 0) {
-          
-          LL_fixed_b <- LL[1:K_fixed_LL, i]
-          
-        } else {
-          
-          LL_fixed_b <- NULL
-          
-        }
-        
-        solve_pois_reg_offset_fixed_b(
-          X_T = FF, X = FF_T, y = Y[i, ], c = cc[i],
-          fixed_b = LL_fixed_b, b_init = LL[(K_fixed_LL + 1):K_total, i]
-        )
-        
-      }
-      
-    }
-    
-    LL_T <- t(LL)
-    
-    print("Updating F...")
-    if (update_F) {
-      
-      FF <- foreach::foreach(
-        j = 1:p,
-        .combine = 'cbind'
-      ) %do% {
-        
-        if (K_fixed_FF > 0) {
-          
-          FF_fixed_b <- FF[1:K_fixed_FF, j]
-          
-        } else {
-          
-          FF_fixed_b <- NULL
-          
-        }
-        
-        solve_pois_reg_offset_fixed_b(
-          X_T = LL, X = LL_T, y = Y[, j], c = cc,
-          fixed_b = FF_fixed_b, b_init = FF[(K_fixed_FF + 1):K_total, j]
-        )
-        
-      }
-      
-    }
-    
-    new_lik <- plash_lik(Y, LL, FF, cc)
-    if (new_lik < current_lik) {
-      
-      converged <- TRUE
-      
-    } else {
-      
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
-      if (rel_improvement < tol) {
-        
-        converged <- TRUE
-        
-      } else {
-        
-        current_lik <- new_lik
-        
-      }
-      
-    }
-    
-    t <- t + 1
-    
-  }
-  
-  return(
-    list(
-      LL = LL, FF = FF, cc = cc, lik = new_lik
-    )
-  )
-  
-}
-
-# Write function to fit L and F with c 0 and a potential offset and intercept
-# Then, compare this to the offset of glmpca to ensure that things are consistent. 
-#' Title
-#'
-#' @param Y
-#' @param K
-#' @param tol
-#' @param update_L
-#' @param update_F
-#' @param update_c
-#'
-#' @return
-#' @export
-#'
+#' @examples
 plash_omni <- function(
   Y, K, offset = FALSE, intercept = FALSE,
   constant_offset = TRUE, parallel = TRUE,
@@ -778,9 +180,15 @@ plash_omni <- function(
             
           }
           
-          solve_pois_reg_offset_fixed_b(
-            X_T = FF, X = FF_T, y = Y[i, ], c = cc[i] * constant_offset_vec,
-            fixed_b = LL_fixed_b, b_init = LL[(K_fixed_LL + 1):K_total, i]
+          # solve_pois_reg_offset_fixed_b(
+          #   X_T = FF, X = FF_T, y = Y[i, ], c = cc[i] * constant_offset_vec,
+          #   fixed_b = LL_fixed_b, b_init = LL[(K_fixed_LL + 1):K_total, i]
+          # )
+          
+          solve_pois_reg_known_offset_fixed_b_v2(
+            X = FF_T, y = Y[i, ], init = c(LL[(K_fixed_LL + 1):K_total, i]),
+            fixed_b = LL_fixed_b, size = constant_offset_vec,
+            cc = cc[i]
           )
           
         }
@@ -817,7 +225,16 @@ plash_omni <- function(
         
       }
       
-      LL <- LL_cc[-1, ]
+      if (ncol(LL_cc == 2)) {
+        
+        LL <- matrix(data = LL_cc[-1, ], nrow = 1)
+        
+      } else {
+        
+        LL <- LL_cc[-1, ]
+        
+      }
+      
       cc <- pmax(LL_cc[1, ], 0)
         
     }
@@ -842,9 +259,15 @@ plash_omni <- function(
           
         }
         
-        solve_pois_reg_offset_fixed_b(
-          X_T = LL, X = LL_T, y = Y[, j], c = cc * constant_offset_vec[j],
-          fixed_b = FF_fixed_b, b_init = FF[(K_fixed_FF + 1):K_total, j]
+        # solve_pois_reg_offset_fixed_b(
+        #  X_T = LL, X = LL_T, y = Y[, j], c = cc * constant_offset_vec[j],
+        #  fixed_b = FF_fixed_b, b_init = FF[(K_fixed_FF + 1):K_total, j]
+        # )
+        
+        solve_pois_reg_known_offset_fixed_b_v2(
+          X = LL_T, y = Y[, j], init = FF[(K_fixed_FF + 1):K_total, j], 
+          fixed_b = FF_fixed_b, size = constant_offset_vec[j], 
+          cc = cc
         )
         
       }
@@ -984,6 +407,14 @@ get_feasible_init <- function(
     
     # Intercept
     FF[1, ] <- 1
+    
+    for (j in 1:n) {
+      
+      LL[, j] <- (log(cc[j]) / K) + 1e-10
+      
+    }
+    
+  } else {
     
     for (j in 1:n) {
       

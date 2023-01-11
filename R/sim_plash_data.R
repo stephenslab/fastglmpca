@@ -122,6 +122,64 @@ generate_plash_data_cc <- function(n, p, K) {
   
 }
 
+generate_plash_data_cc_v2 <- function(n, p, K) {
+  
+  LL <- matrix(nrow = K, ncol = n)
+  FF <- matrix(nrow = K, ncol = p)
+  
+  # my goal is to make a simulation function that will generate reasonble looking data
+  # for a variety of different simulation parameters
+  l_sparsity_vec <- rep(.5, K)
+  f_sparsity_vec <- rep(.5, K)
+  
+  for (k in 1:K) {
+    
+    loading <- runif(n, min = (2.75 / K), max = (5 / K))
+    factor <- runif(p, min = (2.75 / K), max = (5 / K))
+    
+    dense_loading_values <- sample(
+      c(0, 1),
+      size = n,
+      replace = TRUE,
+      prob = c(l_sparsity_vec[k], 1 - l_sparsity_vec[k])
+    )
+
+    dense_factor_values <- sample(
+      c(0, 1),
+      size = p,
+      replace = TRUE,
+      prob = c(f_sparsity_vec[k], 1 - f_sparsity_vec[k])
+    )
+
+    loading[!dense_loading_values] <- 2.75 / K
+    factor[!dense_factor_values] <- 2.75 / K
+    
+    LL[k, ] <- loading
+    FF[k, ] <- factor
+    
+  }
+  
+  m <- exp(crossprod(LL, FF))
+  
+  row_mins <- apply(m,1,min)
+  cc <- runif(n = n, min = ( 9 * row_mins / 10), max = row_mins)
+  
+  Lambda <- m - cc
+  
+  Y_data_train <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y_train <- matrix(data = Y_data_train, nrow = n, ncol = p)
+  
+  Y_data_test <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y_test <- matrix(data = Y_data_test, nrow = n, ncol = p)
+  
+  return(
+    list(
+      Y_test = Y_test, Y_train = Y_train, LL = LL, FF = FF, cc = cc
+    )
+  )
+  
+}
+
 #' @title Simulate Count Data from Poisson NMF Model
 #'
 #' @description Simulate a counts matrix \code{X} such that
@@ -507,4 +565,45 @@ generate_poisson_rates <- function (m, k, p = 1) {
     F[j,] <- exp(pmax(-5,z))
   }
   return(F)
+}
+
+generate_1_factor_nmf_data <- function(n, p) {
+  
+  l_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(.025, (3 / 8)),
+    distr::Unif(.025, 5),
+    distr::Unif(.025, 20),
+    mixCoeff = c(.85, .1, .05)
+  )
+  
+  f_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(.025, (3 / 8)),
+    distr::Unif(.025, 5),
+    distr::Unif(.025, 20),
+    mixCoeff = c(.85, .1, .05)
+  )
+  
+  l_sampler <- distr::r(l_dist)
+  f_sampler <- distr::r(f_dist)
+  
+  l <- l_sampler(n)
+  f <- f_sampler(p)
+  
+  LL <- matrix(data = l, nrow = 1, ncol = n)
+  FF <- matrix(data = f, nrow = 1, ncol = p)
+  
+  Lambda <- crossprod(LL, FF)
+  
+  y_train_vec <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y_train <- matrix(data = y_train_vec, nrow = n, ncol = p)
+  
+  y_test_vec <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y_test <- matrix(data = y_test_vec, nrow = n, ncol = p)
+  
+  data <- list(
+    Y_train = Y_train, Y_test = Y_test, LL = LL, FF = FF, Lambda = Lambda
+  )
+  
+  return(data)
+  
 }

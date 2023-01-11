@@ -2,7 +2,7 @@
 % Please edit documentation in R/plash.R
 \name{plash_omni}
 \alias{plash_omni}
-\title{Title}
+\title{Fit Poisson Matrix Factorization Algorithm}
 \usage{
 plash_omni(
   Y,
@@ -25,11 +25,41 @@ plash_omni(
 )
 }
 \arguments{
-\item{update_c}{}
-}
-\value{
+\item{Y}{n x p data matrix}
 
+\item{K}{number of factors to fit}
+
+\item{offset}{boolean indicating if cell specific offset should be used}
+
+\item{intercept}{boolean indicating if gene specific intercept should be used}
+
+\item{constant_offset}{boolean indicating if c should be multiplied by cell specific offset 
+in link function}
+
+\item{parallel}{boolean indicating if the algorithm should be run in parallel}
+
+\item{tol}{relative tolerance of log likelihood for convergence}
+
+\item{update_L}{boolean indicating if L should be updated}
+
+\item{update_F}{boolean indicating if F should be updated}
+
+\item{update_c}{boolean indicating if c should be updated}
+
+\item{update_L_c_simul}{boolean indicating if}
+
+\item{init_LL}{}
+
+\item{init_FF}{}
+
+\item{init_cc}{}
+
+\item{update_c_first}{}
+
+\item{min_iter}{}
+
+\item{max_iter}{}
 }
 \description{
-Title
+Fit Poisson Matrix Factorization Algorithm
 }

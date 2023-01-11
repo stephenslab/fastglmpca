@@ -5,7 +5,13 @@ pois_reg_offset_objective_fixed_b <- function(b, fixed_b, X_T, y, c) {
   exp_eta <- exp(crossprod(X_T, cat_b))
   # fix here to deal with numerical issues at initialization
   exp_eta <- pmax(exp_eta, .Machine$double.eps)
-  obj <- mean(-y * log(exp_eta - c) + exp_eta)
+  #obj <- mean(-y * log(exp_eta - c) + exp_eta)
+  obj <- sum(-y * log(exp_eta - c) + exp_eta)
+  if (any(!is.finite(obj))) {
+    
+    #browser()
+    
+  }
   return(obj)
   
 }
@@ -18,7 +24,13 @@ pois_reg_offset_gradient_fixed_b <- function(b, fixed_b, X_T, y, c) {
   exp_eta <- exp(crossprod(X_T, cat_b))
   grad_cat <- drop(tcrossprod(t(((-y / (exp_eta - c)) + 1) * exp_eta), X_T))
   grad <- grad_cat[(fixed_p + 1):p]
-  return(grad / length(y))
+  if (any(!is.finite(grad))) {
+    
+    #browser()
+    
+  }
+  #return(grad / length(y))
+  return(grad)
   
 }
 
@@ -64,41 +76,57 @@ solve_pois_reg_offset_fixed_b <- function(X_T, X, y, c, fixed_b = NULL, b_init =
       
     }
     
-    sol <- constrOptim(
-      theta = b_init,
-      f = pois_reg_offset_objective_fixed_b,
-      grad = pois_reg_offset_gradient_fixed_b,
-      ui = ui,
-      ci = log(.Machine$double.eps + c[is_constrained]) - ci_fixed,
-      X_T = X_T,
-      y = y,
-      c = c,
-      fixed_b = fixed_b,
-      method = "BFGS",
-      control = list(trace = 0) # verbose for now
-    )
-    
-    # tryCatch(
-    #   {
-    #     
-    #     sol <- constrOptim(
-    #       theta = b_init,
-    #       f = pois_reg_offset_objective_b,
-    #       grad = pois_reg_offset_gradient_b,
-    #       ui = X[is_constrained, ],
-    #       ci = log(.Machine$double.eps + c[is_constrained]),
-    #       X_T = X_T,
-    #       y = y,
-    #       c = c,
-    #       method = "BFGS",
-    #       control = list(trace = 0) # verbose for now
-    #     )
-    #     
-    #   }, 
-    #   error = function(e) {
-    #     browser()
-    #   }
+    # sol <- constrOptim(
+    #   theta = b_init,
+    #   f = pois_reg_offset_objective_fixed_b,
+    #   grad = pois_reg_offset_gradient_fixed_b,
+    #   ui = ui,
+    #   ci = log(1e-5 + c[is_constrained]) - ci_fixed,
+    #   X_T = X_T,
+    #   y = y,
+    #   c = c,
+    #   fixed_b = fixed_b,
+    #   method = "BFGS",
+    #   control = list(trace = 0) # verbose for now
     # )
+    
+    tryCatch(
+      {
+
+        sol <- constrOptim(
+          theta = b_init,
+          f = pois_reg_offset_objective_fixed_b,
+          grad = pois_reg_offset_gradient_fixed_b,
+          ui = ui,
+          ci = log(1e-5 + c[is_constrained]) - ci_fixed,
+          X_T = X_T,
+          y = y,
+          c = c,
+          fixed_b = fixed_b,
+          method = "BFGS",
+          mu = 1e-10,
+          control = list(trace = 0) # verbose for now
+        )
+
+      },
+      error = function(e) {
+        browser()
+        sol <- constrOptim(
+          theta = b_init,
+          f = pois_reg_offset_objective_fixed_b,
+          grad = pois_reg_offset_gradient_fixed_b,
+          ui = ui,
+          ci = log(1e-5 + c[is_constrained]) - ci_fixed,
+          X_T = X_T,
+          y = y,
+          c = c,
+          fixed_b = fixed_b,
+          method = "BFGS",
+          mu = 1e-19,
+          control = list(trace = 0) # verbose for now
+        )
+      }
+    )
     
   }
   

@@ -8,8 +8,8 @@
 
 get_lik_glmpca <- function(Y, glmpca_fit) {
   
-  Lambda <- exp(crossprod(glmpca_fit$LL, glmpca_fit$FF)) - outer(glmpca_fit$cc, glmpca_fit$size)
-  Lambda <- pmax(Lambda, .Machine$double.eps)
+  Lambda <- exp(crossprod(glmpca_fit$LL, glmpca_fit$FF))
+  #Lambda <- pmax(Lambda, .Machine$double.eps)
   lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
   return(mean(lik))
   
@@ -54,10 +54,10 @@ K_vec <- c()
 glmpca_ll_vec <- c()
 nmf_ll_vec <- c()
 
-for (n_cells in c(1000)) {
+for (n_cells in c(2000, 3000)) {
   
   n_genes <- ceiling(1.75 * n_cells)
-  for (K in c(2, 5, 10, 20)) {
+  for (K in c(20, 35)) {
     
     avg_glmpca_ll <- 0
     avg_nfm_ll <- 0
@@ -69,16 +69,21 @@ for (n_cells in c(1000)) {
       )
       
       nmf_fit <- fastTopics::fit_poisson_nmf(nmf_data$X_train, k = K)
+      init <- plash:::get_feasible_init(K = K, Y = t(as.matrix(nmf_data$X_train)),
+                                        cc = rep(1e-5, n_genes), offset = FALSE,
+                                        intercept = FALSE)
       glmpca_fit <- plash::plash_omni(
         Y = t(as.matrix(nmf_data$X_train)),
         K = K, 
         offset = FALSE,
         intercept = FALSE,
         update_c = FALSE,
-        init_cc = rep(0, n_genes),
+        init_cc = rep(1e-5, n_genes),
         parallel = TRUE,
         tol = 5e-5,
-        min_iter = 3
+        min_iter = 3,
+        init_LL = init$LL,
+        init_FF = init$FF
       )
       
       nmf_lik <- get_lik_nmf(as.matrix(nmf_data$X_test), nmf_fit)
