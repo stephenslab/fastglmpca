@@ -2,10 +2,17 @@
 plash_lik <- function(Y, LL, FF, cc, size) {
 
   Lambda <- exp(crossprod(LL, FF)) - outer(cc, size)
-  Lambda <- pmax(Lambda, .Machine$double.eps)
   lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
   return(sum(lik))
 
+}
+
+plash_lik_glmpca <- function(Y, LL, FF) {
+  
+  Lambda <- exp(crossprod(LL, FF))
+  lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
+  return(sum(lik))
+  
 }
 
 #' Fit Poisson Matrix Factorization Algorithm
@@ -180,16 +187,16 @@ plash_omni <- function(
             
           }
           
-          # solve_pois_reg_offset_fixed_b(
-          #   X_T = FF, X = FF_T, y = Y[i, ], c = cc[i] * constant_offset_vec,
-          #   fixed_b = LL_fixed_b, b_init = LL[(K_fixed_LL + 1):K_total, i]
-          # )
-          
-          solve_pois_reg_known_offset_fixed_b_v2(
-            X = FF_T, y = Y[i, ], init = c(LL[(K_fixed_LL + 1):K_total, i]),
-            fixed_b = LL_fixed_b, size = constant_offset_vec,
-            cc = cc[i]
+          solve_pois_reg_offset_fixed_b(
+            X_T = FF, X = FF_T, y = Y[i, ], c = cc[i] * constant_offset_vec,
+            fixed_b = LL_fixed_b, b_init = LL[(K_fixed_LL + 1):K_total, i]
           )
+          
+          # solve_pois_reg_known_offset_fixed_b_v2(
+          #   X = FF_T, y = Y[i, ], init = c(LL[(K_fixed_LL + 1):K_total, i]),
+          #   fixed_b = LL_fixed_b, size = constant_offset_vec,
+          #   cc = cc[i]
+          # )
           
         }
         
@@ -259,16 +266,16 @@ plash_omni <- function(
           
         }
         
-        # solve_pois_reg_offset_fixed_b(
-        #  X_T = LL, X = LL_T, y = Y[, j], c = cc * constant_offset_vec[j],
-        #  fixed_b = FF_fixed_b, b_init = FF[(K_fixed_FF + 1):K_total, j]
-        # )
-        
-        solve_pois_reg_known_offset_fixed_b_v2(
-          X = LL_T, y = Y[, j], init = FF[(K_fixed_FF + 1):K_total, j], 
-          fixed_b = FF_fixed_b, size = constant_offset_vec[j], 
-          cc = cc
+        solve_pois_reg_offset_fixed_b(
+         X_T = LL, X = LL_T, y = Y[, j], c = cc * constant_offset_vec[j],
+         fixed_b = FF_fixed_b, b_init = FF[(K_fixed_FF + 1):K_total, j]
         )
+        
+        # solve_pois_reg_known_offset_fixed_b_v2(
+        #   X = LL_T, y = Y[, j], init = FF[(K_fixed_FF + 1):K_total, j], 
+        #   fixed_b = FF_fixed_b, size = constant_offset_vec[j], 
+        #   cc = cc
+        # )
         
       }
       
@@ -327,6 +334,285 @@ plash_omni <- function(
   return(
     list(
       LL = LL, FF = FF, cc = cc, lik = new_lik, size = constant_offset_vec
+    )
+  )
+  
+}
+
+
+plash_glmpca <- function(
+    Y, K, offset = FALSE, intercept = FALSE,
+    parallel = TRUE, tol = 1e-8, update_L = T, 
+    update_F = T, init_LL = NULL, init_FF = NULL, 
+    min_iter = 1, max_iter = 30
+) {
+  
+  if (parallel) {
+    
+    `%loopdo%` <- foreach::`%dopar%`
+    
+  } else {
+    
+    `%loopdo%` <- foreach::`%do%`
+    
+  }
+  
+  K_total <- K + offset + intercept
+  K_fixed_LL <- as.numeric(offset)
+  K_fixed_FF <- K_total - K
+  
+  n <- nrow(Y)
+  p <- ncol(Y)
+  
+  cm <- Matrix::colMeans(Y)
+  
+  if (offset) {
+    
+    offset_vec <- log(cm)
+    
+  }
+  
+  if (is.null(init_LL)) {
+    
+    LL <- matrix(
+      data = .1, nrow = K_total, ncol = n
+    )
+    
+  } else {
+    
+    LL <- init_LL
+    
+  }
+  
+  if (is.null(init_FF)) {
+    
+    FF <- matrix(
+      data = .1, nrow = K_total, ncol = p
+    )
+    
+  } else {
+    
+    FF <- init_FF
+    
+  }
+  
+  if (offset && intercept) {
+    
+    # Offset
+    LL[1, ] <- 1
+    FF[1, ] <- offset_vec
+    
+    # Intercept
+    FF[2, ] <- 1
+    
+  } else if (offset) {
+    
+    # Offset
+    LL[1, ] <- 1
+    FF[1, ] <- offset_vec
+    
+  } else if (intercept) {
+    
+    # Intercept
+    FF[1, ] <- 1
+    
+  }
+  
+  current_lik <- plash_lik_glmpca(Y, LL, FF)
+  converged <- FALSE
+  
+  t <- 1
+  
+  while ((!converged && t <= max_iter) || t <= min_iter) {
+    
+    print(t)
+    print(current_lik)
+      
+    print("Updating L...")
+    if (update_L) {
+      
+      LL <- foreach::foreach(
+        i = 1:n,
+        .combine = 'cbind'
+      ) %loopdo% {
+        
+        if (K_fixed_LL > 0) {
+          
+          LL_fixed_b <- LL[1:K_fixed_LL, i]
+          
+        } else {
+          
+          LL_fixed_b <- NULL
+          
+        }
+        
+        solve_pois_reg_fixed_b(
+          X_T = FF, 
+          y = Y[i, ], 
+          fixed_b = LL_fixed_b, 
+          b_init = LL[(K_fixed_LL + 1):K_total, i]
+        )
+        
+      }
+      
+    }
+    
+    print("Updating F...")
+    if (update_F) {
+      
+      FF <- foreach::foreach(
+        j = 1:p,
+        .combine = 'cbind'
+      ) %loopdo% {
+        
+        if (K_fixed_FF > 0) {
+          
+          FF_fixed_b <- FF[1:K_fixed_FF, j]
+          
+        } else {
+          
+          FF_fixed_b <- NULL
+          
+        }
+        
+        solve_pois_reg_fixed_b(
+          X_T = LL, 
+          y = Y[, j], 
+          fixed_b = FF_fixed_b,
+          b_init = FF[(K_fixed_FF + 1):K_total, j]
+        )
+        
+      }
+      
+    }
+    
+    new_lik <- plash_lik_glmpca(Y, LL, FF)
+    if (new_lik == -Inf) {
+      
+      warning("Stopping Early Due to -Inf Likelihood")
+      
+      return(
+        list(
+          LL = LL, FF = FF, lik = new_lik
+        )
+      )
+      
+    }
+    if (new_lik < current_lik && t >= min_iter) {
+      
+      converged <- TRUE
+      
+    } else {
+      
+      rel_improvement <- abs((new_lik - current_lik) / current_lik)
+      if (rel_improvement < tol && t >= min_iter) {
+        
+        converged <- TRUE
+        
+      } else {
+        
+        current_lik <- new_lik
+        
+      }
+      
+    }
+    
+    t <- t + 1
+    
+  }
+  
+  return(
+    list(
+      LL = LL, FF = FF, lik = new_lik
+    )
+  )
+  
+}
+
+fit_plash_ccd <- function(
+  Y, K, update_LL = TRUE, update_FF = TRUE, init_LL = NULL, 
+  init_FF = NULL, min_iter = 5, max_iter = 30, tol = 1e-4
+  ) {
+  
+  n <- nrow(Y)
+  p <- ncol(Y)
+  
+  if (is.null(init_LL)) {
+    
+    LL <- matrix(
+      data = .1, nrow = K, ncol = n
+    )
+    
+  } else {
+    
+    LL <- init_LL
+    
+  }
+  
+  if (is.null(init_FF)) {
+    
+    FF <- matrix(
+      data = .1, nrow = K, ncol = p
+    )
+    
+  } else {
+    
+    FF <- init_FF
+    
+  }
+  
+  LL_T <- t(LL)
+  FF_T <- t(FF)
+  
+  current_lik <- plash_lik_glmpca(Y, LL, FF)
+  
+  converged <- FALSE
+  iter <- 1
+  while (!converged) {
+    
+    print(iter)
+    print(current_lik)
+    
+    # Now, I can write out the updates 
+    if (update_LL) {
+      
+      exp_eta <- exp(tcrossprod(LL_T, FF_T))
+      first_deriv <- (exp_eta - Y) %*% FF_T
+      second_deriv <- exp_eta %*% (FF_T ^ 2)
+      LL_T <- LL_T - .15 * (first_deriv / second_deriv)
+      
+    }
+    
+    if (update_FF) {
+      
+      exp_eta <- exp(tcrossprod(LL_T, FF_T))
+      first_deriv <- crossprod(exp_eta - Y, LL_T)
+      second_deriv <- crossprod(exp_eta, (LL_T ^ 2))
+      FF_T <- FF_T - .1 * (first_deriv / second_deriv)
+      
+    }
+    
+    new_lik <- plash_lik_glmpca(Y, t(LL_T), t(FF_T))
+    
+    if (iter >= min_iter) {
+      
+      rel_improvement <- abs((new_lik - current_lik) / current_lik)
+      if (rel_improvement < tol) {
+        
+        converged <- TRUE
+        
+      }
+      
+    }
+    
+    current_lik <- new_lik
+    iter <- iter + 1
+    
+  }
+  
+  return(
+    list(
+      LL = t(LL_T), FF = t(FF_T)
     )
   )
   

@@ -66,6 +66,47 @@ generate_plash_data <- function(n, p, K) {
   
 }
 
+generate_plash_data_simple <- function(n, p, K) {
+  
+  LL <- matrix(nrow = K, ncol = n)
+  FF <- matrix(nrow = K, ncol = p)
+  
+  l_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(0, .25),
+    distr::Unif(.5, .75),
+    mixCoeff = c(.9, .1)
+  )
+  
+  f_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(0, .25),
+    distr::Dirac(1),
+    distr::Unif(2, 4),
+    mixCoeff = c(.5, .45, .05)
+  )
+  
+  l_sampler <- distr::r(l_dist)
+  f_sampler <- distr::r(f_dist)
+  
+  for (k in 1:K) {
+    
+    LL[k, ] <- l_sampler(n)
+    FF[k, ] <- f_sampler(p)
+    
+  }
+  
+  Lambda <- exp(crossprod(LL, FF)) 
+  
+  Y_data <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y <- matrix(data = Y_data, nrow = n, ncol = p)
+  
+  return(
+    list(
+      Y = Y, LL = LL, FF = FF
+    )
+  )
+  
+}
+
 generate_plash_data_cc <- function(n, p, K) {
   
   LL <- matrix(nrow = K, ncol = n)
