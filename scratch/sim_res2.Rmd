@@ -1,0 +1,32 @@
+---
+title: "sim res"
+output: html_document
+date: "2022-12-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+sim_res <- readr::read_csv(
+  "/Users/ericweine/Documents/plash/scratch/nmf_data_sim_res.csv"
+)
+```
+
+```{r}
+sim_res <- sim_res %>%
+  mutate(
+    glmpca_loglik = round(glmpca_loglik, 2),
+    nmf_loglik = round(nmf_loglik, 2)
+  ) %>%
+  arrange(n_genes, K) %>%
+  filter(glmpca_loglik > -1)
+knitr::kable(sim_res)
+```
+

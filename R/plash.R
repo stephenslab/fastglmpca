@@ -15,6 +15,17 @@ plash_lik_glmpca <- function(Y, LL, FF) {
   
 }
 
+# I think this is likely an instance that could take advantage of sparse matrices
+# for now I'm not going to worry about it
+# and just use the builtin likelihood functions
+plash_lik_line_search <- function(Y, LL_T, FF_T) {
+  
+  Lambda <- exp(tcrossprod(LL_T, FF_T))
+  lik <- dpois(drop(Y), drop(Lambda), log = TRUE)
+  return(sum(lik))
+  
+}
+
 #' Fit Poisson Matrix Factorization Algorithm
 #'
 #' @param Y n x p data matrix
@@ -531,7 +542,8 @@ plash_glmpca <- function(
 
 fit_plash_ccd <- function(
   Y, K, update_LL = TRUE, update_FF = TRUE, init_LL = NULL, 
-  init_FF = NULL, min_iter = 5, max_iter = 30, tol = 1e-4
+  init_FF = NULL, min_iter = 5, max_iter = 30, tol = 1e-4,
+  line_search = TRUE
   ) {
   
   n <- nrow(Y)
@@ -566,6 +578,8 @@ fit_plash_ccd <- function(
   
   current_lik <- plash_lik_glmpca(Y, LL, FF)
   
+  glm_iters <- 1
+  
   converged <- FALSE
   iter <- 1
   while (!converged) {
@@ -573,30 +587,116 @@ fit_plash_ccd <- function(
     print(iter)
     print(current_lik)
     
+    old_lik <- current_lik
+    
     # Now, I can write out the updates 
     if (update_LL) {
       
-      exp_eta <- exp(tcrossprod(LL_T, FF_T))
-      first_deriv <- (exp_eta - Y) %*% FF_T
-      second_deriv <- exp_eta %*% (FF_T ^ 2)
-      LL_T <- LL_T - .15 * (first_deriv / second_deriv)
+      for (i in 1:glm_iters) {
+        
+        exp_eta <- exp(tcrossprod(LL_T, FF_T))
+        first_deriv <- (exp_eta - Y) %*% FF_T
+        second_deriv <- exp_eta %*% (FF_T ^ 2)
+        
+        newton_direction <- (first_deriv / second_deriv)
+        
+        if (line_search) {
+          
+          alpha <- .25
+          beta <- .5
+          
+          t <- 1
+          step_accepted <- FALSE
+          
+          dir_deriv <- sum(first_deriv * newton_direction)
+          
+          while (!step_accepted) {
+            
+            print(glue::glue("performing line search with t = {t}"))
+            
+            LL_T_proposed <- LL_T - t * newton_direction
+            f_proposed <- plash_lik_line_search(Y, LL_T_proposed, FF_T)
+            
+            if (f_proposed >= current_lik + alpha * t * dir_deriv) {
+              
+              step_accepted <- TRUE
+              
+            } else {
+              
+              t <- beta * t
+              
+            }
+            
+          }
+          
+          LL_T <- LL_T_proposed
+          current_lik <- f_proposed
+          
+        } else {
+          
+          LL_T <- LL_T - .15 * newton_direction
+          
+        }
+        
+      }
       
     }
     
     if (update_FF) {
       
-      exp_eta <- exp(tcrossprod(LL_T, FF_T))
-      first_deriv <- crossprod(exp_eta - Y, LL_T)
-      second_deriv <- crossprod(exp_eta, (LL_T ^ 2))
-      FF_T <- FF_T - .1 * (first_deriv / second_deriv)
+      for (i in 1:glm_iters) {
+        
+        exp_eta <- exp(tcrossprod(LL_T, FF_T))
+        first_deriv <- crossprod(exp_eta - Y, LL_T)
+        second_deriv <- crossprod(exp_eta, (LL_T ^ 2))
+        
+        newton_direction <- (first_deriv / second_deriv)
+        
+        if (line_search) {
+          
+          alpha <- .25
+          beta <- .5
+          
+          t <- 1
+          step_accepted <- FALSE
+          
+          dir_deriv <- sum(first_deriv * newton_direction)
+          
+          while (!step_accepted) {
+            
+            print(glue::glue("performing line search with t = {t}"))
+            
+            FF_T_proposed <- FF_T - t * newton_direction
+            f_proposed <- plash_lik_line_search(Y, LL_T, FF_T_proposed)
+            
+            if (f_proposed >= current_lik + alpha * t * dir_deriv) {
+              
+              step_accepted <- TRUE
+              
+            } else {
+              
+              t <- beta * t
+              
+            }
+            
+          }
+          
+          FF_T <- FF_T_proposed
+          current_lik <- f_proposed
+          
+        } else {
+          
+          FF_T <- FF_T - .15 * (first_deriv / second_deriv)
+          
+        }
+        
+      }
       
     }
     
-    new_lik <- plash_lik_glmpca(Y, t(LL_T), t(FF_T))
-    
     if (iter >= min_iter) {
       
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
+      rel_improvement <- abs((current_lik - old_lik) / old_lik)
       if (rel_improvement < tol) {
         
         converged <- TRUE
@@ -605,7 +705,6 @@ fit_plash_ccd <- function(
       
     }
     
-    current_lik <- new_lik
     iter <- iter + 1
     
   }
