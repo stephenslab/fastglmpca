@@ -97,7 +97,7 @@ arma::mat update_loadings (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(F_T, Y, L, update_start_idx, num_iter, line_search, alpha, beta) 
+  #pragma omp parallel for shared(F_T, Y, L, update_start_idx, num_iter) 
   for (int i = 0; i < Y.n_rows; i++) {
     
     L.col(i) = solve_pois_reg_cpp (
@@ -130,7 +130,7 @@ arma::mat update_factors (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(L_T, Y, FF, update_start_idx, num_iter, line_search, alpha, beta) 
+  #pragma omp parallel for shared(L_T, Y, FF, update_start_idx, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
     FF.col(j) = solve_pois_reg_cpp (
