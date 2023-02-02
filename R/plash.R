@@ -355,7 +355,9 @@ plash_glmpca <- function(
     Y, K, offset = FALSE, intercept = FALSE,
     parallel = TRUE, tol = 1e-8, update_L = T, 
     update_F = T, init_LL = NULL, init_FF = NULL, 
-    min_iter = 1, max_iter = 30
+    min_iter = 1, max_iter = 30, algorithm = c("bfgs", "ccd"),
+    ccd_ctl = list(num_iter = 5, alpha = .25, beta = .5, line_search = FALSE),
+    bfgs_ctl = list(maxit = 5)
 ) {
   
   if (parallel) {
@@ -438,9 +440,11 @@ plash_glmpca <- function(
     
     print(t)
     print(current_lik)
+    
+    FF_T <- t(FF)
       
     print("Updating L...")
-    if (update_L) {
+    if (update_L && algorithm == "bfgs") {
       
       LL <- foreach::foreach(
         i = 1:n,
@@ -457,19 +461,52 @@ plash_glmpca <- function(
           
         }
         
-        solve_pois_reg_fixed_b(
-          X_T = FF, 
-          y = Y[i, ], 
-          fixed_b = LL_fixed_b, 
-          b_init = LL[(K_fixed_LL + 1):K_total, i]
-        )
+        if (algorithm == "bfgs") {
+          
+          solve_pois_reg_fixed_b(
+            X_T = FF, 
+            y = Y[i, ], 
+            fixed_b = LL_fixed_b, 
+            b_init = LL[(K_fixed_LL + 1):K_total, i],
+            ctl = bfgs_ctl
+          )
+          
+        } else if (algorithm == "ccd") {
+          
+          plash:::solve_pois_reg_cpp(
+            X = FF_T,
+            y = Y[i, ],
+            num_iter = ccd_ctl$num_iter,
+            b = LL[, i],
+            update_start_idx = K_fixed_LL,
+            line_search = ccd_ctl$line_search,
+            alpha = ccd_ctl$alpha,
+            beta = ccd_ctl$beta
+          )
+          
+        }
         
       }
       
+    } else if (update_L && algorithm == "ccd") {
+      
+      LL <- update_loadings(
+        F_T = FF_T,
+        L = LL,
+        Y = Y,
+        update_start_idx = K_fixed_LL,
+        num_iter = ccd_ctl$num_iter,
+        line_search = ccd_ctl$line_search,
+        alpha = ccd_ctl$alpha,
+        beta = ccd_ctl$beta
+      )
+      
     }
     
+    LL_T <- t(LL)
+    
     print("Updating F...")
-    if (update_F) {
+    if (update_F && algorithm == "bfgs") {
       
       FF <- foreach::foreach(
         j = 1:p,
@@ -486,14 +523,45 @@ plash_glmpca <- function(
           
         }
         
-        solve_pois_reg_fixed_b(
-          X_T = LL, 
-          y = Y[, j], 
-          fixed_b = FF_fixed_b,
-          b_init = FF[(K_fixed_FF + 1):K_total, j]
-        )
+        if (algorithm == "bfgs") {
+          
+          solve_pois_reg_fixed_b(
+            X_T = LL, 
+            y = Y[, j], 
+            fixed_b = FF_fixed_b,
+            b_init = FF[(K_fixed_FF + 1):K_total, j],
+            ctl = bfgs_ctl
+          )
+          
+        } else if (algorithm == "ccd") {
+          
+          plash:::solve_pois_reg_cpp(
+            X = LL_T,
+            y = Y[, j],
+            num_iter = ccd_ctl$num_iter,
+            b = FF[, j],
+            update_start_idx = K_fixed_FF,
+            line_search = ccd_ctl$line_search,
+            alpha = ccd_ctl$alpha,
+            beta = ccd_ctl$beta
+          )
+          
+        }
         
       }
+      
+    } else if (update_F && algorithm == "ccd") {
+      
+      FF <- update_factors(
+        L_T = LL_T,
+        FF = FF,
+        Y = Y,
+        update_start_idx = K_fixed_FF,
+        num_iter = ccd_ctl$num_iter,
+        line_search = ccd_ctl$line_search,
+        alpha = ccd_ctl$alpha,
+        beta = ccd_ctl$beta
+      )
       
     }
     

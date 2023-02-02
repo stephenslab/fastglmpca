@@ -9,6 +9,21 @@ pois_reg_objective_fixed_b <- function(b, fixed_b, X_T, y) {
   
 }
 
+pois_reg_objective <- function(b, X_T, y) {
+  
+  eta <- crossprod(X_T, b)
+  obj <- sum(-y * eta + exp(eta))
+  return(obj)
+  
+}
+
+pois_reg_objective_fast <- function(exp_eta, eta, y) {
+  
+  obj <- sum(-y * eta + exp_eta)
+  return(obj)
+  
+}
+
 pois_reg_gradient_fixed_b <- function(b, fixed_b, X_T, y) {
   
   fixed_p <- length(fixed_b)
@@ -21,7 +36,7 @@ pois_reg_gradient_fixed_b <- function(b, fixed_b, X_T, y) {
   
 }
 
-solve_pois_reg_fixed_b <- function(X_T, X, y, fixed_b = NULL, b_init = NULL) {
+solve_pois_reg_fixed_b <- function(X_T, y, fixed_b = NULL, b_init = NULL, ctl = list()) {
     
   sol <- optim(
     par = b_init,
@@ -31,7 +46,7 @@ solve_pois_reg_fixed_b <- function(X_T, X, y, fixed_b = NULL, b_init = NULL) {
     y = y,
     fixed_b = fixed_b,
     method = "BFGS",
-    control = list(trace = 0) # verbose for now
+    control = ctl # verbose for now
   )
 
   if (sol$convergence != 0) {
