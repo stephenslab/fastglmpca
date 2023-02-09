@@ -4,16 +4,16 @@
 using namespace arma;
 using namespace Rcpp;
 
-inline arma::vec solve_pois_reg_cpp (
+inline arma::vec solve_pois_reg_cpp_sp (
     const arma::mat X, 
-    const arma::vec y, 
+    const arma::sp_vec y, 
     arma::vec b, 
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
     const double beta
-  ) {
+) {
   
   double current_lik; // used to store log likelihood of each iteration
   double first_deriv;
@@ -36,7 +36,8 @@ inline arma::vec solve_pois_reg_cpp (
       j = update_indices[idx];
       eta = X * b;
       exp_eta = exp(eta);
-      current_lik = sum(exp(eta) - (y % eta));
+      current_lik = sum(exp_eta) - arma::dot(y, eta);
+      //current_lik = sum(exp(eta) - (y % eta));
       
       // Now, take derivatives
       first_deriv = sum((exp_eta - y) % X.col(j));
@@ -54,7 +55,7 @@ inline arma::vec solve_pois_reg_cpp (
           
           b(j) = b(j) - t * newton_dir;
           eta = X * b;
-          f_proposed = sum(exp(eta) - (y % eta));
+          f_proposed = sum(exp(eta)) - arma::dot(y, eta);
           
           if (f_proposed <= current_lik - alpha * t * first_deriv * newton_dir) {
             
@@ -90,10 +91,10 @@ inline arma::vec solve_pois_reg_cpp (
 // And once I figure those both out, I can try to combine them for code efficiency
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat update_loadings (
+arma::mat update_loadings_sp (
     const arma::mat& F_T,
     arma::mat& L,
-    const arma::mat& Y_T,
+    const arma::sp_mat& Y_T,
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
@@ -104,7 +105,7 @@ arma::mat update_loadings (
   #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
     
-    L.col(i) = solve_pois_reg_cpp (
+    L.col(i) = solve_pois_reg_cpp_sp (
       F_T, 
       Y_T.col(i),
       L.col(i), 
@@ -123,10 +124,10 @@ arma::mat update_loadings (
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat update_factors (
+arma::mat update_factors_sp (
     const arma::mat& L_T,
     arma::mat& FF,
-    const arma::mat& Y,
+    const arma::sp_mat& Y,
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
@@ -137,7 +138,7 @@ arma::mat update_factors (
   #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
-    FF.col(j) = solve_pois_reg_cpp (
+    FF.col(j) = solve_pois_reg_cpp_sp (
       L_T, 
       Y.col(j),
       FF.col(j), 

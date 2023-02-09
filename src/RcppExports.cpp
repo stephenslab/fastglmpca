@@ -11,65 +11,118 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// solve_pois_reg_cpp
-arma::vec solve_pois_reg_cpp(const arma::mat X, const arma::vec y, arma::vec b, unsigned int update_start_idx, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_solve_pois_reg_cpp(SEXP XSEXP, SEXP ySEXP, SEXP bSEXP, SEXP update_start_idxSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::vec >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type update_start_idx(update_start_idxSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_pois_reg_cpp(X, y, b, update_start_idx, num_iter, line_search, alpha, beta));
-    return rcpp_result_gen;
-END_RCPP
-}
 // update_loadings
-arma::mat update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y, unsigned int update_start_idx, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP YSEXP, SEXP update_start_idxSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type update_start_idx(update_start_idxSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, L, Y, update_start_idx, num_iter, line_search, alpha, beta));
+    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta));
     return rcpp_result_gen;
 END_RCPP
 }
 // update_factors
-arma::mat update_factors(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, unsigned int update_start_idx, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP update_start_idxSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_factors(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type update_start_idx(update_start_idxSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, FF, Y, update_start_idx, num_iter, line_search, alpha, beta));
+    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_loadings_irls
+arma::mat update_loadings_irls(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::vec& update_vec, const arma::vec& constant_vec, unsigned int num_iter);
+RcppExport SEXP _plash_update_loadings_irls(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP update_vecSEXP, SEXP constant_vecSEXP, SEXP num_iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type update_vec(update_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type constant_vec(constant_vecSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_loadings_irls(F_T, L, Y_T, update_vec, constant_vec, num_iter));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_factors_irls
+arma::mat update_factors_irls(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::vec& update_vec, const arma::vec& constant_vec, unsigned int num_iter);
+RcppExport SEXP _plash_update_factors_irls(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP update_vecSEXP, SEXP constant_vecSEXP, SEXP num_iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type update_vec(update_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type constant_vec(constant_vecSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_factors_irls(L_T, FF, Y, update_vec, constant_vec, num_iter));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_loadings_sp
+arma::mat update_loadings_sp(const arma::mat& F_T, arma::mat& L, const arma::sp_mat& Y_T, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_loadings_sp(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type Y_T(Y_TSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_loadings_sp(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// update_factors_sp
+arma::mat update_factors_sp(const arma::mat& L_T, arma::mat& FF, const arma::sp_mat& Y, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_factors_sp(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_factors_sp(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plash_solve_pois_reg_cpp", (DL_FUNC) &_plash_solve_pois_reg_cpp, 8},
     {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 8},
     {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 8},
+    {"_plash_update_loadings_irls", (DL_FUNC) &_plash_update_loadings_irls, 6},
+    {"_plash_update_factors_irls", (DL_FUNC) &_plash_update_factors_irls, 6},
+    {"_plash_update_loadings_sp", (DL_FUNC) &_plash_update_loadings_sp, 8},
+    {"_plash_update_factors_sp", (DL_FUNC) &_plash_update_factors_sp, 8},
     {NULL, NULL, 0}
 };
 
