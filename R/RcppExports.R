@@ -17,6 +17,22 @@ update_factors_irls <- function(L_T, FF, Y, update_vec, constant_vec, num_iter) 
     .Call(`_plash_update_factors_irls`, L_T, FF, Y, update_vec, constant_vec, num_iter)
 }
 
+update_loadings_log1p <- function(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_loadings_log1p`, F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta)
+}
+
+update_factors_log1p <- function(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_factors_log1p`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
+}
+
+update_loadings_log1p_sp <- function(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_loadings_log1p_sp`, F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta)
+}
+
+update_factors_log1p_sp <- function(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_factors_log1p_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
+}
+
 update_loadings_sp <- function(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta) {
     .Call(`_plash_update_loadings_sp`, F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta)
 }

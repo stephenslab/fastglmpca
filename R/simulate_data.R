@@ -15,6 +15,9 @@
 #' @param n Number of rows (genes).
 #' @param p Number of columns (cells).
 #' @param K Rank of the underlying mean structure
+#' @param link Character vector describing the link between the product 
+#'   of the loading and factors and the mean of the data.
+#'   
 #'
 #' @return list with the following components
 #' \itemize{
@@ -28,7 +31,7 @@
 #' set.seed(1)
 #' sim_data <- generate_glmpca_data(1000, 500, 1)
 #' 
-generate_glmpca_data <- function(n, p, K) {
+generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
   
   if (!is.scalar(K) || K < 1) {
     
@@ -47,6 +50,8 @@ generate_glmpca_data <- function(n, p, K) {
     stop("\"p\" must be an integer greater than or equal to 1")
     
   }
+  
+  link = match.arg(link)
   
   LL <- matrix(nrow = K, ncol = n)
   FF <- matrix(nrow = K, ncol = p)
@@ -77,14 +82,16 @@ generate_glmpca_data <- function(n, p, K) {
     
   }
   
-  c_dist <- distr::UnivarMixingDistribution(
-    distr::Dirac(3),
-    distr::Dirac(0),
-    distr::Unif(0, 3),
-    mixCoeff = c(.6, .2, .2)
-  )
-  
-  Lambda <- exp(crossprod(LL, FF)) 
+  if (link == "log") {
+    
+    Lambda <- exp(crossprod(LL, FF)) 
+    
+  } else if (link == "log1p") {
+    
+    Lambda <- exp(crossprod(LL, FF)) - 1
+    
+  }
+
   
   Pi <- sweep(Lambda, 2, colSums(Lambda), `/`)
   
@@ -95,6 +102,76 @@ generate_glmpca_data <- function(n, p, K) {
     Y[, j] <- rmultinom(n = 1, size = cell_totals[j], prob = Pi[, j])
     
   }
+  
+  return(
+    list(
+      Y = Y, LL = LL, FF = FF
+    )
+  )
+  
+}
+
+generate_data_simple <- function(n, p, K, link = c("log", "log1p")) {
+  
+  if (!is.scalar(K) || K < 1) {
+    
+    stop("\"K\" must be an integer greater than or equal to 1")
+    
+  }
+  
+  if (!is.scalar(n) || n < 1) {
+    
+    stop("\"n\" must be an integer greater than or equal to 1")
+    
+  }
+  
+  if (!is.scalar(p) || p < 1) {
+    
+    stop("\"p\" must be an integer greater than or equal to 1")
+    
+  }
+  
+  link = match.arg(link)
+  
+  LL <- matrix(nrow = K, ncol = n)
+  FF <- matrix(nrow = K, ncol = p)
+  
+  l_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(0, .01),
+    distr::Unif(.25, .5),
+    distr::Unif(.5, .75),
+    mixCoeff = rep((1/3), 3)
+  )
+  
+  f_dist <- distr::UnivarMixingDistribution(
+    distr::Unif(0, .01),
+    distr::Unif(.25, .5),
+    distr::Unif(.5, .75),
+    mixCoeff = rep((1/3), 3)
+  )
+  
+  l_sampler <- distr::r(l_dist)
+  f_sampler <- distr::r(f_dist)
+  
+  for (k in 1:K) {
+    
+    LL[k, ] <- l_sampler(n)
+    FF[k, ] <- f_sampler(p)
+    
+  }
+  
+  if (link == "log") {
+    
+    Lambda <- exp(crossprod(LL, FF)) 
+    
+  } else if (link == "log1p") {
+    
+    Lambda <- exp(crossprod(LL, FF)) - 1
+    
+  }
+  
+  Y_dat <- rpois(n = n * p, lambda = as.vector(Lambda))
+  Y <- matrix(data = Y_dat, nrow = n, ncol = p)
   
   return(
     list(

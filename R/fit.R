@@ -1,7 +1,15 @@
-lik_glmpca <- function(Y, LL, FF, const) {
+lik_glmpca_pois_log <- function(Y, LL, FF, const) {
   
   H <- crossprod(LL, FF)
   lik <- sum(Y * H - exp(H)) - const
+  return(lik)
+  
+}
+
+lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
+  
+  exp_H <- exp(crossprod(LL, FF))
+  lik <- sum(Y * log(exp_H - 1) - exp_H) - const
   return(lik)
   
 }
@@ -106,6 +114,7 @@ fit_glmpca <- function(
     Y, 
     K, 
     fit0, 
+    link = c("log", "log1p"),
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
@@ -165,6 +174,8 @@ fit_glmpca <- function(
     
   }
   
+  link <- match.arg(link)
+  
   LL_rownames <- rownames(fit$LL)
   FF_rownames <- rownames(fit$FF)
   
@@ -191,9 +202,25 @@ fit_glmpca <- function(
   Y_T <- Matrix::t(Y)
   
   # calculate part of log likelihood that doesn't change
-  loglik_const <- sum(lfactorial(Y))
+  if (link == "log") {
+    
+    loglik_const <- sum(lfactorial(Y))
+    loglik_func <- lik_glmpca_pois_log
+    
+  } else if (link == "log1p") {
+    
+    loglik_const <- sum(lfactorial(Y)) - n * p
+    loglik_func <- lik_glmpca_pois_log1p
+    
+  }
   
-  current_lik <- lik_glmpca(Y, fit$LL, fit$FF, loglik_const)
+  current_lik <- do.call(
+    loglik_func,
+    list(
+      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+    )
+  )
+
   converged <- FALSE
   
   t <- 1
@@ -232,29 +259,63 @@ fit_glmpca <- function(
         
         if (inherits(Y, "sparseMatrix")) {
           
-          fit$LL <- update_loadings_sp(
-            F_T = FF_T,
-            L = fit$LL,
-            Y_T = Y_T,
-            update_indices = LL_update_indices,
-            num_iter = control$num_iter,
-            line_search = control$line_search,
-            alpha = control$alpha,
-            beta = control$beta
-          )
+          if (link == "log") {
+            
+            fit$LL <- update_loadings_sp(
+              F_T = FF_T,
+              L = fit$LL,
+              Y_T = Y_T,
+              update_indices = LL_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          } else if (link == "log1p") {
+            
+            fit$LL <- update_loadings_log1p_sp(
+              F_T = FF_T,
+              L = fit$LL,
+              Y_T = Y_T,
+              update_indices = LL_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
           
         } else {
           
-          fit$LL <- update_loadings(
-            F_T = FF_T,
-            L = fit$LL,
-            Y_T = Y_T,
-            update_indices = LL_update_indices,
-            num_iter = control$num_iter,
-            line_search = control$line_search,
-            alpha = control$alpha,
-            beta = control$beta
-          )
+          if (link == "log") {
+            
+            fit$LL <- update_loadings(
+              F_T = FF_T,
+              L = fit$LL,
+              Y_T = Y_T,
+              update_indices = LL_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          } else if (link == "log1p") {
+            
+            fit$LL <- update_loadings_log1p(
+              F_T = FF_T,
+              L = fit$LL,
+              Y_T = Y_T,
+              update_indices = LL_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
           
         }
         
@@ -281,29 +342,63 @@ fit_glmpca <- function(
         
         if (inherits(Y, "sparseMatrix")) {
           
-          fit$FF <- update_factors_sp(
-            L_T = LL_T,
-            FF = fit$FF,
-            Y = Y,
-            update_indices = FF_update_indices,
-            num_iter = control$num_iter,
-            line_search = control$line_search,
-            alpha = control$alpha,
-            beta = control$beta
-          )
+          if (link == "log") {
+            
+            fit$FF <- update_factors_sp(
+              L_T = LL_T,
+              FF = fit$FF,
+              Y = Y,
+              update_indices = FF_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          } else if (link == "log1p") {
+            
+            fit$FF <- update_factors_log1p_sp(
+              L_T = LL_T,
+              FF = fit$FF,
+              Y = Y,
+              update_indices = FF_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
           
         } else {
           
-          fit$FF <- update_factors(
-            L_T = LL_T,
-            FF = fit$FF,
-            Y = Y,
-            update_indices = FF_update_indices,
-            num_iter = control$num_iter,
-            line_search = control$line_search,
-            alpha = control$alpha,
-            beta = control$beta
-          )
+          if (link == "log") {
+            
+            fit$FF <- update_factors(
+              L_T = LL_T,
+              FF = fit$FF,
+              Y = Y,
+              update_indices = FF_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          } else if (link == "log1p") {
+            
+            fit$FF <- update_factors_log1p(
+              L_T = LL_T,
+              FF = fit$FF,
+              Y = Y,
+              update_indices = FF_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
           
         }
         
@@ -320,10 +415,15 @@ fit_glmpca <- function(
         
       }
 
-      
     }
     
-    new_lik <- lik_glmpca(Y, fit$LL, fit$FF, loglik_const)
+    new_lik <- do.call(
+      loglik_func,
+      list(
+        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      )
+    )
+
     if (new_lik >= current_lik && t >= min_iter) {
       
       rel_improvement <- abs((new_lik - current_lik) / current_lik)

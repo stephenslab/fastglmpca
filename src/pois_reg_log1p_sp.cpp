@@ -4,16 +4,16 @@
 using namespace arma;
 using namespace Rcpp;
 
-inline arma::vec solve_pois_reg_cpp (
+inline arma::vec solve_pois_reg_log1p_cpp_sp (
     const arma::mat X, 
-    const arma::vec y, 
+    const arma::sp_vec y, 
     arma::vec b, 
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
     const double beta
-  ) {
+) {
   
   double current_lik; // used to store log likelihood of each iteration
   double first_deriv;
@@ -36,17 +36,35 @@ inline arma::vec solve_pois_reg_cpp (
       j = update_indices[idx];
       eta = X * b;
       exp_eta = exp(eta);
-      current_lik = sum(exp_eta - (y % eta));
+      current_lik = sum(exp_eta) - arma::dot(y, log(exp_eta - 1));
       
       // Now, take derivatives
-      first_deriv = sum((exp_eta - y) % X.col(j));
-      second_deriv = sum(exp_eta % pow(X.col(j), 2));
+      first_deriv = sum((1 - (y / (exp_eta - 1))) % exp_eta % X.col(j));
+      second_deriv = sum((1 - (y / (exp_eta - 1)) + (y / pow(exp_eta - 1, 2)) % exp_eta) % exp_eta % pow(X.col(j), 2));
       
       newton_dir = first_deriv / second_deriv;
       
       if (line_search) {
         
-        t = 1.0;
+        // start line search such that update remains non-negative
+        if (newton_dir > 0) {
+          
+          // If search direction is negative and value is already at the boundary,
+          // keep going in the loop
+          if (b(j) <= 1e-12) {
+            
+            continue;
+            
+          }
+          
+          t = std::min(1.0, (b(j) - 1e-12) / newton_dir);
+          
+        } else {
+          
+          t = 1.0;
+          
+        }
+        
         step_accepted = false;
         b_j_og = b(j);
         
@@ -54,7 +72,8 @@ inline arma::vec solve_pois_reg_cpp (
           
           b(j) = b(j) - t * newton_dir;
           eta = X * b;
-          f_proposed = sum(exp(eta) - (y % eta));
+          exp_eta = exp(eta);
+          f_proposed = sum(exp_eta) - arma::dot(y, log(exp_eta - 1));
           
           if (f_proposed <= current_lik - alpha * t * first_deriv * newton_dir) {
             
@@ -71,8 +90,8 @@ inline arma::vec solve_pois_reg_cpp (
         
       } else {
         
-        // take a full Newton step
-        b(j) = b(j) - newton_dir;
+        // take a full Newton step, thresholding at 0
+        b(j) = std::max(b(j) - newton_dir, 1e-12);
         
       }
       
@@ -90,10 +109,10 @@ inline arma::vec solve_pois_reg_cpp (
 // And once I figure those both out, I can try to combine them for code efficiency
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat update_loadings (
+arma::mat update_loadings_log1p_sp (
     const arma::mat& F_T,
     arma::mat& L,
-    const arma::mat& Y_T,
+    const arma::sp_mat& Y_T,
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
@@ -104,7 +123,7 @@ arma::mat update_loadings (
   #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
     
-    L.col(i) = solve_pois_reg_cpp (
+    L.col(i) = solve_pois_reg_log1p_cpp_sp (
       F_T, 
       Y_T.col(i),
       L.col(i), 
@@ -123,10 +142,10 @@ arma::mat update_loadings (
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat update_factors (
+arma::mat update_factors_log1p_sp (
     const arma::mat& L_T,
     arma::mat& FF,
-    const arma::mat& Y,
+    const arma::sp_mat& Y,
     const std::vector<int> update_indices,
     unsigned int num_iter,
     const bool line_search,
@@ -137,7 +156,7 @@ arma::mat update_factors (
   #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
-    FF.col(j) = solve_pois_reg_cpp (
+    FF.col(j) = solve_pois_reg_log1p_cpp_sp (
       L_T, 
       Y.col(j),
       FF.col(j), 

@@ -4,7 +4,7 @@
 \alias{generate_glmpca_data}
 \title{Generate Data from a GLMCPA Model}
 \usage{
-generate_glmpca_data(n, p, K)
+generate_glmpca_data(n, p, K, link = c("log", "log1p"))
 }
 \arguments{
 \item{n}{Number of rows (genes).}
@@ -12,6 +12,9 @@ generate_glmpca_data(n, p, K)
 \item{p}{Number of columns (cells).}
 
 \item{K}{Rank of the underlying mean structure}
+
+\item{link}{Character vector describing the link between the product 
+of the loading and factors and the mean of the data.}
 }
 \value{
 list with the following components

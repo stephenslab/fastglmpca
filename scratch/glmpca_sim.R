@@ -26,10 +26,10 @@ simulate_scRNA_data <- function(n_cells, n_genes, K, method = c("glmpca", "nmf")
 }
 
 # Now, try and fit my algo
-n.cores <- parallel::detectCores()
+n.cores <- parallel::detectCores() - 1
 my.cluster <- parallel::makeCluster(
   n.cores,
-  type = "PSOCK"
+  type = "FORK"
 )
 
 doParallel::registerDoParallel(cl = my.cluster)
