@@ -6,6 +6,7 @@ using namespace Rcpp;
 
 inline arma::vec solve_pois_reg_cpp (
     const arma::mat X, 
+    const arma::mat X_sqrd,
     const arma::vec y, 
     arma::vec b, 
     const std::vector<int> update_indices,
@@ -40,7 +41,7 @@ inline arma::vec solve_pois_reg_cpp (
       
       // Now, take derivatives
       first_deriv = sum((exp_eta - y) % X.col(j));
-      second_deriv = sum(exp_eta % pow(X.col(j), 2));
+      second_deriv = sum(exp_eta % X_sqrd.col(j));
       
       newton_dir = first_deriv / second_deriv;
       
@@ -101,11 +102,13 @@ arma::mat update_loadings (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
+  arma::mat F_T_sqrd = arma::pow(F_T, 2);
+  #pragma omp parallel for shared(F_T, F_T_sqrd, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
     
     L.col(i) = solve_pois_reg_cpp (
       F_T, 
+      F_T_sqrd,
       Y_T.col(i),
       L.col(i), 
       update_indices,
@@ -134,11 +137,13 @@ arma::mat update_factors (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
+  arma::mat L_T_sqrd = arma::pow(L_T, 2);
+  #pragma omp parallel for shared(L_T, L_T_sqrd, Y, FF, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
     FF.col(j) = solve_pois_reg_cpp (
       L_T, 
+      L_T_sqrd,
       Y.col(j),
       FF.col(j), 
       update_indices,
