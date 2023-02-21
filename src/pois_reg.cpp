@@ -6,6 +6,7 @@ using namespace Rcpp;
 
 inline arma::vec solve_pois_reg_cpp (
     const arma::mat X, 
+    const arma::mat X_sqrd,
     const arma::vec y, 
     arma::vec b, 
     const std::vector<int> update_indices,
@@ -15,17 +16,24 @@ inline arma::vec solve_pois_reg_cpp (
     const double beta
   ) {
   
-  double current_lik; // used to store log likelihood of each iteration
   double first_deriv;
   double second_deriv;
   double newton_dir;
-  arma::vec eta;
-  arma::vec exp_eta;
+  double newton_const;
+  arma::vec eta = X * b;
+  arma::vec eta_proposed;
+  arma::vec exp_eta = exp(eta);
+  double *current_lik;
+  current_lik = (double *) malloc(sizeof(double));
+  arma::vec old_b_sub;
   double t;
   bool step_accepted;
   double b_j_og;
-  double f_proposed;
+  double *f_proposed;
+  f_proposed = (double *) malloc(sizeof(double));
   int j;
+  
+  *current_lik = sum(exp_eta - (y % eta));
   
   int num_indices = update_indices.size();
   
@@ -34,40 +42,47 @@ inline arma::vec solve_pois_reg_cpp (
     for (int idx = 0; idx < num_indices; idx++) {
       
       j = update_indices[idx];
-      eta = X * b;
-      exp_eta = exp(eta);
-      current_lik = sum(exp_eta - (y % eta));
+      //eta = X * b;
+      //exp_eta = exp(eta);
+      // current_lik = sum(exp_eta - (y % eta));
       
       // Now, take derivatives
       first_deriv = sum((exp_eta - y) % X.col(j));
-      second_deriv = sum(exp_eta % pow(X.col(j), 2));
+      second_deriv = sum(exp_eta % X_sqrd.col(j));
       
       newton_dir = first_deriv / second_deriv;
       
       if (line_search) {
         
         t = 1.0;
+        newton_const = alpha * first_deriv * newton_dir;
         step_accepted = false;
         b_j_og = b(j);
+        old_b_sub = b_j_og * X.col(j);
         
         while(!step_accepted) {
           
-          b(j) = b(j) - t * newton_dir;
-          eta = X * b;
-          f_proposed = sum(exp(eta) - (y % eta));
+          b(j) = b_j_og - t * newton_dir;
+          //eta = X * b;
+          eta_proposed = eta - old_b_sub + b(j) * X.col(j);
+          *f_proposed = sum(exp(eta_proposed) - (y % eta_proposed));
           
-          if (f_proposed <= current_lik - alpha * t * first_deriv * newton_dir) {
+          if (*f_proposed <= *current_lik - t * newton_const) {
             
             step_accepted = true;
             
           } else {
             
             t = beta * t;
-            b(j) = b_j_og;
             
           }
           
         }
+        
+        // here, want to update params that have been computed
+        *current_lik = *f_proposed;
+        eta = eta_proposed;
+        exp_eta = exp(eta);
         
       } else {
         
@@ -80,6 +95,8 @@ inline arma::vec solve_pois_reg_cpp (
     
   }
   
+  free(current_lik);
+  free(f_proposed);
   return(b);
   
 }
@@ -92,6 +109,7 @@ inline arma::vec solve_pois_reg_cpp (
 // [[Rcpp::export]]
 arma::mat update_loadings (
     const arma::mat& F_T,
+    const arma::mat& F_T_sqrd,
     arma::mat& L,
     const arma::mat& Y_T,
     const std::vector<int> update_indices,
@@ -101,11 +119,12 @@ arma::mat update_loadings (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
+  #pragma omp parallel for shared(F_T, F_T_sqrd, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
     
     L.col(i) = solve_pois_reg_cpp (
       F_T, 
+      F_T_sqrd,
       Y_T.col(i),
       L.col(i), 
       update_indices,
@@ -125,6 +144,7 @@ arma::mat update_loadings (
 // [[Rcpp::export]]
 arma::mat update_factors (
     const arma::mat& L_T,
+    const arma::mat& L_T_sqrd,
     arma::mat& FF,
     const arma::mat& Y,
     const std::vector<int> update_indices,
@@ -134,11 +154,12 @@ arma::mat update_factors (
     const double beta
 ) {
   
-  #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
+  #pragma omp parallel for shared(L_T, L_T_sqrd, Y, FF, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
     FF.col(j) = solve_pois_reg_cpp (
       L_T, 
+      L_T_sqrd,
       Y.col(j),
       FF.col(j), 
       update_indices,

@@ -293,6 +293,7 @@ fit_glmpca <- function(
             
             fit$LL <- update_loadings(
               F_T = FF_T,
+              F_T_sqrd = (FF_T ^ 2),
               L = fit$LL,
               Y_T = Y_T,
               update_indices = LL_update_indices,
@@ -376,6 +377,7 @@ fit_glmpca <- function(
             
             fit$FF <- update_factors(
               L_T = LL_T,
+              L_T_sqrd = (LL_T ^ 2),
               FF = fit$FF,
               Y = Y,
               update_indices = FF_update_indices,

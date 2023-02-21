@@ -6,7 +6,7 @@ set.seed(1)
 #data <- plash::generate_glmpca_data(n = 1000, p = 500, K = 1, link = "log1p")
 #data <- plash:::generate_data_simple(n = 1000, p = 500, K = 1, link = "log1p")
 
-data <- fastTopics::simulate_poisson_gene_data(n = 2500, m = 1250, k = 5)
+data <- fastTopics::simulate_poisson_gene_data(n = 5000, m = 2500, k = 5)
 data$Y <- data$X
 
 data$Y <- data$Y[rowSums(data$Y) > 0,]
