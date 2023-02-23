@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // update_loadings
-arma::mat update_loadings(const arma::mat& F_T, const arma::mat& F_T_sqrd, arma::mat& L, const arma::mat& Y_T, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP F_T_sqrdSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_loadings(const arma::mat& F_T, const arma::mat& F_T_sqrd, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP F_T_sqrdSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,18 +21,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type F_T_sqrd(F_T_sqrdSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, F_T_sqrd, L, Y_T, update_indices, num_iter, line_search, alpha, beta));
+    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, F_T_sqrd, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta));
     return rcpp_result_gen;
 END_RCPP
 }
 // update_factors
-arma::mat update_factors(const arma::mat& L_T, const arma::mat& L_T_sqrd, arma::mat& FF, const arma::mat& Y, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP L_T_sqrdSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_factors(const arma::mat& L_T, const arma::mat& L_T_sqrd, arma::mat& FF, const arma::mat& Y, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP L_T_sqrdSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -40,12 +41,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type L_T_sqrd(L_T_sqrdSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, L_T_sqrd, FF, Y, update_indices, num_iter, line_search, alpha, beta));
+    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, L_T_sqrd, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -191,8 +193,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 9},
-    {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 9},
+    {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 10},
+    {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 10},
     {"_plash_update_loadings_irls", (DL_FUNC) &_plash_update_loadings_irls, 6},
     {"_plash_update_factors_irls", (DL_FUNC) &_plash_update_factors_irls, 6},
     {"_plash_update_loadings_log1p", (DL_FUNC) &_plash_update_loadings_log1p, 8},

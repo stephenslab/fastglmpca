@@ -6,7 +6,7 @@ set.seed(1)
 #data <- plash::generate_glmpca_data(n = 1000, p = 500, K = 1, link = "log1p")
 #data <- plash:::generate_data_simple(n = 1000, p = 500, K = 1, link = "log1p")
 
-data <- fastTopics::simulate_poisson_gene_data(n = 5000, m = 2500, k = 5)
+data <- fastTopics::simulate_poisson_gene_data(n = 7500, m = 3750, k = 10)
 data$Y <- data$X
 
 data$Y <- data$Y[rowSums(data$Y) > 0,]
@@ -15,11 +15,11 @@ data$Y <- data$Y[, colSums(data$Y) > 0]
 sp_Y <- as(data$Y, "sparseMatrix")
 
 # first, get glmpca fit
-# tictoc::tic()
-# glmpca_fit <- glmpca::glmpca(
-#   Y = sp_Y, L = 5, optimizer = "fisher", ctl = list(verbose = TRUE), minibatch = "stochastic"
-# )
-# tictoc::toc()
+tictoc::tic()
+glmpca_fit <- glmpca::glmpca(
+  Y = data$Y, L = 10, optimizer = "fisher", ctl = list(verbose = TRUE)
+)
+tictoc::toc()
 # 
 # fit0 <- plash::init_glmpca(
 #   Y = data$Y, K = 1, fit_col_size_factor = FALSE, fit_row_intercept = FALSE
@@ -31,7 +31,7 @@ sp_Y <- as(data$Y, "sparseMatrix")
 
 set.seed(6)
 fit0 <- plash::init_glmpca(
-  Y = data$Y, K = 5, fit_col_size_factor = FALSE, fit_row_intercept = FALSE
+  Y = data$Y, K = 10, fit_col_size_factor = FALSE, fit_row_intercept = FALSE
 )
 
 tictoc::tic()
