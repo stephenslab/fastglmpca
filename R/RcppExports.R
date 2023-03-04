@@ -33,11 +33,11 @@ update_factors_log1p_sp <- function(L_T, FF, Y, update_indices, num_iter, line_s
     .Call(`_plash_update_factors_log1p_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
 }
 
-update_loadings_sp <- function(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta) {
-    .Call(`_plash_update_loadings_sp`, F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta)
+update_loadings_sp <- function(F_T, F_T_sqrd, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_loadings_sp`, F_T, F_T_sqrd, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta)
 }
 
-update_factors_sp <- function(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta) {
-    .Call(`_plash_update_factors_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
+update_factors_sp <- function(L_T, L_T_sqrd, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta) {
+    .Call(`_plash_update_factors_sp`, L_T, L_T_sqrd, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta)
 }
 

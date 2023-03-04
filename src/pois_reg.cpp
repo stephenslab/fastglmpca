@@ -45,7 +45,6 @@ inline arma::vec solve_pois_reg_cpp (
       j = update_indices[idx];
       
       // Take derivatives
-      //first_deriv = sum((exp_eta - y) % X.col(j));
       first_deriv = sum(exp_eta % X.col(j)) + deriv_const(j);
       second_deriv = sum(exp_eta % X_sqrd.col(j));
       

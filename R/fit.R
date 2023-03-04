@@ -263,8 +263,10 @@ fit_glmpca <- function(
             
             fit$LL <- update_loadings_sp(
               F_T = FF_T,
+              F_T_sqrd = (FF_T ^ 2),
               L = fit$LL,
               Y_T = Y_T,
+              deriv_const_mat = -Matrix::crossprod(FF_T, Y_T, boolArith = TRUE),
               update_indices = LL_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
@@ -348,8 +350,10 @@ fit_glmpca <- function(
             
             fit$FF <- update_factors_sp(
               L_T = LL_T,
+              L_T_sqrd = (LL_T ^ 2),
               FF = fit$FF,
               Y = Y,
+              deriv_const_mat = -Matrix::crossprod(LL_T, Y, boolArith = TRUE),
               update_indices = FF_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
