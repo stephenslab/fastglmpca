@@ -1,4 +1,4 @@
-lik_glmpca_pois_log <- function(Y, LL, FF, const) {
+lik_glmpca_pois_log <- function(Y, LL, FF, s, const) {
   
   H <- crossprod(LL, FF)
   lik <- sum(Y * H - exp(H)) - const
@@ -6,10 +6,18 @@ lik_glmpca_pois_log <- function(Y, LL, FF, const) {
   
 }
 
-lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
+lik_glmpca_pois_log1p <- function(Y, LL, FF, s, const) {
   
   exp_H <- exp(crossprod(LL, FF))
   lik <- sum(Y * log(exp_H - 1) - exp_H) - const
+  return(lik)
+  
+}
+
+lik_glmpca_pois_logsp <- function(Y, LL, FF, s, const) {
+  
+  exp_H <- exp(crossprod(LL, FF))
+  lik <- sum(Y * log(exp_H - s) - exp_H)
   return(lik)
   
 }
@@ -114,7 +122,8 @@ fit_glmpca <- function(
     Y, 
     K, 
     fit0, 
-    link = c("log", "log1p"),
+    link = c("log", "log1p", "logsp"),
+    s = 1,
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
@@ -212,12 +221,17 @@ fit_glmpca <- function(
     loglik_const <- sum(lfactorial(Y)) - n * p
     loglik_func <- lik_glmpca_pois_log1p
     
+  } else if (link == "logsp") {
+    
+    loglik_const <- sum(lfactorial(Y)) - n * p
+    loglik_func <- lik_glmpca_pois_logsp
+    
   }
   
   current_lik <- do.call(
     loglik_func,
     list(
-      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const, s = s
     )
   )
 
@@ -289,7 +303,23 @@ fit_glmpca <- function(
           
         } else {
           
-          if (link == "log") {
+          if (link == "logsp") {
+            
+            fit$LL <- update_loadings_logsp(
+              F_T = FF_T,
+              L = fit$LL,
+              Y_T = Y_T,
+              s = s,
+              update_indices = LL_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
+          
+          else if (link == "log") {
             
             fit$LL <- update_loadings(
               F_T = FF_T,
@@ -372,7 +402,22 @@ fit_glmpca <- function(
           
         } else {
           
-          if (link == "log") {
+          if (link == "logsp") {
+            
+            fit$FF <- update_factors_logsp(
+              L_T = LL_T,
+              FF = fit$FF,
+              Y = Y,
+              s = s,
+              update_indices = FF_update_indices,
+              num_iter = control$num_iter,
+              line_search = control$line_search,
+              alpha = control$alpha,
+              beta = control$beta
+            )
+            
+          }
+          else if (link == "log") {
             
             fit$FF <- update_factors(
               L_T = LL_T,
@@ -420,7 +465,7 @@ fit_glmpca <- function(
     new_lik <- do.call(
       loglik_func,
       list(
-        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const, s = s
       )
     )
 
