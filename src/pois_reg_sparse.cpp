@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #include <omp.h>
 #include <Rcpp.h>
+#include <Rinterface.h>
 using namespace arma;
 using namespace Rcpp;
 
@@ -60,6 +61,7 @@ inline arma::vec solve_pois_reg_cpp_sp (
         
         while(!step_accepted) {
           
+          Rprintf("%f\n", t);
           b(j) = b_j_og - t * newton_dir;
           //eta = X * b;
           eta_proposed = eta - old_b_sub + b(j) * X.col(j);

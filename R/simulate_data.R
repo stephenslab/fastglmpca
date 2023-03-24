@@ -73,7 +73,7 @@ generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
   l_sampler <- distr::r(l_dist)
   f_sampler <- distr::r(f_dist)
   
-  cell_totals <- runif(n = p, min = 50, max = 5000)
+  cell_totals <- ceiling(runif(n = p, min = n / 2, max = n * 2))
   
   for (k in 1:K) {
     
