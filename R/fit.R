@@ -1,4 +1,4 @@
-lik_glmpca_pois_log <- function(Y, LL, FF, const) {
+lik_glmpca_pois_log <- function(Y, LL, FF, const, s) {
   
   H <- crossprod(LL, FF)
   lik <- sum(Y * H - exp(H)) - const
@@ -6,11 +6,19 @@ lik_glmpca_pois_log <- function(Y, LL, FF, const) {
   
 }
 
-lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
+lik_glmpca_pois_log1p <- function(Y, LL, FF, const, s) {
   
   exp_H <- exp(crossprod(LL, FF))
   lik <- sum(Y * log(exp_H - 1) - exp_H) - const
   return(lik)
+  
+}
+
+lik_glmpca_pois_logsp <- function(Y, LL, FF, const, s) {
+  
+  Lambda <- s * (exp(crossprod(LL, FF)) - 1)
+  lik <- dpois(x = as.vector(Y), lambda = as.vector(Lambda), log = TRUE)
+  sum(lik)
   
 }
 
@@ -114,7 +122,8 @@ fit_glmpca <- function(
     Y, 
     K, 
     fit0, 
-    link = c("log", "log1p"),
+    link = c("log", "log1p", "logsp"),
+    s = 1,
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
@@ -212,12 +221,17 @@ fit_glmpca <- function(
     loglik_const <- sum(lfactorial(Y)) - n * p
     loglik_func <- lik_glmpca_pois_log1p
     
+  } else if (link == "logsp") {
+    
+    loglik_func <- lik_glmpca_pois_logsp
+    loglik_const <- 0
+    
   }
   
   current_lik <- do.call(
     loglik_func,
     list(
-      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const, s = s
     )
   )
 
@@ -315,6 +329,25 @@ fit_glmpca <- function(
               beta = control$beta
             )
             
+          } else if (link == "logsp") {
+            
+            fit$LL <- foreach::foreach(
+              i = 1:n,
+              .combine = 'cbind'
+            ) %do% {
+              
+              if (i == 2) {
+                
+                print(0)
+                
+              }
+              
+              solve_pois_reg_logsp_b(
+                X_T = fit$FF, y = Y[i, ], s = s, b_init = fit$LL[, i]
+              )
+              
+            }
+            
           }
           
         }
@@ -398,6 +431,25 @@ fit_glmpca <- function(
               beta = control$beta
             )
             
+          } else if (link == "logsp") {
+            
+            fit$FF <- foreach::foreach(
+              j = 1:p,
+              .combine = 'cbind'
+            ) %do% {
+              
+              if (j == 2) {
+                
+                print(0)
+                
+              }
+              
+              solve_pois_reg_logsp_b(
+                X_T = fit$LL, y = Y[, j], s = s, b_init = fit$FF[, j]
+              )
+              
+            }
+            
           }
           
         }
@@ -420,7 +472,7 @@ fit_glmpca <- function(
     new_lik <- do.call(
       loglik_func,
       list(
-        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const, s = s
       )
     )
 

@@ -119,7 +119,7 @@ init_glmpca <- function(
     }
     
     fit$LL <- matrix(
-      data = runif(K_total * n, 0, 0.1),
+      data = runif(K_total * n, .Machine$double.eps, 1),
       nrow = K_total, 
       ncol = n
     )
@@ -156,7 +156,7 @@ init_glmpca <- function(
     }
     
     fit$FF <- matrix(
-      data = runif(K_total * p, 0, .1), nrow = K_total, ncol = p
+      data = runif(K_total * p, .Machine$double.eps, 1), nrow = K_total, ncol = p
     )
     
     if (fit_col_size_factor && fit_row_intercept) {
