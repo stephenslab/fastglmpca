@@ -24,7 +24,7 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 #' \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 #' Poisson rate is defined as a linear combination of the parameters:
-#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K l_{ki} f_{kj}.} The model
+#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K l_{ki} f_{kj} = (L'F)_{ij}.} The model
 #' parameters are stored as an K x n matrix \eqn{L} with entries
 #' \eqn{l_{jk}} and an K x p matrix \eqn{F} with entries \eqn{f_{ik}}.
 #' \eqn{K} is a tuning parameter specifying the rank of the matrices
@@ -118,7 +118,7 @@ fit_glmpca <- function(
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
-    verbose = c("likelihood", "none", "detailed"),
+    verbose = c("likelihood", "none"),
     algorithm = c("ccd", "irls"),
     control = list()
 ) {
