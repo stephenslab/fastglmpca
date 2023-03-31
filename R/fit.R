@@ -235,9 +235,13 @@ fit_glmpca <- function(
   
   iter_vec <- numeric(max_iter)
   loglik_vec <- numeric(max_iter)
+  time_vec <- numeric(max_iter)
   
   iter_vec[1] <- 0
   loglik_vec[1] <- current_lik
+  
+  start_time <- Sys.time()
+  time_vec[1] <- 0
   
   while (!converged && t <= max_iter) {
     
@@ -440,14 +444,21 @@ fit_glmpca <- function(
       
     } 
     
+    end_iter_time <- Sys.time()
+    time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
     current_lik <- new_lik
+    time_vec[t + 1] <- time_since_start
     iter_vec[t + 1] <- t
     loglik_vec[t + 1] <- current_lik
     t <- t + 1
     
   }
   
-  fit$progress <- data.frame(iteration = iter_vec[1:t], loglik = loglik_vec[1:t])
+  fit$progress <- data.frame(
+    iteration = iter_vec[1:t], 
+    loglik = loglik_vec[1:t],
+    time_elapsed = time_vec[1:t]
+  )
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
