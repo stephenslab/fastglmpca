@@ -495,3 +495,61 @@ fit_glmpca_irls_control_default <- function() {
     num_iter = 10
   )
 }
+
+fast_fit <- function(Y, fit0, n_iter = 10) {
+  
+  fit <- fit0
+  loglik_const <- sum(lfactorial(Y))
+  loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
+  print(loglik)
+  
+  Y_T <- t(Y)
+  
+  for (i in 1:n_iter) {
+    
+    deriv_L_T <- crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
+    deriv_L_T_2 <- crossprod(exp(crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
+    
+    newton_L <- t(deriv_L_T / deriv_L_T_2)
+    
+    step <- 1
+    proposed_LL <- fit$LL - step * newton_L
+    while(lik_glmpca_pois_log(Y, proposed_LL, fit$FF, loglik_const) < loglik) {
+      
+      step <- step * .5
+      proposed_LL <- fit$LL - step * newton_L
+      
+    }
+    
+    fit$LL <- proposed_LL
+    
+    loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
+    
+    print(loglik)
+    
+    deriv_F_T <- crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
+    deriv_F_T_2 <- crossprod(exp(crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
+    
+    newton_F <- t(deriv_F_T / deriv_F_T_2)
+    
+    step <- 1
+    proposed_FF <- fit$FF - step * newton_F
+    while(lik_glmpca_pois_log(Y, fit$LL, proposed_FF, loglik_const) < loglik) {
+      
+      step <- step * .5
+      proposed_FF <- fit$FF - step * newton_F
+      
+    }
+    
+    fit$FF <- proposed_FF
+    
+    loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
+    
+    print(loglik)
+    
+  }
+  
+  return(fit)
+  
+}
+

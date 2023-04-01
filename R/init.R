@@ -56,6 +56,7 @@ init_glmpca <- function(
     K,
     LL,
     FF,
+    link = c("log", "log1p"),
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
     fixed_loadings = NULL,
@@ -100,6 +101,8 @@ init_glmpca <- function(
   
   fit <- list()
   
+  link <- match.arg(link)
+  
   if(!missing(K)) {
     
     if(!is.scalar(K) || K < 1) 
@@ -118,16 +121,34 @@ init_glmpca <- function(
       
     }
     
-    fit$LL <- matrix(
-      data = runif(K_total * n, 0, 0.1),
-      nrow = K_total, 
-      ncol = n
-    )
+    if (link == "log1p") {
+      
+      fit$LL <- matrix(
+        data = runif(K_total * n, 0, 0.1),
+        nrow = K_total, 
+        ncol = n
+      )
+      
+    } else if (link == "log") {
+      
+      fit$LL <- matrix(
+        data = rnorm(K_total * n, 0, sd=1e-5/(K + as.numeric(fit_row_intercept))),
+        nrow = K_total, 
+        ncol = n
+      )
+      
+    }
     
     if (fit_col_size_factor) {
       
       fit$LL[1, ] <- 1
       fit$fixed_loadings <- c(1)
+      
+      if (fit_row_intercept) {
+        
+        fit$LL[2, ] <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
+        
+      }
       
       rownames(fit$LL) <- c(
         "size_factor", 
@@ -137,6 +158,12 @@ init_glmpca <- function(
     } else {
       
       fit$fixed_loadings <- NULL
+      
+      if (fit_row_intercept) {
+        
+        fit$LL[1, ] <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
+        
+      }
       
     }
     
@@ -155,9 +182,19 @@ init_glmpca <- function(
       
     }
     
-    fit$FF <- matrix(
-      data = runif(K_total * p, 0, .1), nrow = K_total, ncol = p
-    )
+    if(link == "log1p") {
+      
+      fit$FF <- matrix(
+        data = runif(K_total * p, 0, .1), nrow = K_total, ncol = p
+      )
+      
+    } else if (link == "log") {
+      
+      fit$FF <- matrix(
+        data = rnorm(K_total * p, 0, sd = 1e-5 / K), nrow = K_total, ncol = p
+      )
+      
+    }
     
     if (fit_col_size_factor && fit_row_intercept) {
       
