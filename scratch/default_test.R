@@ -31,7 +31,7 @@ sp_Y <- as(data$Y, "sparseMatrix")
 
 set.seed(6)
 fit0 <- plash::init_glmpca(
-  Y = data$Y, K = 5
+  Y = sp_Y, K = 5, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
 )
 
 #fast <- plash:::fast_fit(
@@ -46,7 +46,7 @@ fit0 <- plash::init_glmpca(
 tictoc::tic()
 fast_glmpca_fit_log1p <- plash:::fit_glmpca(
   Y = data$Y, fit0 = fit0, tol = 1e-4, algorithm = "ccd", link = "log",
-  control = list(line_search = TRUE, num_iter = 5), warmup = TRUE, warmup_steps = 20
+  control = list(line_search = TRUE, num_iter = 5), warmup = TRUE, warmup_steps = 5, max_iter = 10
 )
 tictoc::toc()
 

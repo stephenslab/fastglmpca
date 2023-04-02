@@ -6,6 +6,14 @@ lik_glmpca_pois_log <- function(Y, LL, FF, const) {
   
 }
 
+lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
+  
+  lik <- sum(Y * crossprod(LL, FF) - exp(crossprod(LL, FF))) - const
+  return(lik)
+  
+}
+
+
 lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
   
   exp_H <- exp(crossprod(LL, FF))
@@ -204,15 +212,25 @@ fit_glmpca <- function(
   Y_T <- Matrix::t(Y)
   
   # calculate part of log likelihood that doesn't change
-  if (link == "log") {
+  if (link == "log" && !inherits(Y, "sparseMatrix")) {
     
     loglik_const <- sum(lfactorial(Y))
     loglik_func <- lik_glmpca_pois_log
     
-  } else if (link == "log1p") {
+  } else if (link == "log1p" && !inherits(Y, "sparseMatrix")) {
     
     loglik_const <- sum(lfactorial(Y)) - n * p
     loglik_func <- lik_glmpca_pois_log1p
+    
+  } else if (link == "log" && inherits(Y, "sparseMatrix")) {
+    
+    loglik_const <- sum(MatrixExtra::mapSparse(Y, lfactorial))
+    loglik_func <- lik_glmpca_pois_log_sp
+    
+  } else if (link == "log1p" && inherits(Y, "sparseMatrix")) {
+    
+    loglik_const <- sum(MatrixExtra::mapSparse(Y, lfactorial)) - n * p
+    loglik_func <- lik_glmpca_pois_log
     
   }
   
