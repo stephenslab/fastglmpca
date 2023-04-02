@@ -114,6 +114,8 @@ fit_glmpca <- function(
     Y, 
     K, 
     fit0, 
+    warmup = FALSE,
+    warmup_steps = 5,
     link = c("log", "log1p"),
     tol = 1e-4,
     min_iter = 1,
@@ -233,17 +235,27 @@ fit_glmpca <- function(
       )
   }
   
-  iter_vec <- numeric(max_iter)
-  loglik_vec <- numeric(max_iter)
-  time_vec <- numeric(max_iter)
+  fit$progress <- list()
+  fit$progress[["iter"]] <- numeric(max_iter)
+  fit$progress[["loglik"]] <- numeric(max_iter)
+  fit$progress[["time"]] <- numeric(max_iter)
   
-  iter_vec[1] <- 0
-  loglik_vec[1] <- current_lik
+  fit$progress$iter[1] <- 0
+  fit$progress$loglik[1] <- current_lik
+  fit$progress$time[1] <- 0
   
-  start_time <- Sys.time()
-  time_vec[1] <- 0
+  # now, run warmup iterations if desired
+  if (warmup) {
+    
+    fit <- warmup(Y, Y_T, fit, loglik_const, warmup_steps, current_lik, verbose)
+    t <- t + warmup_steps
+    current_lik <- fit$progress$loglik[t]
+    
+  }
   
   while (!converged && t <= max_iter) {
+    
+    start_time <- Sys.time()
     
     if (verbose != "none") {
       
@@ -447,18 +459,16 @@ fit_glmpca <- function(
     end_iter_time <- Sys.time()
     time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
     current_lik <- new_lik
-    time_vec[t + 1] <- time_since_start
-    iter_vec[t + 1] <- t
-    loglik_vec[t + 1] <- current_lik
+    fit$progress$time[t + 1] <- time_since_start
+    fit$progress$iter[t + 1] <- t
+    fit$progress$loglik[t + 1] <- current_lik
     t <- t + 1
     
   }
   
-  fit$progress <- data.frame(
-    iteration = iter_vec[1:t], 
-    loglik = loglik_vec[1:t],
-    time_elapsed = time_vec[1:t]
-  )
+  fit$progress$time <- fit$progress$time[1:t]
+  fit$progress$iter <- fit$progress$iter[1:t]
+  fit$progress$loglik <- fit$progress$loglik[1:t]
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
@@ -496,56 +506,98 @@ fit_glmpca_irls_control_default <- function() {
   )
 }
 
-fast_fit <- function(Y, fit0, n_iter = 10) {
+warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) {
   
-  fit <- fit0
-  loglik_const <- sum(lfactorial(Y))
-  loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
-  print(loglik)
+  # I want to fix a mask for LL and FF
+  LL_mask <- matrix(
+    data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
+  )
   
-  Y_T <- t(Y)
+  LL_mask[fit$fixed_loadings, ] <- 0
+  
+  FF_mask <- matrix(
+    data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
+  )
+  
+  FF_mask[fit$fixed_factors, ] <- 0
+  
+  loglik <- starting_loglik
   
   for (i in 1:n_iter) {
+    
+    if (verbose != "none") {
+      
+      cat(
+        sprintf(
+          "Iteration %d: Log-Likelihood = %+0.8e\n", i - 1, loglik
+        )
+      )
+      
+    }
+    
+    start_time <- Sys.time()
     
     deriv_L_T <- crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
     deriv_L_T_2 <- crossprod(exp(crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
     
-    newton_L <- t(deriv_L_T / deriv_L_T_2)
+    newton_L <- t(deriv_L_T / deriv_L_T_2) * LL_mask
     
     step <- 1
-    proposed_LL <- fit$LL - step * newton_L
-    while(lik_glmpca_pois_log(Y, proposed_LL, fit$FF, loglik_const) < loglik) {
+    converged <- FALSE
+    while (!converged) {
       
-      step <- step * .5
       proposed_LL <- fit$LL - step * newton_L
+      new_loglik <- lik_glmpca_pois_log(Y, proposed_LL, fit$FF, loglik_const)
+      if (new_loglik >= loglik) {
+        
+        converged <- TRUE
+        
+      } else {
+        
+        step <- .5 * step
+        
+      }
       
     }
     
     fit$LL <- proposed_LL
     
-    loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
-    
-    print(loglik)
+    loglik <- new_loglik
     
     deriv_F_T <- crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
     deriv_F_T_2 <- crossprod(exp(crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
     
-    newton_F <- t(deriv_F_T / deriv_F_T_2)
+    newton_F <- t(deriv_F_T / deriv_F_T_2) * FF_mask
     
     step <- 1
-    proposed_FF <- fit$FF - step * newton_F
-    while(lik_glmpca_pois_log(Y, fit$LL, proposed_FF, loglik_const) < loglik) {
+    converged <- FALSE
+    while(!converged) {
       
-      step <- step * .5
       proposed_FF <- fit$FF - step * newton_F
+      new_loglik <- lik_glmpca_pois_log(Y, fit$LL, proposed_FF, loglik_const)
+      
+      if (new_loglik >= loglik) {
+        
+        converged <- TRUE
+        
+      } else {
+        
+        step <- .5 * step
+        
+      }
       
     }
     
     fit$FF <- proposed_FF
     
-    loglik <- lik_glmpca_pois_log(Y, fit$LL, fit$FF, loglik_const)
+    loglik <- new_loglik
     
-    print(loglik)
+    end_time <- Sys.time()
+    time_elapsed <- as.numeric(difftime(end_time, start_time, units = "secs"))
+    
+    fit$progress$iter[i + 1] <- i
+    fit$progress$loglik[i + 1] <- loglik
+    fit$progress$time[i + 1] <- time_elapsed
     
   }
   

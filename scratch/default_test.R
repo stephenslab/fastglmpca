@@ -3,7 +3,7 @@
 # then I can get fancier
 # and also add to the documentation
 set.seed(1)
-data <- plash::generate_glmpca_data(n = 7500, p = 3750, K = 10, link = "log")
+data <- plash::generate_glmpca_data(n = 2500, p = 1750, K = 5, link = "log")
 #data <- plash:::generate_data_simple(n = 1000, p = 500, K = 1, link = "log1p")
 
 # data <- fastTopics::simulate_poisson_gene_data(n = 2500, m = 1250, k = 5)
@@ -31,22 +31,22 @@ sp_Y <- as(data$Y, "sparseMatrix")
 
 set.seed(6)
 fit0 <- plash::init_glmpca(
-  Y = data$Y, K = 10
+  Y = data$Y, K = 5
 )
 
-fast <- plash:::fast_fit(
-  Y = data$Y, fit0 = fit0, n_iter = 10
-)
+#fast <- plash:::fast_fit(
+#  Y = data$Y, fit0 = fit0, n_iter = 10
+#)
 
-set.seed(6)
-fit0 <- plash::init_glmpca(
-  Y = data$Y, K = 10
-)
+#set.seed(6)
+#fit0 <- plash::init_glmpca(
+#  Y = data$Y, K = 10
+#)
 
 tictoc::tic()
 fast_glmpca_fit_log1p <- plash:::fit_glmpca(
   Y = data$Y, fit0 = fit0, tol = 1e-4, algorithm = "ccd", link = "log",
-  control = list(line_search = TRUE, num_iter = 5)
+  control = list(line_search = TRUE, num_iter = 5), warmup = TRUE
 )
 tictoc::toc()
 
