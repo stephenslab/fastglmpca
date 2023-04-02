@@ -537,8 +537,8 @@ warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) 
     
     start_time <- Sys.time()
     
-    deriv_L_T <- crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
-    deriv_L_T_2 <- crossprod(exp(crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
+    deriv_L_T <- Matrix::crossprod(exp(Matrix::crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
+    deriv_L_T_2 <- Matrix::crossprod(exp(Matrix::crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
     
     newton_L <- t(deriv_L_T / deriv_L_T_2) * LL_mask
     
@@ -564,8 +564,8 @@ warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) 
     
     loglik <- new_loglik
     
-    deriv_F_T <- crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
-    deriv_F_T_2 <- crossprod(exp(crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
+    deriv_F_T <- Matrix::crossprod(exp(Matrix::crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
+    deriv_F_T_2 <- Matrix::crossprod(exp(Matrix::crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
     
     newton_F <- t(deriv_F_T / deriv_F_T_2) * FF_mask
     
