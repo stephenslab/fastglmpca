@@ -9,6 +9,7 @@ init_glmpca(
   K,
   LL,
   FF,
+  link = c("log", "log1p"),
   fit_col_size_factor = FALSE,
   fit_row_intercept = FALSE,
   fixed_loadings = NULL,

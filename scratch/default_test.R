@@ -14,11 +14,15 @@ data$Y <- data$Y[, colSums(data$Y) > 0]
 
 sp_Y <- as(data$Y, "sparseMatrix")
 
+fit0 <- plash::init_glmpca(
+  Y = sp_Y, K = 5, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+)
+
 # first, get glmpca fit
 # tictoc::tic()
-# glmpca_fit <- glmpca::glmpca(
-#   Y = sp_Y, L = 5, optimizer = "fisher", ctl = list(verbose = TRUE), minibatch = "stochastic"
-# )
+glmpca_fit <- glmpca::glmpca(
+  Y = sp_Y, L = 5, optimizer = "avagrad", ctl = list(verbose = TRUE, maxIter = 100), minibatch = "stochastic"
+)
 # tictoc::toc()
 # 
 # fit0 <- plash::init_glmpca(

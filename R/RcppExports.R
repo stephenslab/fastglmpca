@@ -41,3 +41,11 @@ update_factors_sp <- function(L_T, FF, Y, update_indices, num_iter, line_search,
     .Call(`_plash_update_factors_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
 }
 
+big_exp_crossprod <- function(L, F, n, p) {
+    .Call(`_plash_big_exp_crossprod`, L, F, n, p)
+}
+
+big_elementwise_mult_crossprod <- function(L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y) {
+    .Call(`_plash_big_elementwise_mult_crossprod`, L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y)
+}
+

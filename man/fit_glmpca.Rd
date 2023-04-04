@@ -8,6 +8,8 @@ fit_glmpca(
   Y,
   K,
   fit0,
+  warmup = FALSE,
+  warmup_steps = 5,
   link = c("log", "log1p"),
   tol = 1e-04,
   min_iter = 1,
