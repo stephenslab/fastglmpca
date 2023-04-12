@@ -1,3 +1,5 @@
 ^TODO\.txt$
 ^LICENSE$
 ^\.github$
+^.*\.Rproj$
+^\.Rproj\.user$
