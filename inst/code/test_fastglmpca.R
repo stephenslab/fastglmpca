@@ -15,6 +15,7 @@ Y <- dat$Y
 set.seed(1)
 out <- glmpca(Y,L = 3,optimizer = "fisher",
               ctl = list(minIter = 2,maxIter = 8,tol = 1e-8,penalty = 0))
+loglik0 <- out$lik
 U <- as.matrix(cbind(out$X,out$offsets,out$factors))
 V <- as.matrix(cbind(out$coefX,1,out$loadings))
 colnames(U) <- c("intercept","offset",paste0("d",1:3))
@@ -36,8 +37,8 @@ pdat <- rbind(data.frame(method = "glmpca (fisher)",
                          iter   = seq(1,80),
                          loglik = out$lik),
               data.frame(method = "fastglmpca (ccd)",
-                         iter   = 1:41,
-                         loglik = fit$progress$loglik))
+                         iter   = seq(1,41 + length(loglik0)),
+                         loglik = c(loglik0,fit$progress$loglik)))
 bestloglik <- max(pdat$loglik)
 pdat <- transform(pdat,loglik = bestloglik - loglik + 1e-4)
 p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
