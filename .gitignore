@@ -1,6 +1,7 @@
 *.o
 *.so
 *.dll
+*.tmp
 .Rhistory
 .Rapp.history
 .RData
