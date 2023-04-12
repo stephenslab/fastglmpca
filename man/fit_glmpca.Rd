@@ -11,7 +11,7 @@ fit_glmpca(
   warmup = FALSE,
   warmup_steps = 5,
   link = c("log", "log1p"),
-  tol = 1e-04,
+  tol = 0.0001,
   min_iter = 1,
   max_iter = 100,
   verbose = c("likelihood", "none"),
