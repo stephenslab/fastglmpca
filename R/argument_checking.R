@@ -11,6 +11,9 @@ verify.matrix <- function (x, arg.name = deparse(substitute(x))) {
 }
 
 # Verify that x is a valid count matrix.
+#
+#' @importFrom Matrix rowSums
+#' @importFrom Matrix colSums
 verify.count.matrix <- function (x, arg.name = deparse(substitute(x))) {
   arg.name <- sprintf("\"%s\"",arg.name)
   msg <- paste("Input argument",arg.name,"should be a non-negative,",
@@ -22,7 +25,7 @@ verify.count.matrix <- function (x, arg.name = deparse(substitute(x))) {
     stop(msg)
   else if (any(x < 0))
     stop(msg)
-  else if (!(all(Matrix::rowSums(x) > 0) & all(Matrix::colSums(x) > 0)))
+  else if (!(all(rowSums(x) > 0) & all(colSums(x) > 0)))
     stop(msg)
   return(TRUE)
 }

@@ -13,11 +13,13 @@
 #'   for each individual element is just \deqn{H_j} normalized.
 #'
 #' @param n Number of rows (genes).
+#' 
 #' @param p Number of columns (cells).
+#' 
 #' @param K Rank of the underlying mean structure
+#' 
 #' @param link Character vector describing the link between the product 
 #'   of the loading and factors and the mean of the data.
-#'   
 #'
 #' @return list with the following components
 #' \itemize{
@@ -25,12 +27,20 @@
 #'   \item FF - factors of underlying mean structure. A K x p matrix
 #'   \item Y - n x p matrix of generated data.
 #' }
-#' @export
 #'
 #' @examples
 #' set.seed(1)
 #' sim_data <- generate_glmpca_data(1000, 500, 1)
 #' 
+#' @importFrom stats runif
+#' @importFrom stats rmultinom
+#' @importFrom distr Unif
+#' @importFrom distr Dirac
+#' @importFrom distr r
+#' @importFrom distr UnivarMixingDistribution
+#' 
+#' @export
+#'
 generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
   
   if (!is.scalar(K) || K < 1) {
@@ -56,17 +66,17 @@ generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
   LL <- matrix(nrow = K, ncol = n)
   FF <- matrix(nrow = K, ncol = p)
   
-  l_dist <- distr::UnivarMixingDistribution(
-    distr::Unif(0, .01),
-    distr::Dirac(1.35),
-    distr::Dirac(2.35),
+  l_dist <- UnivarMixingDistribution(
+    Unif(0, .01),
+    Dirac(1.35),
+    Dirac(2.35),
     mixCoeff = rep((1/3), 3)
   )
   
-  f_dist <- distr::UnivarMixingDistribution(
-    distr::Unif(0, .01),
-    distr::Dirac(1.35),
-    distr::Dirac(2.35),
+  f_dist <- UnivarMixingDistribution(
+    Unif(0, .01),
+    Dirac(1.35),
+    Dirac(2.35),
     mixCoeff = rep((1/3), 3)
   )
   
@@ -111,6 +121,9 @@ generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
   
 }
 
+#' @importFrom stats rpois
+#' @importFrom distr UnivarMixingDistribution
+#' @importFrom distr Unif
 generate_data_simple <- function(n, p, K, link = c("log", "log1p")) {
   
   if (!is.scalar(K) || K < 1) {
@@ -136,17 +149,17 @@ generate_data_simple <- function(n, p, K, link = c("log", "log1p")) {
   LL <- matrix(nrow = K, ncol = n)
   FF <- matrix(nrow = K, ncol = p)
   
-  l_dist <- distr::UnivarMixingDistribution(
-    distr::Unif(0, .01),
-    distr::Unif(.25, .5),
-    distr::Unif(.5, .75),
+  l_dist <- UnivarMixingDistribution(
+    Unif(0, .01),
+    Unif(.25, .5),
+    Unif(.5, .75),
     mixCoeff = rep((1/3), 3)
   )
   
-  f_dist <- distr::UnivarMixingDistribution(
-    distr::Unif(0, .01),
-    distr::Unif(.25, .5),
-    distr::Unif(.5, .75),
+  f_dist <- UnivarMixingDistribution(
+    Unif(0, .01),
+    Unif(.25, .5),
+    Unif(.5, .75),
     mixCoeff = rep((1/3), 3)
   )
   

@@ -48,6 +48,10 @@
 #'   \code{\link{fit_glmpca}} for details.
 #'
 #' @seealso \code{\link{fit_glmpca}}
+#'
+#' @importFrom Matrix rowSums
+#' @importFrom Matrix colMeans
+#' @importFrom stats rnorm
 #' 
 #' @export
 #' 
@@ -146,7 +150,7 @@ init_glmpca <- function(
       
       if (fit_row_intercept) {
         
-        fit$LL[2, ] <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
+        fit$LL[2, ] <- log(rowSums(Y) / sum(colMeans(Y)))
         
       }
       
@@ -161,7 +165,7 @@ init_glmpca <- function(
       
       if (fit_row_intercept) {
         
-        fit$LL[1, ] <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
+        fit$LL[1, ] <- log(rowSums(Y) / sum(colMeans(Y)))
         
       }
       
@@ -204,7 +208,7 @@ init_glmpca <- function(
         
       }
       
-      fit$FF[1, ] <- log(Matrix::colMeans(Y))
+      fit$FF[1, ] <- log(colMeans(Y))
       
       # Intercept
       fit$FF[2, ] <- 1
@@ -220,7 +224,7 @@ init_glmpca <- function(
         
       }
       
-      fit$FF[1, ] <- log(Matrix::colMeans(Y))
+      fit$FF[1, ] <- log(colMeans(Y))
       fit$fixed_factors <- c(1)
       rownames(fit$FF) <- c("size_factor", paste0("factor_", c(1:K)))
       
@@ -238,7 +242,7 @@ init_glmpca <- function(
     
   } else {
     
-    fit$FF <- init_FF
+    fit$FF <- FF
     fit$fixed_factors <- fixed_factors
     
   }

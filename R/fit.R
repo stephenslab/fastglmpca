@@ -8,7 +8,7 @@ lik_glmpca_pois_log <- function(Y, LL, FF, const) {
 
 lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
   
-  Y_summary <- Matrix::summary(Y)
+  Y_summary <- summary(Y)
   lik <- big_elementwise_mult_crossprod(
     LL,
     FF,
@@ -110,7 +110,11 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' family. In \emph{Advances in Neural Information Processing Systems} 14.
 #'
 #' @return An object capturing the final state of the model fit.
-#'   
+#'
+#' @import Matrix
+#' @importFrom utils modifyList
+#' @importFrom MatrixExtra mapSparse
+#' 
 #' @export
 #' 
 #' @examples 
@@ -222,7 +226,7 @@ fit_glmpca <- function(
     
   }
 
-  Y_T <- Matrix::t(Y)
+  Y_T <- t(Y)
   
   # calculate part of log likelihood that doesn't change
   if (link == "log" && !inherits(Y, "sparseMatrix")) {
@@ -237,12 +241,12 @@ fit_glmpca <- function(
     
   } else if (link == "log" && inherits(Y, "sparseMatrix")) {
     
-    loglik_const <- sum(MatrixExtra::mapSparse(Y, lfactorial))
+    loglik_const <- sum(mapSparse(Y, lfactorial))
     loglik_func <- lik_glmpca_pois_log_sp
     
   } else if (link == "log1p" && inherits(Y, "sparseMatrix")) {
     
-    loglik_const <- sum(MatrixExtra::mapSparse(Y, lfactorial)) - n * p
+    loglik_const <- sum(mapSparse(Y, lfactorial)) - n * p
     loglik_func <- lik_glmpca_pois_log
     
   }
@@ -537,6 +541,7 @@ fit_glmpca_irls_control_default <- function() {
   )
 }
 
+#' @importFrom Matrix crossprod
 warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) {
   
   # I want to fix a mask for LL and FF
@@ -568,8 +573,8 @@ warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) 
     
     start_time <- Sys.time()
     
-    deriv_L_T <- Matrix::crossprod(exp(Matrix::crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
-    deriv_L_T_2 <- Matrix::crossprod(exp(Matrix::crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
+    deriv_L_T <- crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF))
+    deriv_L_T_2 <- crossprod(exp(crossprod(fit$FF, fit$LL)), t(fit$FF ^ 2))
     
     newton_L <- t(deriv_L_T / deriv_L_T_2) * LL_mask
     
@@ -595,8 +600,8 @@ warmup <- function(Y, Y_T, fit, loglik_const, n_iter, starting_loglik, verbose) 
     
     loglik <- new_loglik
     
-    deriv_F_T <- Matrix::crossprod(exp(Matrix::crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
-    deriv_F_T_2 <- Matrix::crossprod(exp(Matrix::crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
+    deriv_F_T <- crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL))
+    deriv_F_T_2 <- crossprod(exp(crossprod(fit$LL, fit$FF)), t(fit$LL ^ 2))
     
     newton_F <- t(deriv_F_T / deriv_F_T_2) * FF_mask
     
