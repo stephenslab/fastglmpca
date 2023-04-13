@@ -53,9 +53,11 @@ print(range(ll - out$lik))
 
 # Check that the estimates returned by glmpca and fit_glmpca mostly
 # agree.
-U <- as.matrix(cbind(out$X,out$offsets,out$factors))
+U <- as.matrix(cbind(out$X,out$offsets,out$U[,-1]))
 V <- as.matrix(cbind(out$coefX,1,out$loadings))
-plot(U,t(fit$FF),pch = 20)
+plot(scale(U,center = TRUE,scale = TRUE),
+     scale(t(fit$FF),center = TRUE,scale = TRUE),
+     pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 plot(V,t(fit$LL),pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
