@@ -14,21 +14,25 @@ Y <- dat$Y
 # Generate an initial fit of the Poisson GLM-PCA by running 10
 # iterations of the glmpca "Fisher scoring" algorithm.
 set.seed(1)
-out <- glmpca(Y,L = 3,optimizer = "fisher",
-              ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 0))
-loglik0 <- out$lik
-U <- as.matrix(cbind(out$X,out$offsets,out$factors))
-V <- as.matrix(cbind(out$coefX,1,out$loadings))
+out0 <- glmpca(Y,L = 3,optimizer = "fisher",
+               ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 0))
+loglik0 <- out0$lik
+U <- as.matrix(cbind(out0$X,out$offsets,out0$factors))
+V <- as.matrix(cbind(out0$coefX,1,out0$loadings))
 colnames(U) <- c("intercept","offset",paste0("d",1:3))
 colnames(V) <- c("intercept","offset",paste0("d",1:3))
 fit0 <- init_glmpca(Y,LL = t(V),FF = t(U),fixed_factors = 1:2,
                     fixed_loadings = 2)
 
-# Fit the Poisson GLM-PCA model by running 80 iterations of the
-# glmpca Fisher scoring algorithm.
-set.seed(1)
+# Fit the Poisson GLM-PCA model by running 80 iterations of the glmpca
+# Fisher scoring algorithm. I perform two runs of glmpca, with and
+# without a penalty.
 out <- glmpca(Y,L = 3,optimizer = "fisher",
               ctl = list(maxIter = 80,tol = 1e-8,penalty = 0))
+
+set.seed(1)
+out1 <- glmpca(Y,L = 3,optimizer = "fisher",
+               ctl = list(maxIter = 80,tol = 1e-8,penalty = 1))
 
 # Fit the Poisson GLM-PCA model by running 70 ccd updates.
 fit <- fit_glmpca(Y,fit0 = fit0,max_iter = 70,algorithm = "ccd",tol = 1e-15)
@@ -52,6 +56,9 @@ abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 pdat <- rbind(data.frame(method = "glmpca (fisher)",
                          iter   = seq(1,80),
                          loglik = out$lik),
+              data.frame(method = "glmpca (fisher, penalty = 1)",
+                         iter   = seq(1,80),
+                         loglik = out1$lik),
               data.frame(method = "fastglmpca (ccd)",
                          iter   = seq(1,81),
                          loglik = c(loglik0,fit$progress$loglik)))
@@ -60,7 +67,7 @@ pdat <- transform(pdat,loglik = bestloglik - loglik + 1e-6)
 p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
   geom_line(size = 0.75) +
   scale_y_continuous(trans = "log10") +
-  scale_color_manual(values = c("darkblue","darkorange")) +
+  scale_color_manual(values = c("darkblue","dodgerblue","darkorange")) +
   labs(y = "distance to best loglik") +
   theme_cowplot(font_size = 12)
 print(p)
