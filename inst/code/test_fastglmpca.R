@@ -17,7 +17,7 @@ set.seed(1)
 out0 <- glmpca(Y,L = 3,optimizer = "fisher",
                ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 0))
 loglik0 <- out0$lik
-U <- as.matrix(cbind(out0$X,out$offsets,out0$factors))
+U <- as.matrix(cbind(out0$X,out0$offsets,out0$factors))
 V <- as.matrix(cbind(out0$coefX,1,out0$loadings))
 colnames(U) <- c("intercept","offset",paste0("d",1:3))
 colnames(V) <- c("intercept","offset",paste0("d",1:3))
@@ -27,6 +27,7 @@ fit0 <- init_glmpca(Y,LL = t(V),FF = t(U),fixed_factors = 1:2,
 # Fit the Poisson GLM-PCA model by running 80 iterations of the glmpca
 # Fisher scoring algorithm. I perform two runs of glmpca, with and
 # without a penalty.
+set.seed(1)
 out <- glmpca(Y,L = 3,optimizer = "fisher",
               ctl = list(maxIter = 80,tol = 1e-8,penalty = 0))
 
