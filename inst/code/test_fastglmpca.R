@@ -12,10 +12,9 @@ dat <- generate_glmpca_data(200,500,K = 3)
 Y <- dat$Y
 
 # Generate an initial fit of the Poisson GLM-PCA by running 10
-# iterations of the glmpca "Fisher scoring" algorithm.
-set.seed(1)
+# iterations of the glmpca "Fisher scoring" algorithm, with a penalty.
 out0 <- glmpca(Y,L = 3,optimizer = "fisher",
-               ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 0))
+               ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 1))
 loglik0 <- out0$lik
 U <- as.matrix(cbind(out0$X,out0$offsets,out0$factors))
 V <- as.matrix(cbind(out0$coefX,1,out0$loadings))
@@ -27,13 +26,21 @@ fit0 <- init_glmpca(Y,LL = t(V),FF = t(U),fixed_factors = 1:2,
 # Fit the Poisson GLM-PCA model by running 80 iterations of the glmpca
 # Fisher scoring algorithm. I perform two runs of glmpca, with and
 # without a penalty.
-set.seed(1)
 out <- glmpca(Y,L = 3,optimizer = "fisher",
-              ctl = list(maxIter = 80,tol = 1e-8,penalty = 0))
+              init = list(factors = as.matrix(out0$factors),
+                          loadings = as.matrix(out0$loadings)),
+              init_coefX = as.matrix(out0$coefX),
+              ctl = list(maxIter = 70,tol = 1e-8,penalty = 0))
 
-set.seed(1)
 out1 <- glmpca(Y,L = 3,optimizer = "fisher",
-               ctl = list(maxIter = 80,tol = 1e-8,penalty = 1))
+              init = list(factors = as.matrix(out0$factors),
+                          loadings = as.matrix(out0$loadings)),
+              init_coefX = as.matrix(out0$coefX),
+              ctl = list(maxIter = 70,tol = 1e-8,penalty = 1))
+out$dev  <- c(out0$dev,out$dev)
+out$lik  <- c(out0$lik,out$lik)
+out1$dev <- c(out0$dev,out1$dev)
+out1$lik <- c(out0$lik,out1$lik)
 
 # Fit the Poisson GLM-PCA model by running 70 ccd updates.
 fit <- fit_glmpca(Y,fit0 = fit0,max_iter = 70,algorithm = "ccd",tol = 1e-15)
