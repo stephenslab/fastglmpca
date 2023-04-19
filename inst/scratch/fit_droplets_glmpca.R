@@ -6,7 +6,12 @@ minibatch = as.character(command_args[4])
 
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 
-data <- as.matrix(counts)
+if (optimizer == "fisher") {
+  
+  data <- as.matrix(counts)
+  
+}
+
 
 set.seed(1)
 fit0 <- plash::init_glmpca(
@@ -14,15 +19,32 @@ fit0 <- plash::init_glmpca(
 )
 
 tic()
-fit <- glmpca::glmpca(
-  Y = data,
-  L = n_factors,
-  fam = "poi",
-  optimizer = optimizer,
-  minibatch = minibatch,
-  ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
-  init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
-)
+if(optimizer == "fisher") {
+  
+  fit <- glmpca::glmpca(
+    Y = data,
+    L = n_factors,
+    fam = "poi",
+    optimizer = optimizer,
+    minibatch = minibatch,
+    ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
+    init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
+  )
+  
+} else {
+  
+  fit <- glmpca::glmpca(
+    Y = counts,
+    L = n_factors,
+    fam = "poi",
+    optimizer = optimizer,
+    minibatch = minibatch,
+    ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
+    init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
+  )
+  
+}
+
 toc()
 
 readr::write_rds(
