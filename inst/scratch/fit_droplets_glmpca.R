@@ -4,7 +4,11 @@ n_iter = as.integer(command_args[2])
 optimizer = as.character(command_args[3])
 minibatch = as.character(command_args[4])
 
-load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
+print(optimizer)
+print(minibatch)
+
+#load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
+load("~/Documents/plash/scratch/droplet.RData")
 
 if (optimizer == "fisher") {
   
@@ -14,16 +18,29 @@ if (optimizer == "fisher") {
 
 
 set.seed(1)
-fit0 <- plash::init_glmpca(
-  Y = data, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
-)
+if (optimizer == "fisher") {
+  
+  fit0 <- plash::init_glmpca(
+    Y = data, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+  )
+  
+} else {
+  
+  fit0 <- plash::init_glmpca(
+    Y = counts, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+  )
+  
+}
+
+
+library(tictoc)
 
 tic()
 if(optimizer == "fisher") {
   
   fit <- glmpca::glmpca(
     Y = data,
-    L = n_factors,
+    L = n_factor,
     fam = "poi",
     optimizer = optimizer,
     minibatch = minibatch,
@@ -35,11 +52,11 @@ if(optimizer == "fisher") {
   
   fit <- glmpca::glmpca(
     Y = counts,
-    L = n_factors,
+    L = n_factor,
     fam = "poi",
     optimizer = optimizer,
     minibatch = minibatch,
-    ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
+    ctl = list(minIter = 11, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
     init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
   )
   
