@@ -44,7 +44,7 @@ if(optimizer == "fisher") {
     fam = "poi",
     optimizer = optimizer,
     minibatch = minibatch,
-    ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
+    ctl = list(minIter = floor(n_iter / 2), maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
     init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
   )
   
@@ -56,7 +56,7 @@ if(optimizer == "fisher") {
     fam = "poi",
     optimizer = optimizer,
     minibatch = minibatch,
-    ctl = list(minIter = 11, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
+    ctl = list(minIter = floor(n_iter / 2), maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
     init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
   )
   
