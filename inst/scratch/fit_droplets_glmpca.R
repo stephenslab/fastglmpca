@@ -1,8 +1,8 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
 n_iter = as.integer(command_args[2])
-optimizer = as.character(command_args[4])
-minibatch = as.character(command_args[5])
+optimizer = as.character(command_args[3])
+minibatch = as.character(command_args[4])
 
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 
@@ -19,6 +19,7 @@ fit <- glmpca::glmpca(
   L = n_factors,
   fam = "poi",
   optimizer = optimizer,
+  minibatch = minibatch,
   ctl = list(minIter = 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps),
   init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),]))
 )
