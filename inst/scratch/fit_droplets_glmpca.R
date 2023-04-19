@@ -1,7 +1,6 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
 n_iter = as.integer(command_args[2])
-n_cores = as.integer(command_args[3])
 optimizer = as.character(command_args[4])
 minibatch = as.character(command_args[5])
 
