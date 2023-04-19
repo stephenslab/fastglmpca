@@ -7,8 +7,8 @@ minibatch = as.character(command_args[4])
 print(optimizer)
 print(minibatch)
 
-#load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
-load("~/Documents/plash/scratch/droplet.RData")
+load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
+#load("~/Documents/plash/scratch/droplet.RData")
 
 if (optimizer == "fisher") {
   

@@ -4,6 +4,7 @@ n_iter = as.integer(command_args[2])
 n_cores = as.integer(command_args[3])
 
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
+#load("~/Documents/plash/scratch/droplet.RData")
 
 data <- as.matrix(counts)
 
@@ -12,6 +13,7 @@ fit0 <- plash::init_glmpca(
   Y = data, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
 )
 
+library(tictoc)
 tic()
 fit <- plash::fit_glmpca(
   Y = data, 
