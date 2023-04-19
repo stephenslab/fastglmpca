@@ -1,8 +1,8 @@
 Encoding: UTF-8
 Type: Package
 Package: plash
-Version: 0.1-4
-Date: 2023-04-12
+Version: 0.1-5
+Date: 2023-04-13
 Title: Fast Algorithms for Generalized Principal Component Analysis 
 Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
                     email="ericweine15@gmail.com"),
