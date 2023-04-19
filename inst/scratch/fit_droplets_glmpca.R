@@ -26,5 +26,5 @@ toc()
 
 readr::write_rds(
   fit, 
-  glue::glue("droplets_glmpca_fit_{n_cores}_cores_{n_factor}_factors_{n_iter}_iter_{optimizer}_optimizer_minibatch_{minibatch}.rds")
+  glue::glue("droplets_glmpca_fit_{n_factor}_factors_{n_iter}_iter_{optimizer}_optimizer_minibatch_{minibatch}.rds")
 )
