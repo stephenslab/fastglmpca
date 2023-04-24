@@ -2,6 +2,7 @@
 # package against glmpca.
 
 # remotes::install_github("eweine/glmpca",upgrade = "never")
+library(Matrix)
 library(glmpca)
 library(ggplot2)
 library(cowplot)
@@ -43,7 +44,9 @@ out1$dev <- c(out0$dev,out1$dev)
 out1$lik <- c(out0$lik,out1$lik)
 
 # Fit the Poisson GLM-PCA model by running 70 ccd updates.
-fit <- fit_glmpca(Y,fit0 = fit0,max_iter = 70,algorithm = "ccd",tol = 1e-15)
+Y_sparse <- as(Y,"dgCMatrix")
+fit <- fit_glmpca(Y_sparse,fit0 = fit0,max_iter = 70,
+                  algorithm = "ccd",tol = 1e-15)
 
 # Check that the glmpca log-likelihood and deviance calculations agree.
 k0 <- -sum(lgamma(Y + 1))
