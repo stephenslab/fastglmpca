@@ -42,8 +42,11 @@ out$lik  <- c(out0$lik,out$lik)
 out1$dev <- c(out0$dev,out1$dev)
 out1$lik <- c(out0$lik,out1$lik)
 
-# Fit the Poisson GLM-PCA model by running 70 ccd updates.
+# Fit the Poisson GLM-PCA model by running 70 ccd updates, with and
+# without the DAAREM acceleration scheme.
 fit <- fit_glmpca(Y,fit0 = fit0,max_iter = 70,algorithm = "ccd",tol = 1e-15)
+fit_daarem <- fit_glmpca(Y,fit0 = fit0,max_iter = 70,algorithm = "ccd",
+                         use_daarem = TRUE,tol = 1e-15)
 
 # Check that the glmpca log-likelihood and deviance calculations agree.
 k0 <- -sum(lgamma(Y + 1))
@@ -71,13 +74,17 @@ pdat <- rbind(data.frame(method = "glmpca (fisher)",
                          loglik = out1$lik),
               data.frame(method = "fastglmpca (ccd)",
                          iter   = seq(1,81),
-                         loglik = c(loglik0,fit$progress$loglik)))
+                         loglik = c(loglik0,fit$progress$loglik)),
+              data.frame(method = "fastglmpca (ccd + daarem)",
+                         iter   = seq(1,81),
+                         loglik = c(loglik0,fit_daarem$progress$loglik)))
 bestloglik <- max(pdat$loglik)
 pdat <- transform(pdat,loglik = bestloglik - loglik + 1e-6)
 p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
   geom_line(size = 0.75) +
   scale_y_continuous(trans = "log10") +
-  scale_color_manual(values = c("darkblue","dodgerblue","darkorange")) +
+  scale_color_manual(values = c("darkblue","dodgerblue","darkorange",
+                                "magenta")) +
   labs(y = "distance to best loglik") +
   theme_cowplot(font_size = 12)
 print(p)

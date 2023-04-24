@@ -96,6 +96,9 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #'   step.
 #'   
 #' @param algorithm String determining algorithm to use for updating \code{LL} and \code{FF}
+#'
+#' @param use_daarem Explain what this input argument is for, and how
+#'   to use it.
 #' 
 #' @param control List of control parameters to modify behavior of \code{algorithm}.
 #' 
@@ -114,6 +117,7 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' @import Matrix
 #' @importFrom utils modifyList
 #' @importFrom MatrixExtra mapSparse
+#' @importFrom daarem daarem
 #' 
 #' @export
 #' 
@@ -147,6 +151,7 @@ fit_glmpca <- function(
     max_iter = 100,
     verbose = c("likelihood", "none"),
     algorithm = c("ccd", "irls"),
+    use_daarem = FALSE,
     control = list()
 ) {
   
@@ -287,6 +292,28 @@ fit_glmpca <- function(
     current_lik <- fit$progress$loglik[t]
     
   }
+
+  if (use_daarem) {
+    n  <- ncol(fit$LL)
+    m  <- ncol(fit$FF)
+    k  <- nrow(fit$LL)
+    out <- daarem(c(fit$LL[LL_update_indices + 1,],
+                    fit$FF[FF_update_indices + 1,]),
+                  glmpca_update,glmpca_objective,
+                  Y,Y_T,fit$LL,fit$FF,
+                  LL_update_indices + 1,FF_update_indices + 1,
+                  glmpca_control = control,
+                  control = list(maxiter = max_iter,order = 2*k,tol = 0,
+                                 mon.tol = 0,kappa = 20,alpha = 1.2))
+    LL <- fit$LL
+    FF <- fit$FF
+    N  <- n*length(LL_update_indices)
+    LL[LL_update_indices + 1,] <- out$par[seq(1,N)]
+    FF[FF_update_indices + 1,] <- out$par[seq(N+1,length(out$par))]
+    fit$LL <- LL
+    fit$FF <- FF
+    fit$progress <- list(loglik = out$objfn.track)
+  } else {
   
   while (!converged && t <= max_iter) {
     
@@ -507,9 +534,61 @@ fit_glmpca <- function(
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
+  }
   
   return(fit)
   
+}
+
+glmpca_update <- function (par, Y, Y_T, LL0, FF0,
+                           LL_update_indices, FF_update_indices,
+                           glmpca_control) {
+  n  <- ncol(LL0)
+  m  <- ncol(FF0)
+  k  <- nrow(LL0)
+  LL <- LL0
+  FF <- FF0
+  N  <- n*length(LL_update_indices)
+  LL[LL_update_indices,] <- par[seq(1,N)]
+  FF[FF_update_indices,] <- par[seq(N+1,length(par))]
+  FF_T <- t(FF)
+  LL_T <- t(LL)
+
+  LL <- update_loadings(F_T = FF_T,L = LL,Y_T = Y_T,
+                        update_indices = LL_update_indices - 1,
+                        num_iter = glmpca_control$num_iter,
+                        line_search = glmpca_control$line_search,
+                        alpha = glmpca_control$alpha,
+                        beta = glmpca_control$beta)
+  
+  FF <- update_factors(L_T = LL_T,FF = FF,Y = Y,
+                       update_indices = FF_update_indices - 1,
+                       num_iter = glmpca_control$num_iter,
+                       line_search = glmpca_control$line_search,
+                       alpha = glmpca_control$alpha,
+                       beta = glmpca_control$beta)
+
+  return(c(LL[LL_update_indices,],
+           FF[FF_update_indices,]))
+}
+
+glmpca_objective <- function (par, Y, Y_T, LL0, FF0,
+                              LL_update_indices, FF_update_indices,
+                              glmpca_control) {
+  loglik_const <- sum(lfactorial(Y))
+  n  <- ncol(LL0)
+  m  <- ncol(FF0)
+  k  <- nrow(LL0)
+  LL <- LL0
+  FF <- FF0
+  N  <- n*length(LL_update_indices)
+  LL[LL_update_indices,] <- par[seq(1,N)]
+  FF[FF_update_indices,] <- par[seq(N+1,length(par))]
+  FF_T <- t(FF)
+  LL_T <- t(LL)
+  out <- lik_glmpca_pois_log(Y,LL,FF,loglik_const)
+  cat(sprintf("loglik = %0.6f\n",out))
+  return(out)
 }
 
 fit_glmpca_control_default <- function(algorithm) {

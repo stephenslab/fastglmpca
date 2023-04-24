@@ -16,6 +16,7 @@ fit_glmpca(
   max_iter = 100,
   verbose = c("likelihood", "none"),
   algorithm = c("ccd", "irls"),
+  use_daarem = FALSE,
   control = list()
 )
 }
@@ -46,6 +47,9 @@ iteration to the current iteration.}
 step.}
 
 \item{algorithm}{String determining algorithm to use for updating \code{LL} and \code{FF}}
+
+\item{use_daarem}{Explain what this input argument is for, and how
+to use it.}
 
 \item{control}{List of control parameters to modify behavior of \code{algorithm}.}
 }
