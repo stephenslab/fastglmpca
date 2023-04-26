@@ -15,20 +15,40 @@ fit0 <- plash::init_glmpca(
 
 library(tictoc)
 tic()
-fit <- plash::fit_glmpca(
+fit_init <- plash::fit_glmpca(
   Y = data, 
   fit0 = fit0, 
   algorithm = "ccd", 
   link = "log",
-  control = list(line_search = TRUE, num_iter = 3, alpha = .1),
-  warmup = TRUE, 
-  max_iter = n_iter,
-  tol = .Machine$double.eps
+  control = list(line_search = TRUE, num_iter = 3, alpha = .01),
+  warmup = FALSE, 
+  tol = .Machine$double.eps,
+  use_daarem = FALSE,
+  max_iter = 3
 )
 toc()
 
 readr::write_rds(
   fit, 
-  glue::glue("droplets_plash_fit_{n_cores}_cores_{n_factor}_factors_{n_iter}_iter.rds")
+  glue::glue("droplets_plash_fit_init_{n_cores}_cores_{n_factor}_factors_{n_iter}_iter.rds")
+)
+
+tic()
+fit_daarem <- plash::fit_glmpca(
+  Y = data, 
+  fit0 = fit_init, 
+  algorithm = "ccd", 
+  link = "log",
+  control = list(line_search = TRUE, num_iter = 3, alpha = .01),
+  warmup = FALSE, 
+  tol = .Machine$double.eps,
+  use_daarem = TRUE,
+  max_iter = n_iter - 3
+)
+toc()
+
+readr::write_rds(
+  fit, 
+  glue::glue("droplets_plash_fit_daarem_{n_cores}_cores_{n_factor}_factors_{n_iter}_iter.rds")
 )
 
