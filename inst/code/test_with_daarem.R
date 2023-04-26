@@ -28,6 +28,7 @@ fit_daarem <- fit_glmpca(Y = Y,fit0 = fit0,tol = 1e-4,algorithm = "ccd",
                          control = list(line_search = TRUE,num_iter = 4,
                                         alpha = 1e-4,beta = 0.5))
 
-plot(fit$progress$loglik,type = "l",lwd = 2,col = "darkblue")
+plot(fit$progress$loglik,type = "l",lwd = 2,col = "darkblue",
+     xlab = "iteration",ylab = "loglik")
 lines(fit_daarem$progress$loglik,lwd = 2,col = "darkorange",
       lty = "dashed")
