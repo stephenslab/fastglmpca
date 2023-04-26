@@ -2,6 +2,9 @@ lik_glmpca_pois_log <- function(Y, LL, FF, const) {
   
   H <- crossprod(LL, FF)
   lik <- sum(Y * H - exp(H)) - const
+  if (is.infinite(lik)) {
+    browser()
+  }
   return(lik)
   
 }
@@ -303,8 +306,8 @@ fit_glmpca <- function(
                   Y,Y_T,fit$LL,fit$FF,
                   LL_update_indices + 1,FF_update_indices + 1,
                   glmpca_control = control,
-                  control = list(maxiter = max_iter,order = 2*k,tol = 0,
-                                 mon.tol = 0,kappa = 20,alpha = 1.2))
+                  control = list(maxiter = max_iter,order = 10,tol = 0,
+                                 mon.tol = 0.01,kappa = 20,alpha = 1.2))
     LL <- fit$LL
     FF <- fit$FF
     N  <- n*length(LL_update_indices)
