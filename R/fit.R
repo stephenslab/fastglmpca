@@ -346,11 +346,13 @@ fit_glmpca <- function(
               F_T = FF_T,
               L = fit$LL,
               Y_T = Y_T,
+              deriv_const_mat = -crossprod(FF_T, Y_T),
               update_indices = LL_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -429,11 +431,13 @@ fit_glmpca <- function(
               L_T = LL_T,
               FF = fit$FF,
               Y = Y,
+              deriv_const_mat = -crossprod(LL_T, Y),
               update_indices = FF_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -531,7 +535,8 @@ fit_glmpca_ccd_control_default <- function() {
     alpha = .25,
     beta = .5,
     line_search = TRUE,
-    num_iter = 5
+    num_iter = 5,
+    ccd_iter_tol = 0
   )
 }
 
