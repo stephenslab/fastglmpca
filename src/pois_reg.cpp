@@ -14,7 +14,8 @@ inline arma::vec solve_pois_reg_cpp (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta
+    const double beta,
+    const double ccd_iter_tol
   ) {
   
   double current_lik; // used to store log likelihood of each iteration
@@ -22,25 +23,27 @@ inline arma::vec solve_pois_reg_cpp (
   double second_deriv;
   double newton_dir;
   double newton_dec;
-  arma::vec eta;
+  arma::vec eta = X * b;
   arma::vec eta_proposed;
-  arma::vec exp_eta;
+  arma::vec exp_eta_proposed;
+  arma::vec exp_eta = exp(eta);
   double t;
   bool step_accepted;
   double f_proposed;
   int j;
   double b_j_og;
+  double start_iter_lik;
   
   int num_indices = update_indices.size();
+  current_lik = sum(exp_eta - (y % eta));
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
+    
+    start_iter_lik = current_lik;
     
     for (int idx = 0; idx < num_indices; idx++) {
       
       j = update_indices[idx];
-      eta = X * b;
-      exp_eta = exp(eta);
-      current_lik = sum(exp_eta - (y % eta));
       
       // Now, take derivatives
       first_deriv = sum(exp_eta % X.col(j)) + deriv_const(j);
@@ -59,11 +62,15 @@ inline arma::vec solve_pois_reg_cpp (
           
           b(j) = b_j_og - t * newton_dir;
           eta_proposed = eta + (b(j) - b_j_og) * X.col(j);
-          f_proposed = sum(exp(eta_proposed) - (y % eta_proposed));
+          exp_eta_proposed = exp(eta_proposed);
+          f_proposed = sum(exp_eta_proposed - (y % eta_proposed));
           
           if (f_proposed <= current_lik - t * newton_dec) {
             
             step_accepted = true;
+            current_lik = f_proposed;
+            eta = eta_proposed;
+            exp_eta = exp_eta_proposed;
             
           } else {
             
@@ -79,6 +86,13 @@ inline arma::vec solve_pois_reg_cpp (
         b(j) = b(j) - newton_dir;
         
       }
+      
+    }
+    
+    // if the negative log likelihood didn't increase substantially, break
+    if (start_iter_lik - current_lik < ccd_iter_tol) {
+      
+      break;
       
     }
     
@@ -103,7 +117,8 @@ arma::mat update_loadings (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta
+    const double beta,
+    const double ccd_iter_tol
 ) {
   
   const arma::mat F_T_sqrd = arma::pow(F_T, 2);
@@ -121,7 +136,8 @@ arma::mat update_loadings (
       num_iter,
       line_search,
       alpha,
-      beta
+      beta,
+      ccd_iter_tol
     );
     
   }
@@ -141,7 +157,8 @@ arma::mat update_factors (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta
+    const double beta,
+    const double ccd_iter_tol
 ) {
   
   const arma::mat L_T_sqrd = arma::pow(L_T, 2);
@@ -159,7 +176,8 @@ arma::mat update_factors (
       num_iter,
       line_search,
       alpha,
-      beta
+      beta,
+      ccd_iter_tol
     );
     
   }

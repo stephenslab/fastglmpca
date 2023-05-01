@@ -351,7 +351,8 @@ fit_glmpca <- function(
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -435,7 +436,8 @@ fit_glmpca <- function(
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -533,7 +535,8 @@ fit_glmpca_ccd_control_default <- function() {
     alpha = .25,
     beta = .5,
     line_search = TRUE,
-    num_iter = 5
+    num_iter = 5,
+    ccd_iter_tol = 0
   )
 }
 

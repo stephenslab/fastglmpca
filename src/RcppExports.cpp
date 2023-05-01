@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // update_loadings
-arma::mat update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
+RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,13 +26,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta));
+    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_loadings(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
     return rcpp_result_gen;
 END_RCPP
 }
 // update_factors
-arma::mat update_factors(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+arma::mat update_factors(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
+RcppExport SEXP _plash_update_factors(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -45,7 +46,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta));
+    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -221,8 +223,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 9},
-    {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 9},
+    {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 10},
+    {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 10},
     {"_plash_update_loadings_irls", (DL_FUNC) &_plash_update_loadings_irls, 6},
     {"_plash_update_factors_irls", (DL_FUNC) &_plash_update_factors_irls, 6},
     {"_plash_update_loadings_log1p", (DL_FUNC) &_plash_update_loadings_log1p, 8},
