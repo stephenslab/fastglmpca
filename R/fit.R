@@ -100,7 +100,7 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #'   
 #' @param algorithm String determining algorithm to use for updating \code{LL} and \code{FF}
 #'
-#' @param use_daarem Explain what this input argument is for, and how
+#' @param use_extrapolation Explain what this input argument is for, and how
 #'   to use it.
 #' 
 #' @param control List of control parameters to modify behavior of \code{algorithm}.
@@ -154,7 +154,7 @@ fit_glmpca <- function(
     max_iter = 100,
     verbose = c("likelihood", "none"),
     algorithm = c("ccd", "irls"),
-    use_daarem = FALSE,
+    use_extrapolation = FALSE,
     control = list()
 ) {
   
@@ -296,26 +296,18 @@ fit_glmpca <- function(
     
   }
 
-  if (use_daarem) {
-    n  <- ncol(fit$LL)
-    m  <- ncol(fit$FF)
-    k  <- nrow(fit$LL)
-    out <- daarem(c(fit$LL[LL_update_indices + 1,],
-                    fit$FF[FF_update_indices + 1,]),
-                  glmpca_update,glmpca_objective,
-                  Y,Y_T,fit$LL,fit$FF,
-                  LL_update_indices + 1,FF_update_indices + 1,
-                  glmpca_control = control,
-                  control = list(maxiter = max_iter,order = 10,tol = 0,
-                                 mon.tol = 0.01,kappa = 20,alpha = 1.2))
-    LL <- fit$LL
-    FF <- fit$FF
-    N  <- n*length(LL_update_indices)
-    LL[LL_update_indices + 1,] <- out$par[seq(1,N)]
-    FF[FF_update_indices + 1,] <- out$par[seq(N+1,length(out$par))]
-    fit$LL <- LL
-    fit$FF <- FF
-    fit$progress <- list(loglik = out$objfn.track)
+  if (use_extrapolation) {
+    loglik <- fit$progress$loglik
+    loss <- -glmpca_objective(Y,fit$LL,fit$FF)
+    fit <- list(FF = fit$FF,LL = fit$LL,Fn = fit$FF,Ln = fit$LL,
+                Fy = fit$FF,Ly = fit$LL,beta = 0.5,betamax = 0.99,
+                loss = loss,loss.fnly = loss)
+    for (t in 1:(max_iter + 1)) {
+      fit <- update_glmpca_extrapolated(Y,Y_T,fit,LL_update_indices,
+                                        FF_update_indices,control)
+      loglik[t] <- glmpca_objective(Y,fit$LL,fit$FF)
+    }
+    fit$progress <- list(loglik = loglik)
   } else {
   
   while (!converged && t <= max_iter) {
@@ -543,52 +535,91 @@ fit_glmpca <- function(
   
 }
 
-glmpca_update <- function (par, Y, Y_T, LL0, FF0,
-                           LL_update_indices, FF_update_indices,
-                           glmpca_control) {
-  n  <- ncol(LL0)
-  m  <- ncol(FF0)
-  k  <- nrow(LL0)
-  LL <- LL0
-  FF <- FF0
-  N  <- n*length(LL_update_indices)
-  LL[LL_update_indices,] <- par[seq(1,N)]
-  FF[FF_update_indices,] <- par[seq(N+1,length(par))]
+update_glmpca_extrapolated <- function (Y, Y_T, fit, LL_update_indices,
+                                        FF_update_indices, control) {
+  beta.increase    <- 1.1
+  beta.reduce      <- 0.75
+  betamax.increase <- 1.05
+  
+  # Store the value of the objective (loss) function at the current
+  # iterate (Fn, Ly).
+  loss0.fnly <- fit$loss.fnly
+
+  # Compute the extrapolated update for L.
+  # Note that when beta is zero, Ly = Ln.
+  Ln     <- glmpca_update(Y,Y_T,fit$Ly,fit$Fy,LL_update_indices,
+                          FF_update_indices,control)$LL
+  fit$Ly <- Ln + fit$beta*(Ln - fit$Ln)
+
+  # Compute the extrapolated update for F.
+  # Note that when beta = 0, Fy = Fn.
+  Fn     <- glmpca_update(Y,Y_T,fit$Ly,fit$Fy,LL_update_indices,
+                          FF_update_indices,control)$FF
+  fit$Fy <- Fn + fit$beta*(Fn - fit$Fn)
+
+  # Compute the value of the objective (loss) function at the
+  # extrapolated solution for the loadings (Ly) and the
+  # non-extrapolated solution for the factors (Fn).
+  fit$loss.fnly <- -glmpca_objective(Y,fit$Ly,Fn)
+
+  # Update the extrapolation parameters following Algorithm 3 of
+  # Ang & Gillis (2019).
+  if (fit$loss.fnly >= loss0.fnly) {
+
+    # The solution did not improve, so restart the extrapolation
+    # scheme.
+    fit$Fy      <- fit$Fn
+    fit$Ly      <- fit$Ln
+    fit$betamax <- fit$beta0
+    fit$beta    <- beta.reduce * fit$beta
+  } else {
+        
+    # The solution improved; retain the basic co-ordinate ascent
+    # update as well.
+    fit$Fn      <- Fn
+    fit$Ln      <- Ln
+    fit$beta    <- min(fit$betamax,beta.increase * fit$beta)
+    fit$beta0   <- fit$beta
+    fit$betamax <- min(0.99,betamax.increase * fit$betamax)
+  }
+ 
+  # If the solution improves the "current best" estimate, update the
+  # current best estimate using the non-extrapolated estimates of the
+  # factors (Fn) and the extrapolated estimates of the loadings (Ly).
+  if (fit$loss.fnly < fit$loss) {
+    fit$FF   <- Fn
+    fit$LL   <- fit$Ly 
+    fit$loss <- fit$loss.fnly
+  }
+
+  # Output the updated "fit".
+  return(fit)
+}
+
+glmpca_update <- function (Y, Y_T, LL, FF, LL_update_indices,
+                           FF_update_indices, control) {
   FF_T <- t(FF)
   LL_T <- t(LL)
 
   LL <- update_loadings(F_T = FF_T,L = LL,Y_T = Y_T,
-                        update_indices = LL_update_indices - 1,
-                        num_iter = glmpca_control$num_iter,
-                        line_search = glmpca_control$line_search,
-                        alpha = glmpca_control$alpha,
-                        beta = glmpca_control$beta)
+                        update_indices = LL_update_indices,
+                        num_iter = control$num_iter,
+                        line_search = control$line_search,
+                        alpha = control$alpha,
+                        beta = control$beta)
   
   FF <- update_factors(L_T = LL_T,FF = FF,Y = Y,
-                       update_indices = FF_update_indices - 1,
-                       num_iter = glmpca_control$num_iter,
-                       line_search = glmpca_control$line_search,
-                       alpha = glmpca_control$alpha,
-                       beta = glmpca_control$beta)
+                       update_indices = FF_update_indices,
+                       num_iter = control$num_iter,
+                       line_search = control$line_search,
+                       alpha = control$alpha,
+                       beta = control$beta)
 
-  return(c(LL[LL_update_indices,],
-           FF[FF_update_indices,]))
+  return(list(LL = LL,FF = FF))
 }
 
-glmpca_objective <- function (par, Y, Y_T, LL0, FF0,
-                              LL_update_indices, FF_update_indices,
-                              glmpca_control) {
+glmpca_objective <- function (Y, LL, FF) {
   loglik_const <- sum(lfactorial(Y))
-  n  <- ncol(LL0)
-  m  <- ncol(FF0)
-  k  <- nrow(LL0)
-  LL <- LL0
-  FF <- FF0
-  N  <- n*length(LL_update_indices)
-  LL[LL_update_indices,] <- par[seq(1,N)]
-  FF[FF_update_indices,] <- par[seq(N+1,length(par))]
-  FF_T <- t(FF)
-  LL_T <- t(LL)
   out <- lik_glmpca_pois_log(Y,LL,FF,loglik_const)
   cat(sprintf("loglik = %0.6f\n",out))
   return(out)
