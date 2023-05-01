@@ -6,6 +6,7 @@ using namespace Rcpp;
 
 inline arma::vec solve_pois_reg_cpp (
     const arma::mat X, 
+    const arma::mat X_sqrd,
     const arma::vec y, 
     arma::vec b, 
     const std::vector<int> update_indices,
@@ -19,13 +20,15 @@ inline arma::vec solve_pois_reg_cpp (
   double first_deriv;
   double second_deriv;
   double newton_dir;
+  double newton_dec;
   arma::vec eta;
+  arma::vec eta_proposed;
   arma::vec exp_eta;
   double t;
   bool step_accepted;
-  double b_j_og;
   double f_proposed;
   int j;
+  double b_j_og;
   
   int num_indices = update_indices.size();
   
@@ -40,7 +43,7 @@ inline arma::vec solve_pois_reg_cpp (
       
       // Now, take derivatives
       first_deriv = sum((exp_eta - y) % X.col(j));
-      second_deriv = sum(exp_eta % pow(X.col(j), 2));
+      second_deriv = sum(exp_eta % X_sqrd.col(j));
       
       newton_dir = first_deriv / second_deriv;
       
@@ -48,22 +51,22 @@ inline arma::vec solve_pois_reg_cpp (
         
         t = 1.0;
         step_accepted = false;
+        newton_dec = alpha * first_deriv * newton_dir;
         b_j_og = b(j);
-        
+
         while(!step_accepted) {
           
-          b(j) = b(j) - t * newton_dir;
-          eta = X * b;
-          f_proposed = sum(exp(eta) - (y % eta));
+          b(j) = b_j_og - t * newton_dir;
+          eta_proposed = eta + (b(j) - b_j_og) * X.col(j);
+          f_proposed = sum(exp(eta_proposed) - (y % eta_proposed));
           
-          if (f_proposed <= current_lik - alpha * t * first_deriv * newton_dir) {
+          if (f_proposed <= current_lik - t * newton_dec) {
             
             step_accepted = true;
             
           } else {
             
             t = beta * t;
-            b(j) = b_j_og;
             
           }
           
@@ -101,11 +104,14 @@ arma::mat update_loadings (
     const double beta
 ) {
   
+  const arma::mat F_T_sqrd = arma::pow(F_T, 2);
+  
   #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
     
     L.col(i) = solve_pois_reg_cpp (
       F_T, 
+      F_T_sqrd,
       Y_T.col(i),
       L.col(i), 
       update_indices,
@@ -134,11 +140,14 @@ arma::mat update_factors (
     const double beta
 ) {
   
+  const arma::mat L_T_sqrd = arma::pow(L_T, 2);
+  
   #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
   for (int j = 0; j < Y.n_cols; j++) {
     
     FF.col(j) = solve_pois_reg_cpp (
       L_T, 
+      L_T_sqrd,
       Y.col(j),
       FF.col(j), 
       update_indices,
