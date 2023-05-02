@@ -291,6 +291,8 @@ fit_glmpca <- function(
   FF_mask[fit$fixed_factors, ] <- 0
   FF_mask <- t(FF_mask)
   
+  fixed_rows <- union(fit$fixed_factors, fit$fixed_loadings)
+  
   fit$progress$iter[1] <- 0
   fit$progress$loglik[1] <- current_lik
   fit$progress$time[1] <- 0
@@ -492,6 +494,12 @@ fit_glmpca <- function(
       }
 
     }
+    
+    # rescale loadings and factors for numerical stability
+    d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))
+    d[fixed_rows] <- 1
+    fit$FF <- fit$FF * d
+    fit$LL <- fit$LL / d
     
     new_lik <- do.call(
       loglik_func,
