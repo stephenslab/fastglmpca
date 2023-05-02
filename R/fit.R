@@ -593,20 +593,24 @@ glmpca_update <- function (par, Y, Y_T, LL0, FF0,
   FF[FF_update_indices,] <- par[seq(N+1,length(par))]
   FF_T <- t(FF)
   LL_T <- t(LL)
-
+  
   LL <- update_loadings(F_T = FF_T,L = LL,Y_T = Y_T,
+                        deriv_const_mat = -crossprod(FF_T, Y_T),
                         update_indices = LL_update_indices - 1,
                         num_iter = glmpca_control$num_iter,
                         line_search = glmpca_control$line_search,
                         alpha = glmpca_control$alpha,
-                        beta = glmpca_control$beta)
-  
+                        beta = glmpca_control$beta,
+                        ccd_iter_tol = glmpca_control$ccd_iter_tol)
+ 
   FF <- update_factors(L_T = LL_T,FF = FF,Y = Y,
+                       deriv_const_mat = -crossprod(LL_T, Y),
                        update_indices = FF_update_indices - 1,
                        num_iter = glmpca_control$num_iter,
                        line_search = glmpca_control$line_search,
                        alpha = glmpca_control$alpha,
-                       beta = glmpca_control$beta)
+                       beta = glmpca_control$beta,
+                       ccd_iter_tol = glmpca_control$ccd_iter_tol)
 
   return(c(LL[LL_update_indices,],
            FF[FF_update_indices,]))
