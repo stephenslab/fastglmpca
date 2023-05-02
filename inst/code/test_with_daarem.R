@@ -32,7 +32,7 @@ fit_daarem <- fit_glmpca(Y = Y,fit0 = fit0,tol = 1e-4,algorithm = "ccd",
                                         alpha = 1e-4,beta = 0.5))
 
 y <- max(c(fit$progress$loglik,fit_daarem$progress$loglik))
-plot(y - fit$progress$loglik + 0.01,type = "l",lwd = 2,col = "darkblue",
-     xlab = "iteration",ylab = "loglik",log = "y",ylim = c(0.01,1e6))
-lines(y - fit_daarem$progress$loglik + 0.01,lwd = 2,col = "darkorange",
+plot(y - fit$progress$loglik + 0.1,type = "l",lwd = 2,col = "darkblue",
+     xlab = "iteration",ylab = "loglik",log = "y",ylim = c(0.1,1e6))
+lines(y - fit_daarem$progress$loglik + 0.1,lwd = 2,col = "darkorange",
       lty = "dashed")
