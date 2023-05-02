@@ -2,6 +2,7 @@
 # package against glmpca.
 
 # remotes::install_github("eweine/glmpca",upgrade = "never")
+library(Matrix)
 library(glmpca)
 library(ggplot2)
 library(cowplot)
