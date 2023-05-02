@@ -510,7 +510,7 @@ fit_glmpca <- function(
 
     if (new_lik >= current_lik && t >= min_iter) {
       
-      rel_improvement <- abs((new_lik - current_lik) / current_lik)
+      rel_improvement <- new_lik - current_lik
       if (rel_improvement < tol) {
         
         converged <- TRUE
