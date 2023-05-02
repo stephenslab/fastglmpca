@@ -274,10 +274,31 @@ fit_glmpca <- function(
   fit$progress[["iter"]] <- numeric(max_iter)
   fit$progress[["loglik"]] <- numeric(max_iter)
   fit$progress[["time"]] <- numeric(max_iter)
+  fit$progress[["max_FF_deriv"]] <- numeric(max_iter)
+  fit$progress[["max_LL_deriv"]] <- numeric(max_iter)
+  
+  LL_mask <- matrix(
+    data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
+  )
+  
+  LL_mask[fit$fixed_loadings, ] <- 0
+  LL_mask <- t(LL_mask)
+  
+  FF_mask <- matrix(
+    data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
+  )
+  
+  FF_mask[fit$fixed_factors, ] <- 0
+  FF_mask <- t(FF_mask)
   
   fit$progress$iter[1] <- 0
   fit$progress$loglik[1] <- current_lik
   fit$progress$time[1] <- 0
+  # note, this may use a lot of memory for sparse matrices
+  # figure out a way around this
+  # could probably do it in a loop
+  fit$progress$max_FF_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+  fit$progress$max_LL_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
   
   # now, run warmup iterations if desired
   if (warmup) {
@@ -501,6 +522,8 @@ fit_glmpca <- function(
     fit$progress$time[t + 1] <- time_since_start
     fit$progress$iter[t + 1] <- t
     fit$progress$loglik[t + 1] <- current_lik
+    fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+    fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
     t <- t + 1
     
   }
@@ -508,6 +531,8 @@ fit_glmpca <- function(
   fit$progress$time <- fit$progress$time[1:t]
   fit$progress$iter <- fit$progress$iter[1:t]
   fit$progress$loglik <- fit$progress$loglik[1:t]
+  fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
+  fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
