@@ -33,12 +33,12 @@ update_factors_log1p_sp <- function(L_T, FF, Y, update_indices, num_iter, line_s
     .Call(`_plash_update_factors_log1p_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
 }
 
-update_loadings_sp <- function(F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta) {
-    .Call(`_plash_update_loadings_sp`, F_T, L, Y_T, update_indices, num_iter, line_search, alpha, beta)
+update_loadings_sp <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
+    .Call(`_plash_update_loadings_sp`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
-update_factors_sp <- function(L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta) {
-    .Call(`_plash_update_factors_sp`, L_T, FF, Y, update_indices, num_iter, line_search, alpha, beta)
+update_factors_sp <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
+    .Call(`_plash_update_factors_sp`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 big_exp_crossprod <- function(L, F, n, p) {
@@ -47,5 +47,9 @@ big_exp_crossprod <- function(L, F, n, p) {
 
 big_elementwise_mult_crossprod <- function(L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y) {
     .Call(`_plash_big_elementwise_mult_crossprod`, L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y)
+}
+
+deriv_product <- function(L, F) {
+    .Call(`_plash_deriv_product`, L, F)
 }
 

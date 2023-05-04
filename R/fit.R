@@ -226,7 +226,7 @@ fit_glmpca <- function(
     
   }
 
-  Y_T <- t(Y)
+  Y_T <- Matrix::t(Y)
   
   # calculate part of log likelihood that doesn't change
   if (link == "log" && !inherits(Y, "sparseMatrix")) {
@@ -276,31 +276,50 @@ fit_glmpca <- function(
   fit$progress[["time"]] <- numeric(max_iter)
   fit$progress[["max_FF_deriv"]] <- numeric(max_iter)
   fit$progress[["max_LL_deriv"]] <- numeric(max_iter)
+  fit$progress[["max_diff_FF"]] <- numeric(max_iter)
+  fit$progress[["max_diff_LL"]] <- numeric(max_iter)
   
   LL_mask <- matrix(
     data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
   )
   
   LL_mask[fit$fixed_loadings, ] <- 0
-  LL_mask <- t(LL_mask)
+  if(!inherits(Y, "sparseMatrix")) {
+    
+    LL_mask <- t(LL_mask)
+    
+  }
   
   FF_mask <- matrix(
     data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
   )
   
   FF_mask[fit$fixed_factors, ] <- 0
-  FF_mask <- t(FF_mask)
+  if(!inherits(Y, "sparseMatrix")) {
+    
+    FF_mask <- t(FF_mask)
+    
+  }
   
   fixed_rows <- union(fit$fixed_factors, fit$fixed_loadings)
   
   fit$progress$iter[1] <- 0
   fit$progress$loglik[1] <- current_lik
   fit$progress$time[1] <- 0
-  # note, this may use a lot of memory for sparse matrices
-  # figure out a way around this
-  # could probably do it in a loop
-  fit$progress$max_FF_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-  fit$progress$max_LL_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+  fit$progress$max_diff_FF[1] <- 0
+  fit$progress$max_diff_LL[1] <- 0
+  
+  if(inherits(Y, "sparseMatrix")) {
+    
+    fit$progress$max_FF_deriv[1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+    fit$progress$max_LL_deriv[1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+    
+  } else {
+    
+    fit$progress$max_FF_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+    fit$progress$max_LL_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+    
+  }
   
   # now, run warmup iterations if desired
   if (warmup) {
@@ -326,6 +345,7 @@ fit_glmpca <- function(
     }
     
     FF_T <- t(fit$FF)
+    start_iter_LL <- fit$LL
       
     if (length(LL_update_indices) > 0) {
       
@@ -339,11 +359,13 @@ fit_glmpca <- function(
               F_T = FF_T,
               L = fit$LL,
               Y_T = Y_T,
+              deriv_const_mat = -Matrix::crossprod(FF_T, Y_T),
               update_indices = LL_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -424,11 +446,13 @@ fit_glmpca <- function(
               L_T = LL_T,
               FF = fit$FF,
               Y = Y,
+              deriv_const_mat = -Matrix::crossprod(LL_T, Y),
               update_indices = FF_update_indices,
               num_iter = control$num_iter,
               line_search = control$line_search,
               alpha = control$alpha,
-              beta = control$beta
+              beta = control$beta,
+              ccd_iter_tol = control$ccd_iter_tol
             )
             
           } else if (link == "log1p") {
@@ -530,8 +554,21 @@ fit_glmpca <- function(
     fit$progress$time[t + 1] <- time_since_start
     fit$progress$iter[t + 1] <- t
     fit$progress$loglik[t + 1] <- current_lik
-    fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-    fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+    fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
+    fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
+    
+    if(inherits(Y, "sparseMatrix")) {
+      
+      fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+      fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+      
+    } else {
+      
+      fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+      
+    }
+    
     t <- t + 1
     
   }
@@ -541,6 +578,8 @@ fit_glmpca <- function(
   fit$progress$loglik <- fit$progress$loglik[1:t]
   fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
   fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
+  fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
+  fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t]
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
