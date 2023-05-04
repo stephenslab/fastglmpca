@@ -59,3 +59,47 @@ double big_elementwise_mult_crossprod(
   return(sum);
   
 }
+
+// L is K x n
+// F is K x p
+// compute L %*% exp(t(L) %*% F)
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::export]]
+arma::mat deriv_product(
+    const arma::mat& L,
+    const arma::mat& F
+) {
+  
+  int n = L.n_cols;
+  int K = L.n_rows;
+  int p = F.n_cols;
+  arma::mat prod;
+  prod.zeros(K, p);
+  double exp_arg;
+  
+  for (int i = 0; i < K; i++) {
+    
+    for (int j = 0; j < p; j++) {
+      
+      for (int k = 0; k < n; k++) {
+        
+        exp_arg = 0;
+        
+        for (int m = 0; m < K; m++) {
+          
+          exp_arg += L(m, k) * F(m, j);
+          
+        }
+        
+        prod(i, j) = prod(i, j) + L(i, k) * exp(exp_arg);
+          
+      }
+      
+    }
+    
+  }
+  
+  return(prod);
+  
+}
+
