@@ -99,6 +99,8 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' 
 #' @param control List of control parameters to modify behavior of \code{algorithm}.
 #' 
+#' @param use_daarem fill in
+#' 
 #' @references
 #' Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
 #' R. A. (2019). Feature selection and dimension reduction for
@@ -139,14 +141,13 @@ fit_glmpca <- function(
     Y, 
     K, 
     fit0, 
-    warmup = FALSE,
-    warmup_steps = 5,
     link = c("log", "log1p"),
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
     verbose = c("likelihood", "none"),
     algorithm = c("ccd", "irls"),
+    use_daarem = FALSE,
     control = list()
 ) {
   
@@ -321,265 +322,400 @@ fit_glmpca <- function(
     
   }
   
-  # now, run warmup iterations if desired
-  if (warmup) {
+  if (use_daarem) {
     
-    fit <- warmup(Y, Y_T, fit, loglik_const, warmup_steps, current_lik, verbose)
-    t <- t + warmup_steps
-    current_lik <- fit$progress$loglik[t]
+    num_updates <- 1
     
-  }
+    glmpca_update <- function (par, Y, Y_T, LL0, FF0,
+                               LL_update_indices, FF_update_indices,
+                               glmpca_control) {
+      n  <- ncol(LL0)
+      m  <- ncol(FF0)
+      k  <- nrow(LL0)
+      LL <- LL0
+      FF <- FF0
+      N  <- n*length(LL_update_indices)
+      LL[LL_update_indices,] <- par[seq(1,N)]
+      FF[FF_update_indices,] <- par[seq(N+1,length(par))]
+      FF_T <- t(FF)
+      LL_T <- t(LL)
+      
+      if(inherits(Y, "sparseMatrix")) {
+        
+        LL <- update_loadings_sp(F_T = FF_T,L = LL,Y_T = Y_T,
+                              deriv_const_mat = -Matrix::crossprod(FF_T, Y_T),
+                              update_indices = LL_update_indices - 1,
+                              num_iter = glmpca_control$num_iter,
+                              line_search = glmpca_control$line_search,
+                              alpha = glmpca_control$alpha,
+                              beta = glmpca_control$beta,
+                              ccd_iter_tol = glmpca_control$ccd_iter_tol)
+        
+        FF <- update_factors_sp(L_T = LL_T,FF = FF,Y = Y,
+                             deriv_const_mat = -Matrix::crossprod(LL_T, Y),
+                             update_indices = FF_update_indices - 1,
+                             num_iter = glmpca_control$num_iter,
+                             line_search = glmpca_control$line_search,
+                             alpha = glmpca_control$alpha,
+                             beta = glmpca_control$beta,
+                             ccd_iter_tol = glmpca_control$ccd_iter_tol)
+        
+      } else {
+        
+        LL <- update_loadings(F_T = FF_T,L = LL,Y_T = Y_T,
+                              deriv_const_mat = -crossprod(FF_T, Y_T),
+                              update_indices = LL_update_indices - 1,
+                              num_iter = glmpca_control$num_iter,
+                              line_search = glmpca_control$line_search,
+                              alpha = glmpca_control$alpha,
+                              beta = glmpca_control$beta,
+                              ccd_iter_tol = glmpca_control$ccd_iter_tol)
+        
+        FF <- update_factors(L_T = LL_T,FF = FF,Y = Y,
+                             deriv_const_mat = -crossprod(LL_T, Y),
+                             update_indices = FF_update_indices - 1,
+                             num_iter = glmpca_control$num_iter,
+                             line_search = glmpca_control$line_search,
+                             alpha = glmpca_control$alpha,
+                             beta = glmpca_control$beta,
+                             ccd_iter_tol = glmpca_control$ccd_iter_tol)
+        
+      }
+      
+      num_updates <<- num_updates + 1
+      
+      fit$progress$max_diff_FF[num_updates] <<- max(abs(LL - LL0))
+      fit$progress$max_diff_LL[num_updates] <<- max(abs(FF - FF0))
+      
+      if(inherits(Y, "sparseMatrix")) {
+        
+        fit$progress$max_FF_deriv[num_updates] <<- max(abs((deriv_product(LL, FF) - LL %*% Y) * FF_mask))
+        fit$progress$max_LL_deriv[num_updates] <<- max(abs((deriv_product(FF, LL) - Matrix::tcrossprod(FF, Y)) * LL_mask))
+        
+      } else {
+        
+        fit$progress$max_FF_deriv[num_updates] <<- max(abs(crossprod(exp(crossprod(LL, FF)) - Y, t(LL)) * FF_mask))
+        fit$progress$max_LL_deriv[num_updates] <<- max(abs(crossprod(exp(crossprod(FF, LL)) - Y_T, t(FF)) * LL_mask))
+        
+      }
+      
+      return(c(LL[LL_update_indices,],
+               FF[FF_update_indices,]))
+    }
+    
+    glmpca_objective <- function (par, Y, Y_T, LL0, FF0,
+                                  LL_update_indices, FF_update_indices,
+                                  glmpca_control) {
+      
+      n  <- ncol(LL0)
+      m  <- ncol(FF0)
+      k  <- nrow(LL0)
+      LL <- LL0
+      FF <- FF0
+      N  <- n*length(LL_update_indices)
+      LL[LL_update_indices,] <- par[seq(1,N)]
+      FF[FF_update_indices,] <- par[seq(N+1,length(par))]
+      FF_T <- t(FF)
+      LL_T <- t(LL)
+      
+      if(!inherits(Y, "sparseMatrix")) {
+        
+        out <- lik_glmpca_pois_log(Y,LL,FF,loglik_const)
+        
+      } else {
+        
+        out <- lik_glmpca_pois_log_sp(Y,LL,FF,loglik_const)
+        
+      }
+      
+      cat(sprintf("loglik = %0.6f\n",out))
+      return(out)
+      
+
+    }
+    
+    n  <- ncol(fit$LL)
+    m  <- ncol(fit$FF)
+    k  <- nrow(fit$LL)
+    
+    out <- daarem::daarem(c(fit$LL[LL_update_indices + 1,],
+                    fit$FF[FF_update_indices + 1,]),
+                  glmpca_update,glmpca_objective,
+                  Y,Y_T,fit$LL,fit$FF,
+                  LL_update_indices + 1,FF_update_indices + 1,
+                  glmpca_control = control,
+                  control = list(maxiter = max_iter,order = 10,tol = 0,
+                                 mon.tol = 0.01,kappa = 20,alpha = 1.2))
+    LL <- fit$LL
+    FF <- fit$FF
+    N  <- n*length(LL_update_indices)
+    LL[LL_update_indices + 1,] <- out$par[seq(1,N)]
+    FF[FF_update_indices + 1,] <- out$par[seq(N+1,length(out$par))]
+    fit$LL <- LL
+    fit$FF <- FF
+    
+    fit$progress$time <- fit$progress$time[1:num_updates]
+    fit$progress$iter <- fit$progress$iter[1:num_updates]
+    fit$progress$loglik <- out$objfn.track
+    fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:num_updates]
+    fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:num_updates]
+    fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:num_updates]
+    fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:num_updates]
+    
+  } else{
   
-  while (!converged && t <= max_iter) {
-    
-    start_time <- Sys.time()
-    
-    if (verbose != "none") {
+    while (!converged && t <= max_iter) {
       
-      cat(
-        sprintf(
-          "Iteration %d: Log-Likelihood = %+0.8e\n", t-1, current_lik
-        )
-      )
+      start_time <- Sys.time()
       
-    }
-    
-    FF_T <- t(fit$FF)
-    start_iter_LL <- fit$LL
-      
-    if (length(LL_update_indices) > 0) {
-      
-      if (algorithm == "ccd") {
+      if (verbose != "none") {
         
-        if (inherits(Y, "sparseMatrix")) {
-          
-          if (link == "log") {
-            
-            fit$LL <- update_loadings_sp(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              deriv_const_mat = -Matrix::crossprod(FF_T, Y_T),
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-            
-          } else if (link == "log1p") {
-            
-            fit$LL <- update_loadings_log1p_sp(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta
-            )
-            
-          }
-          
-        } else {
-          
-          if (link == "log") {
-            
-            fit$LL <- update_loadings(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              deriv_const_mat = -crossprod(FF_T, Y_T),
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-            
-          } else if (link == "log1p") {
-            
-            fit$LL <- update_loadings_log1p(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta
-            )
-            
-          }
-          
-        }
-        
-      } else if (algorithm == "irls") {
-        
-        fit$LL <- update_loadings_irls(
-          F_T = FF_T,
-          L = fit$LL,
-          Y_T = Y_T,
-          update_vec = LL_update_vec,
-          constant_vec = LL_constant_vec,
-          num_iter = control$num_iter
-        )
-        
-      }
-
-    }
-    
-    LL_T <- t(fit$LL)
-    
-    if (length(FF_update_indices) > 0) {
-      
-      if (algorithm == "ccd") {
-        
-        if (inherits(Y, "sparseMatrix")) {
-          
-          if (link == "log") {
-            
-            fit$FF <- update_factors_sp(
-              L_T = LL_T,
-              FF = fit$FF,
-              Y = Y,
-              deriv_const_mat = -Matrix::crossprod(LL_T, Y),
-              update_indices = FF_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-            
-          } else if (link == "log1p") {
-            
-            fit$FF <- update_factors_log1p_sp(
-              L_T = LL_T,
-              FF = fit$FF,
-              Y = Y,
-              update_indices = FF_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta
-            )
-            
-          }
-          
-        } else {
-          
-          if (link == "log") {
-            
-            fit$FF <- update_factors(
-              L_T = LL_T,
-              FF = fit$FF,
-              Y = Y,
-              deriv_const_mat = -crossprod(LL_T, Y),
-              update_indices = FF_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-            
-          } else if (link == "log1p") {
-            
-            fit$FF <- update_factors_log1p(
-              L_T = LL_T,
-              FF = fit$FF,
-              Y = Y,
-              update_indices = FF_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta
-            )
-            
-          }
-          
-        }
-        
-      } else if (algorithm == "irls") {
-        
-        fit$FF <- update_factors_irls(
-          L_T = LL_T,
-          FF = fit$FF,
-          Y = Y,
-          update_vec = FF_update_vec,
-          constant_vec = FF_constant_vec,
-          num_iter = control$num_iter
-        )
-        
-      }
-
-    }
-    
-    # rescale loadings and factors for numerical stability
-    d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))
-    d[fixed_rows] <- 1
-    fit$FF <- fit$FF * d
-    fit$LL <- fit$LL / d
-    
-    new_lik <- do.call(
-      loglik_func,
-      list(
-        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
-      )
-    )
-
-    if (new_lik >= current_lik && t >= min_iter) {
-      
-      rel_improvement <- new_lik - current_lik
-      if (rel_improvement < tol) {
-        
-        converged <- TRUE
         cat(
           sprintf(
-            "Iteration %d: Log-Likelihood = %+0.8e\n", t, new_lik
+            "Iteration %d: Log-Likelihood = %+0.8e\n", t-1, current_lik
           )
         )
         
+      }
+      
+      FF_T <- t(fit$FF)
+      start_iter_LL <- fit$LL
+        
+      if (length(LL_update_indices) > 0) {
+        
+        if (algorithm == "ccd") {
+          
+          if (inherits(Y, "sparseMatrix")) {
+            
+            if (link == "log") {
+              
+              fit$LL <- update_loadings_sp(
+                F_T = FF_T,
+                L = fit$LL,
+                Y_T = Y_T,
+                deriv_const_mat = -Matrix::crossprod(FF_T, Y_T),
+                update_indices = LL_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta,
+                ccd_iter_tol = control$ccd_iter_tol
+              )
+              
+            } else if (link == "log1p") {
+              
+              fit$LL <- update_loadings_log1p_sp(
+                F_T = FF_T,
+                L = fit$LL,
+                Y_T = Y_T,
+                update_indices = LL_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta
+              )
+              
+            }
+            
+          } else {
+            
+            if (link == "log") {
+              
+              fit$LL <- update_loadings(
+                F_T = FF_T,
+                L = fit$LL,
+                Y_T = Y_T,
+                deriv_const_mat = -crossprod(FF_T, Y_T),
+                update_indices = LL_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta,
+                ccd_iter_tol = control$ccd_iter_tol
+              )
+              
+            } else if (link == "log1p") {
+              
+              fit$LL <- update_loadings_log1p(
+                F_T = FF_T,
+                L = fit$LL,
+                Y_T = Y_T,
+                update_indices = LL_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta
+              )
+              
+            }
+            
+          }
+          
+        } else if (algorithm == "irls") {
+          
+          fit$LL <- update_loadings_irls(
+            F_T = FF_T,
+            L = fit$LL,
+            Y_T = Y_T,
+            update_vec = LL_update_vec,
+            constant_vec = LL_constant_vec,
+            num_iter = control$num_iter
+          )
+          
+        }
+  
+      }
+      
+      LL_T <- t(fit$LL)
+      
+      if (length(FF_update_indices) > 0) {
+        
+        if (algorithm == "ccd") {
+          
+          if (inherits(Y, "sparseMatrix")) {
+            
+            if (link == "log") {
+              
+              fit$FF <- update_factors_sp(
+                L_T = LL_T,
+                FF = fit$FF,
+                Y = Y,
+                deriv_const_mat = -Matrix::crossprod(LL_T, Y),
+                update_indices = FF_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta,
+                ccd_iter_tol = control$ccd_iter_tol
+              )
+              
+            } else if (link == "log1p") {
+              
+              fit$FF <- update_factors_log1p_sp(
+                L_T = LL_T,
+                FF = fit$FF,
+                Y = Y,
+                update_indices = FF_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta
+              )
+              
+            }
+            
+          } else {
+            
+            if (link == "log") {
+              
+              fit$FF <- update_factors(
+                L_T = LL_T,
+                FF = fit$FF,
+                Y = Y,
+                deriv_const_mat = -crossprod(LL_T, Y),
+                update_indices = FF_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta,
+                ccd_iter_tol = control$ccd_iter_tol
+              )
+              
+            } else if (link == "log1p") {
+              
+              fit$FF <- update_factors_log1p(
+                L_T = LL_T,
+                FF = fit$FF,
+                Y = Y,
+                update_indices = FF_update_indices,
+                num_iter = control$num_iter,
+                line_search = control$line_search,
+                alpha = control$alpha,
+                beta = control$beta
+              )
+              
+            }
+            
+          }
+          
+        } else if (algorithm == "irls") {
+          
+          fit$FF <- update_factors_irls(
+            L_T = LL_T,
+            FF = fit$FF,
+            Y = Y,
+            update_vec = FF_update_vec,
+            constant_vec = FF_constant_vec,
+            num_iter = control$num_iter
+          )
+          
+        }
+  
+      }
+      
+      # rescale loadings and factors for numerical stability
+      d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))
+      d[fixed_rows] <- 1
+      fit$FF <- fit$FF * d
+      fit$LL <- fit$LL / d
+      
+      new_lik <- do.call(
+        loglik_func,
+        list(
+          Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+        )
+      )
+  
+      if (new_lik >= current_lik && t >= min_iter) {
+        
+        rel_improvement <- new_lik - current_lik
+        if (rel_improvement < tol) {
+          
+          converged <- TRUE
+          cat(
+            sprintf(
+              "Iteration %d: Log-Likelihood = %+0.8e\n", t, new_lik
+            )
+          )
+          
+        } 
+        
       } 
       
-    } 
-    
-    end_iter_time <- Sys.time()
-    time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
-    current_lik <- new_lik
-    fit$progress$time[t + 1] <- time_since_start
-    fit$progress$iter[t + 1] <- t
-    fit$progress$loglik[t + 1] <- current_lik
-    fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
-    fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
-    
-    if(inherits(Y, "sparseMatrix")) {
+      end_iter_time <- Sys.time()
+      time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
+      current_lik <- new_lik
+      fit$progress$time[t + 1] <- time_since_start
+      fit$progress$iter[t + 1] <- t
+      fit$progress$loglik[t + 1] <- current_lik
+      fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
+      fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
       
-      fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+      if(inherits(Y, "sparseMatrix")) {
+        
+        fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+        fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+        
+      } else {
+        
+        fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+        fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+        
+      }
       
-    } else {
-      
-      fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+      t <- t + 1
       
     }
     
-    t <- t + 1
+    fit$progress$time <- fit$progress$time[1:t]
+    fit$progress$iter <- fit$progress$iter[1:t]
+    fit$progress$loglik <- fit$progress$loglik[1:t]
+    fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
+    fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
+    fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
+    fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t]
     
   }
-  
-  fit$progress$time <- fit$progress$time[1:t]
-  fit$progress$iter <- fit$progress$iter[1:t]
-  fit$progress$loglik <- fit$progress$loglik[1:t]
-  fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
-  fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
-  fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
-  fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t]
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
