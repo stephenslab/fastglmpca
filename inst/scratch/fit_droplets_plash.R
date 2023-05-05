@@ -6,22 +6,21 @@ n_cores = as.integer(command_args[3])
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 #load("~/Documents/plash/scratch/droplet.RData")
 
-data <- as.matrix(counts)
+#data <- as.matrix(counts)
 
 set.seed(1)
 fit0 <- plash::init_glmpca(
-  Y = data, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+  Y = counts, K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
 )
 
 library(tictoc)
 tic()
 fit <- plash::fit_glmpca(
-  Y = data, 
+  Y = counts, 
   fit0 = fit0, 
   algorithm = "ccd", 
   link = "log",
-  control = list(line_search = TRUE, num_iter = 3, alpha = .1),
-  warmup = TRUE, 
+  control = list(line_search = TRUE, num_iter = 3, alpha = .01),
   max_iter = n_iter,
   tol = .Machine$double.eps
 )
