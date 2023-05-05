@@ -7,6 +7,7 @@ using namespace Rcpp;
 // L is K x n
 // F is K x p
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 double big_exp_crossprod(
   const arma::mat& L,
@@ -37,6 +38,7 @@ double big_exp_crossprod(
 // L is K x n
 // F is K x p
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 double big_elementwise_mult_crossprod(
     const arma::mat& L,
@@ -64,24 +66,26 @@ double big_elementwise_mult_crossprod(
 // F is K x p
 // compute L %*% exp(t(L) %*% F)
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 arma::mat deriv_product(
     const arma::mat& L,
     const arma::mat& F
 ) {
   
-  int n = L.n_cols;
-  int K = L.n_rows;
-  int p = F.n_cols;
+  const int n = L.n_cols;
+  const int K = L.n_rows;
+  const int p = F.n_cols;
   arma::mat prod;
   prod.zeros(K, p);
   double exp_arg;
   
-  for (int i = 0; i < K; i++) {
+  #pragma omp parallel for shared(prod) private(exp_arg)
+  for (int k = 0; k < n; k++) {
     
-    for (int j = 0; j < p; j++) {
+    for (int i = 0; i < K; i++) {
       
-      for (int k = 0; k < n; k++) {
+      for (int j = 0; j < p; j++) {
         
         exp_arg = 0;
         
@@ -91,8 +95,9 @@ arma::mat deriv_product(
           
         }
         
-        prod(i, j) = prod(i, j) + L(i, k) * exp(exp_arg);
-          
+        #pragma omp atomic
+        prod(i, j) += L(i, k) * exp(exp_arg);
+        
       }
       
     }

@@ -107,6 +107,7 @@ inline arma::vec solve_pois_reg_cpp (
 // And then one for updating factors
 // And once I figure those both out, I can try to combine them for code efficiency
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 arma::mat update_loadings (
     const arma::mat& F_T,
@@ -147,6 +148,7 @@ arma::mat update_loadings (
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 arma::mat update_factors (
     const arma::mat& L_T,
