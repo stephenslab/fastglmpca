@@ -107,4 +107,3 @@ arma::mat deriv_product(
   return(prod);
   
 }
-
