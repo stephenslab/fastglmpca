@@ -15,7 +15,8 @@ inline arma::vec solve_pois_reg_cpp_sp (
     const bool line_search,
     const double alpha,
     const double beta,
-    const double ccd_iter_tol
+    const double ccd_iter_tol,
+    double *end_lik
 ) {
   
   double current_lik; // used to store log likelihood of each iteration
@@ -98,6 +99,8 @@ inline arma::vec solve_pois_reg_cpp_sp (
     
   }
   
+  *end_lik = f_proposed;
+  
   return(b);
   
 }
@@ -109,7 +112,7 @@ inline arma::vec solve_pois_reg_cpp_sp (
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
-arma::mat update_loadings_sp (
+void update_loadings_sp (
     const arma::mat& F_T,
     arma::mat& L,
     const arma::sp_mat& Y_T,
@@ -124,8 +127,11 @@ arma::mat update_loadings_sp (
   
   const arma::mat F_T_sqrd = arma::pow(F_T, 2);
   
-  #pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
+  //#pragma omp parallel for shared(F_T, Y_T, L, num_iter) 
   for (int i = 0; i < Y_T.n_cols; i++) {
+    
+    double* end_lik = (double*) malloc(sizeof(double));
+    *end_lik = 0.0;
     
     L.col(i) = solve_pois_reg_cpp_sp (
       F_T, 
@@ -138,19 +144,20 @@ arma::mat update_loadings_sp (
       line_search,
       alpha,
       beta,
-      ccd_iter_tol
+      ccd_iter_tol,
+      end_lik
     );
     
+    free(end_lik);
+    
   }
-  
-  return(L);
   
 }
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
-arma::mat update_factors_sp (
+double update_factors_sp (
     const arma::mat& L_T,
     arma::mat& FF,
     const arma::sp_mat& Y,
@@ -164,9 +171,13 @@ arma::mat update_factors_sp (
 ) {
   
   const arma::mat L_T_sqrd = arma::pow(L_T, 2);
+  double end_lik_sum = 0.0;
   
-  #pragma omp parallel for shared(L_T, Y, FF, num_iter) 
+  //#pragma omp parallel for shared(L_T, Y, FF, num_iter) reduction(+:end_lik_sum)
   for (int j = 0; j < Y.n_cols; j++) {
+    
+    double* end_lik = (double*) malloc(sizeof(double));
+    *end_lik = 0.0;
     
     FF.col(j) = solve_pois_reg_cpp_sp (
       L_T, 
@@ -179,12 +190,16 @@ arma::mat update_factors_sp (
       line_search,
       alpha,
       beta,
-      ccd_iter_tol
+      ccd_iter_tol,
+      end_lik
     );
+    
+    end_lik_sum -= *end_lik;
+    free(end_lik);
     
   }
   
-  return(FF);
+  return(end_lik_sum);
   
 }
 

@@ -16,13 +16,13 @@ sp_Y <- as(data$Y, "sparseMatrix")
 
 set.seed(1)
 fit0 <- plash::init_glmpca(
-  Y = data$Y, K = 5, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+  Y = sp_Y, K = 5, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
 )
 
 tictoc::tic()
 fast_glmpca_fit_init <- plash:::fit_glmpca(
-  Y = data$Y, fit0 = fit0, tol = 1e-4, algorithm = "ccd", link = "log",
-  control = list(line_search = TRUE, num_iter = 5), max_iter = 1
+  Y = sp_Y, fit0 = fit0, tol = 1e-4, algorithm = "ccd", link = "log",
+  control = list(line_search = TRUE, num_iter = 5), max_iter = 5
 )
 tictoc::toc()
 
