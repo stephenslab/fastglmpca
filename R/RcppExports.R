@@ -18,7 +18,7 @@ update_factors_missing_bin <- function(L_T, FF, Y, N, nonmissing_index_list, upd
 }
 
 update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    invisible(.Call(`_plash_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
 
 update_factors <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
@@ -50,7 +50,7 @@ update_factors_log1p_sp <- function(L_T, FF, Y, update_indices, num_iter, line_s
 }
 
 update_loadings_sp <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_loadings_sp`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    invisible(.Call(`_plash_update_loadings_sp`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
 
 update_factors_sp <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {

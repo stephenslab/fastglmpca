@@ -542,7 +542,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$LL <- update_loadings_sp(
+              update_loadings_sp(
                 F_T = FF_T,
                 L = fit$LL,
                 Y_T = Y_T,
@@ -574,7 +574,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$LL <- update_loadings(
+              update_loadings(
                 F_T = FF_T,
                 L = fit$LL,
                 Y_T = Y_T,
@@ -629,7 +629,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$FF <- update_factors_sp(
+              new_lik <- update_factors_sp(
                 L_T = LL_T,
                 FF = fit$FF,
                 Y = Y,
@@ -640,7 +640,7 @@ fit_glmpca <- function(
                 alpha = control$alpha,
                 beta = control$beta,
                 ccd_iter_tol = control$ccd_iter_tol
-              )
+              ) - loglik_const
               
             } else if (link == "log1p") {
               
@@ -661,7 +661,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$FF <- update_factors(
+              new_lik <- update_factors(
                 L_T = LL_T,
                 FF = fit$FF,
                 Y = Y,
@@ -672,7 +672,7 @@ fit_glmpca <- function(
                 alpha = control$alpha,
                 beta = control$beta,
                 ccd_iter_tol = control$ccd_iter_tol
-              )
+              ) - loglik_const
               
             } else if (link == "log1p") {
               
@@ -712,12 +712,12 @@ fit_glmpca <- function(
       fit$FF <- fit$FF * d
       fit$LL <- fit$LL / d
       
-      new_lik <- do.call(
-        loglik_func,
-        list(
-          Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
-        )
-      )
+      # new_lik <- do.call(
+      #   loglik_func,
+      #   list(
+      #     Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      #   )
+      # )
   
       if (new_lik >= current_lik && t >= min_iter) {
         
