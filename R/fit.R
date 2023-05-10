@@ -574,7 +574,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$LL <- update_loadings(
+              update_loadings(
                 F_T = FF_T,
                 L = fit$LL,
                 Y_T = Y_T,
@@ -661,7 +661,7 @@ fit_glmpca <- function(
             
             if (link == "log") {
               
-              fit$FF <- update_factors(
+              new_lik <- update_factors(
                 L_T = LL_T,
                 FF = fit$FF,
                 Y = Y,
@@ -672,7 +672,7 @@ fit_glmpca <- function(
                 alpha = control$alpha,
                 beta = control$beta,
                 ccd_iter_tol = control$ccd_iter_tol
-              )
+              ) - loglik_const
               
             } else if (link == "log1p") {
               
