@@ -62,8 +62,12 @@ inline arma::vec solve_bin_reg_cpp (
           
           b(j) = b_j_og - t * newton_dir;
           eta_proposed = eta + (b(j) - b_j_og) * X.col(j);
+          //Rprintf("max eta_proposed = %f\n", eta_proposed.max());
+          //Rprintf("min eta_proposed = %f\n", eta_proposed.min());
           exp_eta_proposed = exp(eta_proposed);
           f_proposed = sum((size % log(1 + exp_eta_proposed)) - (y % eta_proposed));
+          //Rprintf("max exp_eta_proposed = %f\n", exp_eta_proposed.max());
+          //Rprintf("min exp_eta_proposed = %f\n", exp_eta_proposed.min());
           
           if (f_proposed <= current_lik - t * newton_dec) {
             

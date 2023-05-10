@@ -13,6 +13,14 @@ lik_glmpca_bin <- function(Y, N, LL, FF, ll_const) {
   
 }
 
+lik_glmpca_bin_missing <- function(Y, N, LL, FF, ll_const) {
+  
+  H <- crossprod(LL, FF)
+  exp_H <- pmin(exp(H), .Machine$double.xmax)
+  sum(Y * H - N * log(1 + exp_H)) + ll_const
+  
+}
+
 lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
   
   Y_summary <- summary(Y)
@@ -187,6 +195,9 @@ fit_glmpca <- function(
     keep.null = TRUE
   )
   
+  calc_deriv <- control$calc_deriv
+  calc_max_diff <- control$calc_max_diff
+  
   if (missing(fit0)) {
     
     if (missing(K)) {
@@ -288,30 +299,40 @@ fit_glmpca <- function(
   fit$progress[["iter"]] <- numeric(max_iter)
   fit$progress[["loglik"]] <- numeric(max_iter)
   fit$progress[["time"]] <- numeric(max_iter)
-  fit$progress[["max_FF_deriv"]] <- numeric(max_iter)
-  fit$progress[["max_LL_deriv"]] <- numeric(max_iter)
-  fit$progress[["max_diff_FF"]] <- numeric(max_iter)
-  fit$progress[["max_diff_LL"]] <- numeric(max_iter)
   
-  LL_mask <- matrix(
-    data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
-  )
-  
-  LL_mask[fit$fixed_loadings, ] <- 0
-  if(!inherits(Y, "sparseMatrix")) {
+  if (calc_deriv) {
     
-    LL_mask <- t(LL_mask)
+    fit$progress[["max_FF_deriv"]] <- numeric(max_iter)
+    fit$progress[["max_LL_deriv"]] <- numeric(max_iter)
+    
+    LL_mask <- matrix(
+      data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
+    )
+    
+    LL_mask[fit$fixed_loadings, ] <- 0
+    if(!inherits(Y, "sparseMatrix")) {
+      
+      LL_mask <- t(LL_mask)
+      
+    }
+    
+    FF_mask <- matrix(
+      data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
+    )
+    
+    FF_mask[fit$fixed_factors, ] <- 0
+    if(!inherits(Y, "sparseMatrix")) {
+      
+      FF_mask <- t(FF_mask)
+      
+    }
     
   }
   
-  FF_mask <- matrix(
-    data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
-  )
-  
-  FF_mask[fit$fixed_factors, ] <- 0
-  if(!inherits(Y, "sparseMatrix")) {
+  if (calc_max_diff) {
     
-    FF_mask <- t(FF_mask)
+    fit$progress[["max_diff_FF"]] <- numeric(max_iter)
+    fit$progress[["max_diff_LL"]] <- numeric(max_iter)
     
   }
   
@@ -320,15 +341,20 @@ fit_glmpca <- function(
   fit$progress$iter[1] <- 0
   fit$progress$loglik[1] <- current_lik
   fit$progress$time[1] <- 0
-  fit$progress$max_diff_FF[1] <- 0
-  fit$progress$max_diff_LL[1] <- 0
   
-  if(inherits(Y, "sparseMatrix")) {
+  if (calc_max_diff) {
+    
+    fit$progress$max_diff_FF[1] <- 0
+    fit$progress$max_diff_LL[1] <- 0
+    
+  }
+  
+  if(inherits(Y, "sparseMatrix") && calc_deriv) {
     
     fit$progress$max_FF_deriv[1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
     fit$progress$max_LL_deriv[1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
     
-  } else {
+  } else if (calc_deriv) {
     
     fit$progress$max_FF_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
     fit$progress$max_LL_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
@@ -397,15 +423,19 @@ fit_glmpca <- function(
       
       num_updates <<- num_updates + 1
       
-      fit$progress$max_diff_FF[num_updates] <<- max(abs(LL - LL0))
-      fit$progress$max_diff_LL[num_updates] <<- max(abs(FF - FF0))
+      if (calc_max_diff) {
+        
+        fit$progress$max_diff_FF[num_updates] <<- max(abs(LL - LL0))
+        fit$progress$max_diff_LL[num_updates] <<- max(abs(FF - FF0))
+        
+      }
       
-      if(inherits(Y, "sparseMatrix")) {
+      if(inherits(Y, "sparseMatrix") && calc_deriv) {
         
         fit$progress$max_FF_deriv[num_updates] <<- max(abs((deriv_product(LL, FF) - LL %*% Y) * FF_mask))
         fit$progress$max_LL_deriv[num_updates] <<- max(abs((deriv_product(FF, LL) - Matrix::tcrossprod(FF, Y)) * LL_mask))
         
-      } else {
+      } else if(calc_deriv) {
         
         fit$progress$max_FF_deriv[num_updates] <<- max(abs(crossprod(exp(crossprod(LL, FF)) - Y, t(LL)) * FF_mask))
         fit$progress$max_LL_deriv[num_updates] <<- max(abs(crossprod(exp(crossprod(FF, LL)) - Y_T, t(FF)) * LL_mask))
@@ -470,10 +500,20 @@ fit_glmpca <- function(
     fit$progress$time <- fit$progress$time[1:num_updates]
     fit$progress$iter <- fit$progress$iter[1:num_updates]
     fit$progress$loglik <- out$objfn.track
-    fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:num_updates]
-    fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:num_updates]
-    fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:num_updates]
-    fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:num_updates]
+    
+    if (calc_deriv) {
+      
+      fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:num_updates]
+      fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:num_updates]
+      
+    }
+    
+    if (calc_max_diff) {
+      
+      fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:num_updates]
+      fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:num_updates]
+      
+    }
     
   } else{
   
@@ -701,15 +741,20 @@ fit_glmpca <- function(
       fit$progress$time[t + 1] <- time_since_start
       fit$progress$iter[t + 1] <- t
       fit$progress$loglik[t + 1] <- current_lik
-      fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
-      fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
       
-      if(inherits(Y, "sparseMatrix")) {
+      if (calc_max_diff) {
+        
+        fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
+        fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
+        
+      }
+      
+      if(inherits(Y, "sparseMatrix") && calc_deriv) {
         
         fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
         fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
         
-      } else {
+      } else if (calc_deriv) {
         
         fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
         fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
@@ -723,10 +768,20 @@ fit_glmpca <- function(
     fit$progress$time <- fit$progress$time[1:t]
     fit$progress$iter <- fit$progress$iter[1:t]
     fit$progress$loglik <- fit$progress$loglik[1:t]
-    fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
-    fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
-    fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
-    fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t]
+    
+    if (calc_deriv) {
+      
+      fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
+      fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
+      
+    }
+    
+    if (calc_max_diff) {
+      
+      fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
+      fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t] 
+      
+    }
     
   }
   
@@ -757,7 +812,9 @@ fit_glmpca_ccd_control_default <- function() {
     beta = .5,
     line_search = TRUE,
     num_iter = 5,
-    ccd_iter_tol = 0
+    ccd_iter_tol = 0,
+    calc_deriv = FALSE,
+    calc_max_diff = FALSE
   )
 }
 
@@ -986,7 +1043,7 @@ fit_glmpca_binom <- function(
   if (missing_data) {
     
     ll_const <- sum(lchoose(na.omit(as.vector(N)), na.omit(as.vector(Y))))
-    current_lik <- lik_glmpca_bin(
+    current_lik <- lik_glmpca_bin_missing(
       Y_lik_version, N_lik_version, fit$LL, fit$FF, ll_const
     )
     
@@ -1010,6 +1067,8 @@ fit_glmpca_binom <- function(
     )
     
     if (length(LL_update_indices) > 0) {
+      
+      print("Updating L...")
     
       if (missing_data) {
         
@@ -1048,6 +1107,14 @@ fit_glmpca_binom <- function(
     
     if (length(FF_update_indices) > 0) {
        
+      print("Updating F...")
+      
+      if(t == 32) {
+        
+        print(0)
+        
+      }
+      
       if (missing_data) {
         
         fit$FF <- update_factors_missing_bin(
@@ -1092,7 +1159,7 @@ fit_glmpca_binom <- function(
     # now, check for convergence
     if (missing_data) {
       
-      new_lik <- lik_glmpca_bin(
+      new_lik <- lik_glmpca_bin_missing(
         Y_lik_version, N_lik_version, fit$LL, fit$FF, ll_const
       )
       
