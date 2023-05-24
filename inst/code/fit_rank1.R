@@ -21,9 +21,10 @@ abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 n <- nrow(X)
 m <- ncol(X)
 l <- rep(1,n)
-exact <- TRUE
+exact <- FALSE
 numiter <- 4
 t0 <- proc.time()
+b <- 1
 for (iter in 1:numiter) {
   l0 <- l
   if (exact) {
@@ -40,8 +41,10 @@ for (iter in 1:numiter) {
   } else {
 
     # Solve for f given l then l given f approximately.
-    f <- drop(l %*% (X - 1))/sum(l)
-    l <- drop((X - 1) %*% f)/sum(f)
+    u <- l/sum(l)  
+    f <- drop(u %*% (X - b))
+    u <- f/sum(f)
+    l <- drop((X - b) %*% u)
   }
   cat(max(abs(c(l - l0))),"\n")
 }
@@ -64,3 +67,20 @@ abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 # plot(x,exp(a*x),type = "l",lwd = 1.25)
 # lines(x,1 + a*x,type = "l",col = "dodgerblue",lty = "dotted",lwd = 1.25)
 #
+
+# This implements the biwhitening procedure as described in
+# Algorithm 1 of Landa et al (2021).
+#
+# scale.rows <- function (A, b)
+#   A * b
+# scale.cols <- function (A, b)
+#   t(t(A) * b)
+# rows <- rep(1,n)
+# for (iter in 1:numiter) {
+#   cols <- 1/colMeans(scale.rows(X,rows))
+#   rows <- 1/rowMeans(scale.cols(X,cols))
+# }
+# plot(-log(rows),l,pch = 20)
+# plot(-log(cols),f,pch = 20)
+# print(cor(-log(rows),l))
+# print(cor(-log(cols),f))
