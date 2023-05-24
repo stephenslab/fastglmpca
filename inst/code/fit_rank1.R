@@ -21,20 +21,43 @@ abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 n <- nrow(X)
 m <- ncol(X)
 l <- rep(1,n)
-for (iter in 1:10) {
+exact <- TRUE
+numiter <- 4
+for (iter in 1:numiter) {
   l0 <- l
-
-  # Solve for f given l.  
-  gf <- function (f)
-    drop(l %*% (X - exp(tcrossprod(l,f))))
-  f <- multiroot(gf,rep(0,m))$root
-
-  # Solve for l given f.
-  gl <- function (l)
-    drop((X - exp(tcrossprod(l,f))) %*% f)
-  l <- multiroot(gl,rep(0,n))$root
+  if (exact) {
   
+    # Solve for f given l exactly.  
+    gf <- function (f)
+      drop(l %*% (X - exp(tcrossprod(l,f))))
+    f <- multiroot(gf,start = rep(0,m))$root
+
+    # Solve for l given f exactly.
+    gl <- function (l)
+      drop((X - exp(tcrossprod(l,f))) %*% f)
+    l <- multiroot(gl,start = rep(0,n))$root
+  } else {
+
+    # Solve for f given l then l given f approximately.
+    f <- drop(l %*% (X - 1))/sum(l)
+    l <- drop((X - 1) %*% f)/sum(f)
+  }
   cat(max(abs(c(l - l0))),"\n")
 }
+
+# Rescale l and f.
+d <- sqrt(abs(mean(l)/mean(f)))
+f <- f*d
+l <- l/d
+
+# Compare the two solutions.
 plot(fit$LL,l,pch = 20)
+abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 plot(fit$FF,f,pch = 20)
+abline(a = 0,b = 1,lty = "dashed",col = "magenta")
+
+#
+# a <- 0.1
+# plot(x,exp(a*x),type = "l",lwd = 1.25)
+# lines(x,1 + a*x,type = "l",col = "dodgerblue",lty = "dotted",lwd = 1.25)
+#
