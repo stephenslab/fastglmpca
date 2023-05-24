@@ -23,6 +23,7 @@ m <- ncol(X)
 l <- rep(1,n)
 exact <- TRUE
 numiter <- 4
+t0 <- proc.time()
 for (iter in 1:numiter) {
   l0 <- l
   if (exact) {
@@ -44,6 +45,8 @@ for (iter in 1:numiter) {
   }
   cat(max(abs(c(l - l0))),"\n")
 }
+t1 <- proc.time()
+print(t1 - t0)
 
 # Rescale l and f.
 d <- sqrt(abs(mean(l)/mean(f)))
