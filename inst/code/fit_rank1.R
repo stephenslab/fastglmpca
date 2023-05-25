@@ -3,17 +3,19 @@ library(rootSolve)
 
 # Simulate a 200 x 400 counts matrix.
 set.seed(1)
-dat <- generate_data_simple(200,400,K = 1)
-X <- dat$Y
+n <- 200
+m <- 400
+dat <- list(LL = rnorm(n,1,0.3),FF = rnorm(m,1,0.3))
+X <- matrix(rpois(n*m,with(dat,exp(tcrossprod(LL,FF)))),n,m)
 
 # Fit a rank-1 GLM-PCA model using the algorithm in the plash package.
 fit <- fit_glmpca(X,K = 1,max_iter = 10,algorithm = "ccd",tol = 1e-6)
 
 # Compare the estimates against the ground-truth.
 par(mfrow = 1:2)
-plot(dat$LL,fit$LL,pch = 20)
+plot(dat$LL,-fit$LL,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
-plot(dat$FF,fit$FF,pch = 20)
+plot(dat$FF,-fit$FF,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 
 # Here's a simple alternative algorithm for fitting a rank-1 GLM-PCA
@@ -24,7 +26,7 @@ l <- rep(1,n)
 exact <- FALSE
 numiter <- 4
 t0 <- proc.time()
-b <- 1
+b <- 8
 for (iter in 1:numiter) {
   l0 <- l
   if (exact) {
@@ -57,9 +59,9 @@ f <- f*d
 l <- l/d
 
 # Compare the two solutions.
-plot(fit$LL,l,pch = 20)
+plot(fit$LL,-l,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
-plot(fit$FF,f,pch = 20)
+plot(fit$FF,-f,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 
 #
@@ -70,17 +72,16 @@ abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 
 # This implements the biwhitening procedure as described in
 # Algorithm 1 of Landa et al (2021).
-#
-# scale.rows <- function (A, b)
-#   A * b
-# scale.cols <- function (A, b)
-#   t(t(A) * b)
-# rows <- rep(1,n)
-# for (iter in 1:numiter) {
-#   cols <- 1/colMeans(scale.rows(X,rows))
-#   rows <- 1/rowMeans(scale.cols(X,cols))
-# }
-# plot(-log(rows),l,pch = 20)
-# plot(-log(cols),f,pch = 20)
-# print(cor(-log(rows),l))
-# print(cor(-log(cols),f))
+scale.rows <- function (A, b)
+  A * b
+scale.cols <- function (A, b)
+  t(t(A) * b)
+rows <- rep(1,n)
+for (iter in 1:numiter) {
+  cols <- 1/colMeans(scale.rows(X,rows))
+  rows <- 1/rowMeans(scale.cols(X,cols))
+}
+plot(1/rows,l,pch = 20)
+plot(1/cols,f,pch = 20)
+print(cor(1/rows,l))
+print(cor(1/cols,f))
