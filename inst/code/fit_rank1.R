@@ -19,7 +19,7 @@ plot(dat$FF,-fit$FF,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 
 # Here's a simple alternative algorithm for fitting a rank-1 GLM-PCA
-# model, x[i,j] ~ Pois(exp(l[i],f[j])).
+# model, x[i,j] ~ Pois(exp(l[i]*f[j])).
 n <- nrow(X)
 m <- ncol(X)
 l <- rep(1,n)
