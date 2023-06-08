@@ -30,7 +30,7 @@
 #'
 #' @examples
 #' set.seed(1)
-#' sim_data <- generate_glmpca_data(1000, 500, 1)
+#' sim_data <- generate_glmpca_data_pois(1000, 500, 1)
 #' 
 #' @importFrom stats runif
 #' @importFrom stats rmultinom
@@ -41,7 +41,7 @@
 #' 
 #' @export
 #'
-generate_glmpca_data <- function(n, p, K, link = c("log", "log1p")) {
+generate_glmpca_data_pois <- function(n, p, K, link = c("log", "log1p")) {
   
   if (!is.scalar(K) || K < 1) {
     

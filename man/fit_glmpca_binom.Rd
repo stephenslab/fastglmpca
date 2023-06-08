@@ -23,29 +23,29 @@ non-negative.}
 at least 1.}
 
 \item{K}{An integer 1 or greater giving the matrix rank. This
-argument will be ignored if the initial fit,
-(\code{fit0}), is provided.}
+argument will be ignored if the initial fit
+(\code{fit0}) is provided.}
 
 \item{fit0}{The initial model fit. It should be an object of class
-\dQuote{glmpca_fit}, such as an output from \code{init_glmpca}, 
-or from a previous call to \code{fit_glmpca}.}
+\dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
+or from a previous call to \code{fit_glmpca_pois}.}
 
 \item{tol}{Positive scalar determining relative tolerance for assessing convergence.
 Convergence is determined by comparing the log-likelihood at the previous
 iteration to the current iteration.}
 
-\item{min_iter}{Minimum number of updates to \code{LL} and \code{FF} to be run.}
+\item{min_iter}{Minimum number of updates to \eqn{L} and \eqn{F} to be run.}
 
-\item{max_iter}{Maximum number of updates to \code{LL} and \code{FF} to be run.}
+\item{max_iter}{Maximum number of updates to \eqn{L} and \eqn{F} to be run.}
 
-\item{control}{List of control parameters to modify behavior of \code{algorithm}.}
+\item{control}{List of control parameters to modify behavior of model fitting.}
 
 \item{verbose}{String indicating level of printing to be done during model fitting.
 \code{"likelihood"} will print only the log-likelihood at each step, where
 \code{"detailed"} will print information about the change in parameter values at each
 step.}
 
-\item{algorithm}{String determining algorithm to use for updating \code{LL} and \code{FF}}
+\item{algorithm}{String determining algorithm to use for updating \eqn{L} and \eqn{F}}
 }
 \value{
 An object capturing the final state of the model fit.

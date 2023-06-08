@@ -1,8 +1,8 @@
-#' @title Initialize GLM-PCA Fit
+#' @title Initialize GLM-PCA Poisson Fit
 #' 
-#' @description Initialize a GLM-PCA model fit.
+#' @description Initialize a GLM-PCA Poisson model fit.
 #'
-#' @param Y The n x p matrix of counts; all entries of Y should be
+#' @param Y n x p matrix of counts; all entries should be
 #'   non-negative.
 #'   
 #' @param K An integer 1 or greater giving the matrix rank. This
@@ -13,28 +13,26 @@
 #'   loadings matrix. It should be an K x n matrix, where n is the
 #'   number of rows in the counts matrix \code{Y}, and K >= 1 is the rank
 #'   of the matrix factorization. When \code{LL} and \code{FF} are not
-#'   provided, input argument \code{K} should be specified instead, and
-#'   \code{LL} and \code{FF} are initialized as a constant matrix.
+#'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param FF An optional argument giving is the initial estimate of the
 #'   factors matrix. It should be a K x p matrix, where p is the number
 #'   of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
 #'   the matrix factorization. When \code{LL} and \code{FF} are not
-#'   provided, input argument \code{K} should be specified instead, and
-#'   \code{LL} and \code{FF} are initialized randomly
+#'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param fit_col_size_factor Boolean indicating if a size factor should be
 #'   used to normalize the likelihood across columns. This is done by fixing
 #'   an element of each loading to 1 and fixing and element of each factor
 #'   as the log the mean value of it's corresponding column. This may be
 #'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
-#'   represent genes and columns represent cells, and one wants to control
-#'   for different sequencing depths between cells.
+#'   represent genes and columns represent cells.
 #' 
 #' @param fit_row_intercept Boolean indicating if intercept term should be fit
 #'   for each row of \code{Y}. This is done by fixing an element of each
 #'   factor to 1. This may be useful when \code{Y} is a matrix from a
-#'   scRNA experiment where rows represent genes and columns represent cells.
+#'   scRNA experiment where rows represent genes and columns represent cells,
+#'   and one wants to regress out mean differences between genes.
 #'
 #' @param fixed_loadings Vector of integers indicating, which, if any, loadings
 #'   should be fixed at their initial values. This argument will be ignored if
@@ -45,9 +43,9 @@
 #'   if \code{FF} is not provided.
 #'
 #' @return An object capturing the initial state of the model fit. See
-#'   \code{\link{fit_glmpca}} for details.
+#'   \code{\link{fit_glmpca_pois}} for details.
 #'
-#' @seealso \code{\link{fit_glmpca}}
+#' @seealso \code{\link{fit_glmpca_pois}}
 #'
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
@@ -55,12 +53,11 @@
 #' 
 #' @export
 #' 
-init_glmpca <- function(
+init_glmpca_pois <- function(
     Y,
     K,
     LL,
     FF,
-    link = c("log", "log1p"),
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
     fixed_loadings = NULL,
@@ -105,8 +102,6 @@ init_glmpca <- function(
   
   fit <- list()
   
-  link <- match.arg(link)
-  
   if(!missing(K)) {
     
     if(!is.scalar(K) || K < 1) 
@@ -124,24 +119,12 @@ init_glmpca <- function(
       stop("if \"LL\" is missing, must provide \"K\" and \"Y\"")
       
     }
-    
-    if (link == "log1p") {
       
-      fit$LL <- matrix(
-        data = runif(K_total * n, 0, 0.1),
-        nrow = K_total, 
-        ncol = n
-      )
-      
-    } else if (link == "log") {
-      
-      fit$LL <- matrix(
-        data = rnorm(K_total * n, 0, sd=1e-5/(K + as.numeric(fit_row_intercept))),
-        nrow = K_total, 
-        ncol = n
-      )
-      
-    }
+    fit$LL <- matrix(
+      data = rnorm(K_total * n, 0, sd=1e-5/(K + as.numeric(fit_row_intercept))),
+      nrow = K_total, 
+      ncol = n
+    )
     
     if (fit_col_size_factor) {
       
@@ -185,20 +168,10 @@ init_glmpca <- function(
       stop("if \"FF\" is missing, must provide \"K\" and \"Y\"")
       
     }
-    
-    if(link == "log1p") {
       
-      fit$FF <- matrix(
-        data = runif(K_total * p, 0, .1), nrow = K_total, ncol = p
-      )
-      
-    } else if (link == "log") {
-      
-      fit$FF <- matrix(
-        data = rnorm(K_total * p, 0, sd = 1e-5 / K), nrow = K_total, ncol = p
-      )
-      
-    }
+    fit$FF <- matrix(
+      data = rnorm(K_total * p, 0, sd = 1e-5 / K), nrow = K_total, ncol = p
+    )
     
     if (fit_col_size_factor && fit_row_intercept) {
       
