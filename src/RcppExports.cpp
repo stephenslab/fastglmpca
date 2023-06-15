@@ -93,6 +93,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// solve_nb_reg_cpp
+arma::vec solve_nb_reg_cpp(const arma::mat X, const arma::mat X_sqrd, const arma::vec y, const arma::vec phi, arma::vec b, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
+RcppExport SEXP _plash_solve_nb_reg_cpp(SEXP XSEXP, SEXP X_sqrdSEXP, SEXP ySEXP, SEXP phiSEXP, SEXP bSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type X_sqrd(X_sqrdSEXP);
+    Rcpp::traits::input_parameter< const arma::vec >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::vec >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_nb_reg_cpp(X, X_sqrd, y, phi, b, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_loadings
 void update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
 RcppExport SEXP _plash_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
@@ -219,6 +240,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plash_update_factors_bin", (DL_FUNC) &_plash_update_factors_bin, 10},
     {"_plash_update_loadings_missing_bin", (DL_FUNC) &_plash_update_loadings_missing_bin, 11},
     {"_plash_update_factors_missing_bin", (DL_FUNC) &_plash_update_factors_missing_bin, 11},
+    {"_plash_solve_nb_reg_cpp", (DL_FUNC) &_plash_solve_nb_reg_cpp, 11},
     {"_plash_update_loadings", (DL_FUNC) &_plash_update_loadings, 10},
     {"_plash_update_factors", (DL_FUNC) &_plash_update_factors, 10},
     {"_plash_update_loadings_sp", (DL_FUNC) &_plash_update_loadings_sp, 10},

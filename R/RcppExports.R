@@ -17,6 +17,10 @@ update_factors_missing_bin <- function(L_T, FF, Y, N, nonmissing_index_list, upd
     .Call(`_plash_update_factors_missing_bin`, L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
+solve_nb_reg_cpp <- function(X, X_sqrd, y, phi, b, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
+    .Call(`_plash_solve_nb_reg_cpp`, X, X_sqrd, y, phi, b, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+}
+
 update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
     invisible(.Call(`_plash_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
