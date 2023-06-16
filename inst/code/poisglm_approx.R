@@ -44,6 +44,7 @@ compute_loglik_approx <- function (b, x, y) {
   return(compute_loglik(b,x[i],y[i]) - sum(f(b*x[j])))
 }
 
+# Plot the log-likelihood surface and compute the approximate MLE of b.
 n <- length(b)
 ll1 <- rep(0,n)
 for (i in 1:n)
