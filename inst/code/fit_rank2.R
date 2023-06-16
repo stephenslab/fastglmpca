@@ -30,14 +30,14 @@ n <- nrow(X)
 m <- ncol(X)
 L <- matrix(dat$LL[1,])
 F <- matrix(dat$FF[1,])
-exact <- TRUE
+exact <- FALSE
 numiter <- 4
 t0 <- proc.time()
-for (k in 1:K) {
+for (k in 1:2) {
   cat("k =",k,"\n")
   if (k > 1) {
     L <- cbind(L,dat$LL[,k])
-    F <- cbind(F,dat$FF[,k])  
+    F <- cbind(F,dat$FF[,k])
   }
   for (iter in 1:numiter) {
     L0 <- L
@@ -61,10 +61,15 @@ for (k in 1:K) {
     } else {
 
       # Solve for F[,k] given L, F[,-k] approximately.
-      # TO DO.
-
-      # Solve for L[,k] given F, L[,-k] approximately.
-      # TO DO.
+      # Then solve for L[,k] given F, L[,-k] approximately.
+      if (k == 1) {
+        B <- matrix(1,n,m)
+      } else {
+        ks <- seq(1,k-1)
+        B <- tcrossprod(L[,ks,drop = FALSE],F[,ks,drop = FALSE])
+      } 
+      F[,k] <- drop((L[,k] %*% (X - B))/(L[,k]^2 %*% B))
+      L[,k] <- drop(((X - B) %*% F[,k])/(B %*% F[,k]^2))
     }
     cat(max(abs(c(L - L0))),"\n")
   }

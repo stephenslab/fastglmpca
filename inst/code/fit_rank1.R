@@ -26,7 +26,7 @@ l <- rep(1,n)
 exact <- FALSE
 numiter <- 4
 t0 <- proc.time()
-b <- 8
+b <- 1
 for (iter in 1:numiter) {
   l0 <- l
   if (exact) {
@@ -43,9 +43,9 @@ for (iter in 1:numiter) {
   } else {
 
     # Solve for f given l then l given f approximately.
-    u <- l/sum(l)  
+    u <- l/sum(l^2)  
     f <- drop(u %*% (X - b))
-    u <- f/sum(f)
+    u <- f/sum(f^2)
     l <- drop((X - b) %*% u)
   }
   cat(max(abs(c(l - l0))),"\n")
@@ -63,6 +63,8 @@ plot(fit$LL,-l,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
 plot(fit$FF,-f,pch = 20)
 abline(a = 0,b = 1,lty = "dashed",col = "magenta")
+
+stop()
 
 #
 # a <- 0.1
