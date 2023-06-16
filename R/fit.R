@@ -427,6 +427,18 @@ fit_glmpca_pois <- function(
           
         }
 
+    } else {
+      
+      if(inherits(Y, "sparseMatrix")) {
+        
+        new_lik <- lik_glmpca_pois_log_sp(Y, fit$LL, fit$FF, loglik_const)
+        
+      } else {
+        
+        new_lik <- lik_glmpca_pois_log(Y, fit$LL, ffit$FF, const)
+        
+      }
+      
     }
     
     # rescale loadings and factors for numerical stability

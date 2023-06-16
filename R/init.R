@@ -320,3 +320,89 @@ init_glmpca_binom <- function(
   return(fit)
   
 }
+
+#' @title Initialize GLM-PCA Poisson Fit With Greedy Fitting
+#' 
+#' @description Initialize a GLM-PCA Poisson model fit and greedily
+#' update each factor and loading
+#'
+#' @param Y n x p matrix of counts; all entries should be
+#'   non-negative.
+#'   
+#' @param K An integer 1 or greater giving the matrix rank. This
+#'   argument should only be specified if the initial fit (\code{LL, FF})
+#'   is not provided.
+#'   
+#' @param max_greedy_iter maximum number of updates to each greedily
+#' added loading / factor pair
+#'
+#' @return An object capturing the initial state of the model fit. See
+#'   \code{\link{fit_glmpca_pois}} for details.
+#'
+#' @seealso \code{\link{fit_glmpca_pois}}
+#'
+#' @importFrom Matrix rowSums
+#' @importFrom Matrix colMeans
+#' @importFrom stats rnorm
+#' 
+#' @export
+#' 
+init_glmpca_pois_greedy <- function(
+  Y,
+  K,
+  max_greedy_iter = 10
+  ) {
+  
+  fit <- list()
+  
+  n <- nrow(Y)
+  p <- ncol(Y)
+  
+  fit$LL <- matrix(
+    data = 0,
+    nrow = 2,
+    ncol = n
+  )
+  
+  fit$FF <- matrix(
+    data = 0,
+    nrow = 2,
+    ncol = p
+  )
+  
+  cm <- colMeans(Y)
+  
+  fit$LL[1, ] <- 1
+  fit$LL[2, ] <- log(rowSums(Y) / sum(cm))
+    
+  
+  fit$FF[1, ] <- log(cm)
+  
+  # Intercept
+  fit$FF[2, ] <- 1
+  
+  class(fit) <- c("glmpca_fit", "list")
+  
+  for (k in 3:(K + 2)) {
+    
+    fit$LL <- rbind(fit$LL, rnorm(n, sd = 1e-10))
+    fit$FF <- rbind(fit$FF, rnorm(p, sd = 1e-10))
+    
+    fit$fixed_loadings <- 1:k
+    fit$fixed_factors <- 1:k
+    
+    fit <- fit_glmpca_pois(
+      Y,
+      fit0 = fit,
+      max_iter = max_greedy_iter,
+      control = list(alpha = 1e-2, num_iter = 3)
+    )
+    
+  }
+  
+  fit$fixed_loadings <- c(1)
+  fit$fixed_factors <- c(1, 2)
+  
+  return(fit)
+  
+}

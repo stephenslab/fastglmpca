@@ -3,7 +3,7 @@
 # then I can get fancier
 # and also add to the documentation
 set.seed(1)
-data <- plash::generate_glmpca_data(n = 2500, p = 1250, K = 5, link = "log")
+data <- plash::generate_glmpca_data_pois(n = 2500, p = 1250, K = 5, link = "log")
 #data <- plash:::generate_data_simple(n = 1000, p = 500, K = 1, link = "log1p")
 
 # data <- fastTopics::simulate_poisson_gene_data(n = 2500, m = 1250, k = 5)
@@ -15,8 +15,13 @@ data$Y <- data$Y[, colSums(data$Y) > 0]
 sp_Y <- as(data$Y, "sparseMatrix")
 
 set.seed(1)
-fit0 <- plash::init_glmpca(
+fit0 <- plash::init_glmpca_pois(
   Y = sp_Y, K = 5, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
+)
+
+set.seed(1)
+fit0_greedy <- plash::init_glmpca_pois_greedy(
+  Y = sp_Y, K = 5
 )
 
 tictoc::tic()
