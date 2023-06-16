@@ -388,8 +388,8 @@ init_glmpca_pois_greedy <- function(
     fit$LL <- rbind(fit$LL, rnorm(n, sd = 1e-10))
     fit$FF <- rbind(fit$FF, rnorm(p, sd = 1e-10))
     
-    fit$fixed_loadings <- 1:k
-    fit$fixed_factors <- 1:k
+    fit$fixed_loadings <- 1:(k - 1)
+    fit$fixed_factors <- 1:(k - 1)
     
     fit <- fit_glmpca_pois(
       Y,
