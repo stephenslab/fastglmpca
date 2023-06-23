@@ -9,13 +9,14 @@ library(cowplot)
 
 # Simulate a 200 x 500 counts matrix.
 set.seed(1)
-dat <- generate_glmpca_data(200,500,K = 3)
+dat <- generate_glmpca_data_pois(200,500,K = 3)
 Y <- dat$Y
 
 # Generate an initial fit of the Poisson GLM-PCA by running 10
 # iterations of the glmpca "Fisher scoring" algorithm, with a penalty.
 out0 <- glmpca(Y,L = 3,optimizer = "fisher",
                ctl = list(minIter = 2,maxIter = 10,tol = 1e-8,penalty = 1))
+stop()
 loglik0 <- out0$lik
 U <- as.matrix(cbind(out0$X,out0$offsets,out0$factors))
 V <- as.matrix(cbind(out0$coefX,1,out0$loadings))
