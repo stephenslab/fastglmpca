@@ -2,46 +2,46 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 update_loadings_bin <- function(F_T, L, Y_T, N_T, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_loadings_bin`, F_T, L, Y_T, N_T, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_loadings_bin`, F_T, L, Y_T, N_T, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_factors_bin <- function(L_T, FF, Y, N, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_factors_bin`, L_T, FF, Y, N, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_factors_bin`, L_T, FF, Y, N, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_loadings_missing_bin <- function(F_T, L, Y_T, N_T, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_loadings_missing_bin`, F_T, L, Y_T, N_T, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_loadings_missing_bin`, F_T, L, Y_T, N_T, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_factors_missing_bin <- function(L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_factors_missing_bin`, L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_factors_missing_bin`, L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    invisible(.Call(`_plash_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
+    invisible(.Call(`_fastglmpca_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
 
 update_factors <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_factors`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_factors`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_loadings_sp <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    invisible(.Call(`_plash_update_loadings_sp`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
+    invisible(.Call(`_fastglmpca_update_loadings_sp`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
 
 update_factors_sp <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
-    .Call(`_plash_update_factors_sp`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+    .Call(`_fastglmpca_update_factors_sp`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 big_exp_crossprod <- function(L, F, n, p) {
-    .Call(`_plash_big_exp_crossprod`, L, F, n, p)
+    .Call(`_fastglmpca_big_exp_crossprod`, L, F, n, p)
 }
 
 big_elementwise_mult_crossprod <- function(L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y) {
-    .Call(`_plash_big_elementwise_mult_crossprod`, L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y)
+    .Call(`_fastglmpca_big_elementwise_mult_crossprod`, L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y)
 }
 
 deriv_product <- function(L, F) {
-    .Call(`_plash_deriv_product`, L, F)
+    .Call(`_fastglmpca_deriv_product`, L, F)
 }
 
