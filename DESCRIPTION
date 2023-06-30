@@ -1,6 +1,6 @@
 Encoding: UTF-8
 Type: Package
-Package: plash
+Package: fastglmpca
 Version: 0.1-5
 Date: 2023-04-13
 Title: Fast Algorithms for Generalized Principal Component Analysis 
@@ -11,8 +11,8 @@ Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
 Description: Implements fast, scalable optimization algorithms for
     fitting generalized principal components analysis (GLM-PCA) models.
 License: GPL (>= 2)
-URL: https://github.com/eweine/plash
-BugReports: https://github.com/eweine/plash/issues
+URL: https://github.com/eweine/fastglmpca
+BugReports: https://github.com/eweine/fastglmpca/issues
 Imports:
     utils,
     Matrix,
