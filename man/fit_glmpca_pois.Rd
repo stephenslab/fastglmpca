@@ -2,13 +2,13 @@
 % Please edit documentation in R/fit.R
 \name{fit_glmpca_pois}
 \alias{fit_glmpca_pois}
-\title{Fit GLM-PCA Model to Count Data}
+\title{Fit Poisson GLM-PCA Model to Count Data}
 \usage{
 fit_glmpca_pois(
   Y,
   K,
   fit0,
-  tol = 0.0001,
+  tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
   verbose = TRUE,
@@ -25,7 +25,7 @@ argument will be ignored if the initial fit
 (\code{fit0}) is provided.}
 
 \item{fit0}{The initial model fit. It should be an object of class
-\dQuote{glmpca_fit}, such as an output from \code{init_glmpca}, 
+\dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
 or from a previous call to \code{fit_glmpca}.}
 
 \item{tol}{Positive scalar determining relative tolerance for assessing convergence.
@@ -46,7 +46,7 @@ the final values of \eqn{L} and \eqn{F}, as well as a dataframe \code{progress}
 that records information about the algorithm progress at each iteration.
 }
 \description{
-Fit a GLM-PCA model to input matrix \code{Y}
+Fit a Poisson GLM-PCA model to input matrix \code{Y}
   by maximum likelihood.
 }
 \details{

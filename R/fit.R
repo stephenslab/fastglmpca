@@ -56,9 +56,9 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
   
 }
 
-#' @title Fit GLM-PCA Model to Count Data
+#' @title Fit Poisson GLM-PCA Model to Count Data
 #' 
-#' @description Fit a GLM-PCA model to input matrix \code{Y}
+#' @description Fit a Poisson GLM-PCA model to input matrix \code{Y}
 #'   by maximum likelihood.
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
@@ -114,7 +114,7 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #'   (\code{fit0}) is provided.
 #'   
 #' @param fit0 The initial model fit. It should be an object of class
-#'   \dQuote{glmpca_fit}, such as an output from \code{init_glmpca}, 
+#'   \dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
 #'   or from a previous call to \code{fit_glmpca}.
 #'   
 #' @param tol Positive scalar determining relative tolerance for assessing convergence.
@@ -213,7 +213,7 @@ fit_glmpca_pois <- function(
       
     }
     
-    fit <- init_glmpca(
+    fit <- init_glmpca_pois(
       Y = Y,
       K = K
     )
@@ -222,7 +222,7 @@ fit_glmpca_pois <- function(
     
     if (!inherits(fit0,"glmpca_fit"))
       stop("Input argument \"fit0\" should be an object of class ",
-           "\"glmpca_fit\", such as an output of init_glmpca")
+           "\"glmpca_fit\", such as an output of init_glmpca_pois")
     
     verify.fit(fit0)
     fit <- fit0
@@ -714,7 +714,7 @@ fit_glmpca_binom <- function(
     
     if (!inherits(fit0,"glmpca_fit"))
       stop("Input argument \"fit0\" should be an object of class ",
-           "\"glmpca_fit\", such as an output of init_glmpca")
+           "\"glmpca_fit\", such as an output of init_glmpca_binom")
     
     verify.fit(fit0)
     fit <- fit0
