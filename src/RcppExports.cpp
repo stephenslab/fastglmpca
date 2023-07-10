@@ -11,6 +11,80 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// update_loadings_approx
+void update_loadings_approx(unsigned int n, unsigned int p, arma::mat& L, const arma::mat& linear_term_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_loadings_approx(SEXP nSEXP, SEXP pSEXP, SEXP LSEXP, SEXP linear_term_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type linear_term_mat(linear_term_matSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_loadings_approx(n, p, L, linear_term_mat, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
+// update_factors_approx
+void update_factors_approx(unsigned int n, unsigned int p, arma::mat& FF, const arma::mat& linear_term_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_factors_approx(SEXP nSEXP, SEXP pSEXP, SEXP FFSEXP, SEXP linear_term_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type linear_term_mat(linear_term_matSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_factors_approx(n, p, FF, linear_term_mat, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
+// update_loadings_approx_nz_mean
+void update_loadings_approx_nz_mean(unsigned int n, unsigned int p, arma::mat& L, const arma::vec& FF_row_means, const arma::mat& linear_term_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_loadings_approx_nz_mean(SEXP nSEXP, SEXP pSEXP, SEXP LSEXP, SEXP FF_row_meansSEXP, SEXP linear_term_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type FF_row_means(FF_row_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type linear_term_mat(linear_term_matSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_loadings_approx_nz_mean(n, p, L, FF_row_means, linear_term_mat, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
+// update_factors_approx_nz_mean
+void update_factors_approx_nz_mean(unsigned int n, unsigned int p, arma::mat& FF, const arma::vec& LL_row_means, const arma::mat& linear_term_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_factors_approx_nz_mean(SEXP nSEXP, SEXP pSEXP, SEXP FFSEXP, SEXP LL_row_meansSEXP, SEXP linear_term_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type LL_row_means(LL_row_meansSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type linear_term_mat(linear_term_matSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_factors_approx_nz_mean(n, p, FF, LL_row_means, linear_term_mat, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
 // update_loadings_bin
 arma::mat update_loadings_bin(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& N_T, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
 RcppExport SEXP _fastglmpca_update_loadings_bin(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP N_TSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
@@ -215,6 +289,10 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_fastglmpca_update_loadings_approx", (DL_FUNC) &_fastglmpca_update_loadings_approx, 9},
+    {"_fastglmpca_update_factors_approx", (DL_FUNC) &_fastglmpca_update_factors_approx, 9},
+    {"_fastglmpca_update_loadings_approx_nz_mean", (DL_FUNC) &_fastglmpca_update_loadings_approx_nz_mean, 10},
+    {"_fastglmpca_update_factors_approx_nz_mean", (DL_FUNC) &_fastglmpca_update_factors_approx_nz_mean, 10},
     {"_fastglmpca_update_loadings_bin", (DL_FUNC) &_fastglmpca_update_loadings_bin, 10},
     {"_fastglmpca_update_factors_bin", (DL_FUNC) &_fastglmpca_update_factors_bin, 10},
     {"_fastglmpca_update_loadings_missing_bin", (DL_FUNC) &_fastglmpca_update_loadings_missing_bin, 11},
