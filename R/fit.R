@@ -237,6 +237,9 @@ fit_glmpca_pois <- function(
   # get update indices, subtracting 1 for C++ compatibility
   LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
   FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
+  
+  LL_update_indices_R <- LL_update_indices + 1
+  FF_update_indices_R <- FF_update_indices + 1
 
   Y_T <- Matrix::t(Y)
   
@@ -352,81 +355,65 @@ fit_glmpca_pois <- function(
       
     }
     
-    FF_T <- t(fit$FF)
     start_iter_LL <- fit$LL
       
     if (length(LL_update_indices) > 0) {
-        
-        if (inherits(Y, "sparseMatrix")) {
-            
-            update_loadings_sp(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              deriv_const_mat = -Matrix::crossprod(FF_T, Y_T),
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-          
-        } else {
-            
-            update_loadings(
-              F_T = FF_T,
-              L = fit$LL,
-              Y_T = Y_T,
-              deriv_const_mat = -crossprod(FF_T, Y_T),
-              update_indices = LL_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            )
-          
-        }
+      
+      update_loadings_faster(
+        F_T = t(fit$FF),
+        L = fit$LL,
+        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R, ], Y)),
+        update_indices = LL_update_indices,
+        n = n,
+        num_iter = control$num_iter,
+        line_search = control$line_search,
+        alpha = control$alpha,
+        beta = control$beta
+      )
 
     }
     
-    LL_T <- t(fit$LL)
-    
     if (length(FF_update_indices) > 0) {
+      
+      if (length(fit$fixed_factors) > 0) {
         
-        if (inherits(Y, "sparseMatrix")) {
-            
-            new_lik <- update_factors_sp(
-              L_T = LL_T,
-              FF = fit$FF,
-              Y = Y,
-              deriv_const_mat = -Matrix::crossprod(LL_T, Y),
-              update_indices = FF_update_indices,
-              num_iter = control$num_iter,
-              line_search = control$line_search,
-              alpha = control$alpha,
-              beta = control$beta,
-              ccd_iter_tol = control$ccd_iter_tol
-            ) - loglik_const
-          
-        } else {
-            
-          new_lik <- update_factors(
-            L_T = LL_T,
-            FF = fit$FF,
-            Y = Y,
-            deriv_const_mat = -crossprod(LL_T, Y),
-            update_indices = FF_update_indices,
-            num_iter = control$num_iter,
-            line_search = control$line_search,
-            alpha = control$alpha,
-            beta = control$beta,
-            ccd_iter_tol = control$ccd_iter_tol
-          ) - loglik_const
-          
-        }
-
+        new_lik <- update_factors_faster(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          update_indices = FF_update_indices,
+          p = p,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) - loglik_const + sum((fit$LL[fit$fixed_factors, ] %*% Y) * fit$FF[fit$fixed_factors, ])
+        
+      } else {
+        
+        new_lik <- update_factors_faster(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          update_indices = FF_update_indices,
+          p = p,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) - loglik_const
+        
+      }
+      
+    } else {
+      
+      new_lik <- do.call(
+        loglik_func,
+        list(
+          Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+        )
+      )
+      
     }
     
     # rescale loadings and factors for numerical stability
