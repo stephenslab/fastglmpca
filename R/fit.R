@@ -368,8 +368,7 @@ fit_glmpca_pois <- function(
         num_iter = control$num_iter,
         line_search = control$line_search,
         alpha = control$alpha,
-        beta = control$beta,
-        ccd_iter_tol = control$ccd_iter_tol
+        beta = control$beta
       )
 
     }
@@ -385,8 +384,7 @@ fit_glmpca_pois <- function(
         num_iter = control$num_iter,
         line_search = control$line_search,
         alpha = control$alpha,
-        beta = control$beta,
-        ccd_iter_tol = control$ccd_iter_tol
+        beta = control$beta
       ) - loglik_const
 
     } else {
@@ -399,6 +397,13 @@ fit_glmpca_pois <- function(
       )
       
     }
+    
+    new_lik <- do.call(
+      loglik_func,
+      list(
+        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      )
+    )
     
     # rescale loadings and factors for numerical stability
     d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))

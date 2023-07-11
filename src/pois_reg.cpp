@@ -14,8 +14,7 @@ inline arma::vec solve_pois_reg_cpp (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
   ) {
   
   double current_lik; // used to store log likelihood of each iteration
@@ -32,14 +31,11 @@ inline arma::vec solve_pois_reg_cpp (
   double f_proposed;
   int j;
   double b_j_og;
-  double start_iter_lik;
   
   int num_indices = update_indices.size();
   current_lik = sum(exp_eta - (y % eta));
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
-    start_iter_lik = current_lik;
     
     for (int idx = 0; idx < num_indices; idx++) {
       
@@ -89,13 +85,6 @@ inline arma::vec solve_pois_reg_cpp (
       
     }
     
-    // if the negative log likelihood didn't increase substantially, break
-    if (start_iter_lik - current_lik < ccd_iter_tol) {
-      
-      break;
-      
-    }
-    
   }
   
   return(b);
@@ -110,8 +99,7 @@ inline arma::vec solve_pois_reg_faster_cpp (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
 ) {
   
   double current_nonlinear_lik; // used to store log likelihood of each iteration
@@ -130,14 +118,11 @@ inline arma::vec solve_pois_reg_faster_cpp (
   double f_proposed;
   int j;
   double b_j_og;
-  double start_iter_lik;
   
   int num_indices = update_indices.size();
   current_nonlinear_lik = sum(exp_eta);
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
-    start_iter_lik = current_lik;
     
     for (int idx = 0; idx < num_indices; idx++) {
       
@@ -186,13 +171,6 @@ inline arma::vec solve_pois_reg_faster_cpp (
         b(j) = b(j) - newton_dir;
         
       }
-      
-    }
-    
-    // if the negative log likelihood didn't increase substantially, break
-    if (start_iter_lik - current_lik < ccd_iter_tol) {
-      
-      break;
       
     }
     
@@ -213,7 +191,6 @@ inline arma::vec solve_pois_reg_cpp_calc_lik (
     const bool line_search,
     const double alpha,
     const double beta,
-    const double ccd_iter_tol,
     double *end_lik
 ) {
   
@@ -231,14 +208,11 @@ inline arma::vec solve_pois_reg_cpp_calc_lik (
   double f_proposed;
   int j;
   double b_j_og;
-  double start_iter_lik;
   
   int num_indices = update_indices.size();
   current_lik = sum(exp_eta - (y % eta));
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
-    start_iter_lik = current_lik;
     
     for (int idx = 0; idx < num_indices; idx++) {
       
@@ -288,13 +262,6 @@ inline arma::vec solve_pois_reg_cpp_calc_lik (
       
     }
     
-    // if the negative log likelihood didn't increase substantially, break
-    if (start_iter_lik - current_lik < ccd_iter_tol) {
-      
-      break;
-      
-    }
-    
   }
   
   *end_lik = f_proposed;
@@ -311,7 +278,6 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
     const bool line_search,
     const double alpha,
     const double beta,
-    const double ccd_iter_tol,
     double *end_lik
 ) {
   
@@ -331,14 +297,11 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
   double f_proposed;
   int j;
   double b_j_og;
-  double start_iter_lik;
   
   int num_indices = update_indices.size();
   current_nonlinear_lik = sum(exp_eta);
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
-    start_iter_lik = current_lik;
     
     for (int idx = 0; idx < num_indices; idx++) {
       
@@ -387,13 +350,6 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
         b(j) = b(j) - newton_dir;
         
       }
-      
-    }
-    
-    // if the negative log likelihood didn't increase substantially, break
-    if (start_iter_lik - current_lik < ccd_iter_tol) {
-      
-      break;
       
     }
     
@@ -429,8 +385,7 @@ void update_loadings (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
 ) {
   
   const arma::mat F_T_sqrd = arma::pow(F_T, 2);
@@ -448,8 +403,7 @@ void update_loadings (
       num_iter,
       line_search,
       alpha,
-      beta,
-      ccd_iter_tol
+      beta
     );
     
   }
@@ -468,8 +422,7 @@ void update_loadings_faster (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
 ) {
   
   #pragma omp parallel for shared(F_T, M, L, num_iter) 
@@ -483,8 +436,7 @@ void update_loadings_faster (
       num_iter,
       line_search,
       alpha,
-      beta,
-      ccd_iter_tol
+      beta
     );
     
   }
@@ -503,8 +455,7 @@ double update_factors (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
 ) {
   
   const arma::mat L_T_sqrd = arma::pow(L_T, 2);
@@ -527,7 +478,6 @@ double update_factors (
       line_search,
       alpha,
       beta,
-      ccd_iter_tol,
       end_lik
     );
     
@@ -554,8 +504,7 @@ double update_factors_faster (
     unsigned int num_iter,
     const bool line_search,
     const double alpha,
-    const double beta,
-    const double ccd_iter_tol
+    const double beta
 ) {
   
   double end_lik_sum = 0.0;
@@ -575,7 +524,6 @@ double update_factors_faster (
       line_search,
       alpha,
       beta,
-      ccd_iter_tol,
       end_lik
     );
     
