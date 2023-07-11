@@ -375,18 +375,36 @@ fit_glmpca_pois <- function(
     
     if (length(FF_update_indices) > 0) {
       
-      new_lik <- update_factors_faster(
-        L_T = t(fit$LL),
-        FF = fit$FF,
-        M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
-        update_indices = FF_update_indices,
-        p = p,
-        num_iter = control$num_iter,
-        line_search = control$line_search,
-        alpha = control$alpha,
-        beta = control$beta
-      ) - loglik_const
-
+      if (length(fit$fixed_factors) > 0) {
+        
+        new_lik <- update_factors_faster(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          update_indices = FF_update_indices,
+          p = p,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) - loglik_const + sum((fit$LL[fit$fixed_factors, ] %*% Y) * fit$FF[fit$fixed_factors, ])
+        
+      } else {
+        
+        new_lik <- update_factors_faster(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          update_indices = FF_update_indices,
+          p = p,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) - loglik_const
+        
+      }
+      
     } else {
       
       new_lik <- do.call(
@@ -397,13 +415,6 @@ fit_glmpca_pois <- function(
       )
       
     }
-    
-    new_lik <- do.call(
-      loglik_func,
-      list(
-        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
-      )
-    )
     
     # rescale loadings and factors for numerical stability
     d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))

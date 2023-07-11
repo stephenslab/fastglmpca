@@ -355,7 +355,7 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
     
   }
   
-  double end_linear_lik;
+  double end_linear_lik = 0.0;
   
   for (int idx = 0; idx < num_indices; idx++) {
     
