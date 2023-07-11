@@ -21,8 +21,16 @@ update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_it
     invisible(.Call(`_fastglmpca_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
 
+update_loadings_faster <- function(F_T, L, M, update_indices, n, num_iter, line_search, alpha, beta, ccd_iter_tol) {
+    invisible(.Call(`_fastglmpca_update_loadings_faster`, F_T, L, M, update_indices, n, num_iter, line_search, alpha, beta, ccd_iter_tol))
+}
+
 update_factors <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
     .Call(`_fastglmpca_update_factors`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+}
+
+update_factors_faster <- function(L_T, FF, M, update_indices, p, num_iter, line_search, alpha, beta, ccd_iter_tol) {
+    .Call(`_fastglmpca_update_factors_faster`, L_T, FF, M, update_indices, p, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
 update_loadings_sp <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
