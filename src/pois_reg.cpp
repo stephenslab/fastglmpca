@@ -124,6 +124,8 @@ inline arma::vec solve_pois_reg_faster_cpp (
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
     
+    double lik_improvement = 0.0;
+    
     for (int idx = 0; idx < num_indices; idx++) {
       
       j = update_indices[idx];
@@ -153,6 +155,7 @@ inline arma::vec solve_pois_reg_faster_cpp (
           if (f_proposed <= current_lik - t * newton_dec) {
             
             step_accepted = true;
+            lik_improvement = lik_improvement + (current_lik - f_proposed);
             current_nonlinear_lik = f_proposed + b(j) * m(idx);
             eta = eta_proposed;
             exp_eta = exp_eta_proposed;
@@ -160,6 +163,13 @@ inline arma::vec solve_pois_reg_faster_cpp (
           } else {
             
             t = beta * t;
+            
+            if (abs((t * newton_dir) / b_j_og) < 1e-16) {
+              
+              b(j) = b_j_og;
+              step_accepted = true;
+              
+            }
             
           }
           
@@ -171,6 +181,12 @@ inline arma::vec solve_pois_reg_faster_cpp (
         b(j) = b(j) - newton_dir;
         
       }
+      
+    }
+    
+    if (lik_improvement < 1e-8) {
+      
+      break;
       
     }
     
@@ -303,6 +319,8 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
     
+    double lik_improvement = 0.0;
+    
     for (int idx = 0; idx < num_indices; idx++) {
       
       j = update_indices[idx];
@@ -332,6 +350,7 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
           if (f_proposed <= current_lik - t * newton_dec) {
             
             step_accepted = true;
+            lik_improvement = lik_improvement + (current_lik - f_proposed);
             current_nonlinear_lik = f_proposed + b(j) * m(idx);
             eta = eta_proposed;
             exp_eta = exp_eta_proposed;
@@ -339,6 +358,13 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
           } else {
             
             t = beta * t;
+            
+            if (abs((t * newton_dir) / b_j_og) < 1e-16) {
+              
+              b(j) = b_j_og;
+              step_accepted = true;
+              
+            }
             
           }
           
@@ -350,6 +376,14 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
         b(j) = b(j) - newton_dir;
         
       }
+      
+    }
+    
+    // if likelihood didn't improve much after cycling through all params
+    // move on
+    if (lik_improvement < 1e-8) {
+      
+      break;
       
     }
     
