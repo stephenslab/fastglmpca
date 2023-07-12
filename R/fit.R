@@ -131,6 +131,34 @@ aprox_ll_glmpca_pois <- function(
 
   Y_T <- Matrix::t(Y)
   
+  # This will only work for sparse matrices
+  summary_Y <- Matrix::summary(Y)
+  summary_Y_T <- Matrix::summary(Y_T)
+  
+  # A list in R containing non-zero indices by each column of Y
+  non_zero_Y_idx_by_col <- get_nonzero_row_indices_cpp(
+    summary_Y$i, 
+    summary_Y$j
+  )
+  
+  non_zero_Y_idx_by_row <- get_nonzero_row_indices_cpp(
+    summary_Y_T$i, 
+    summary_Y_T$j
+  )
+  
+  non_zero_Y_by_col <- get_nonzero_row_values_cpp(
+    summary_Y$x, 
+    summary_Y$j
+  )
+  
+  non_zero_Y_by_row <- get_nonzero_row_values_cpp(
+    summary_Y_T$x, 
+    summary_Y_T$j
+  )
+  
+  full_Y_row_indices <- seq(0, nrow(Y) - 1, 1)
+  full_Y_col_indices <- seq(0, ncol(Y) - 1, 1)
+  
   # calculate part of log likelihood that doesn't change
   if (!inherits(Y, "sparseMatrix")) {
     
@@ -246,42 +274,42 @@ aprox_ll_glmpca_pois <- function(
     start_iter_LL <- fit$LL
       
     if (length(LL_update_indices) > 0) {
-            
-      for (i in 1:n) {
         
-        fit$LL[, i] <- approx_reg_ccd(
-          X = t(fit$FF),
-          y = Y[i, ],
-          w = fit$LL[, i],
-          a1 = a1,
-          a2 = a2,
-          update_indices = LL_update_indices + 1,
-          n_updates = control$num_iter,
-          alpha = control$alpha,
-          beta = control$beta
-        )
-        
-      }
+      update_loadings_approx_reg (
+        t(fit$FF),
+        fit$LL,
+        non_zero_Y_idx_by_row,
+        non_zero_Y_by_row,
+        full_Y_row_indices,
+        a1,
+        a2,
+        n,
+        LL_update_indices,
+        control$num_iter,
+        control$line_search,
+        control$alpha,
+        control$beta
+      )
 
     }
     
     if (length(FF_update_indices) > 0) {
             
-      for (j in 1:p) {
-        
-        fit$FF[, j] <- approx_reg_ccd(
-          X = t(fit$LL),
-          y = Y[, j],
-          w = fit$FF[, j],
-          a1 = a1,
-          a2 = a2,
-          update_indices = FF_update_indices + 1,
-          n_updates = control$num_iter,
-          alpha = control$alpha,
-          beta = control$beta
-        )
-        
-      }
+      update_factors_approx_reg (
+        t(fit$LL),
+        fit$FF,
+        non_zero_Y_idx_by_col,
+        non_zero_Y_by_col,
+        full_Y_col_indices,
+        a1,
+        a2,
+        p,
+        FF_update_indices,
+        control$num_iter,
+        control$line_search,
+        control$alpha,
+        control$beta
+      )
 
     }
     

@@ -17,6 +17,14 @@ update_factors_missing_bin <- function(L_T, FF, Y, N, nonmissing_index_list, upd
     .Call(`_fastglmpca_update_factors_missing_bin`, L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
+get_nonzero_row_indices_cpp <- function(idx_i, idx_j) {
+    .Call(`_fastglmpca_get_nonzero_row_indices_cpp`, idx_i, idx_j)
+}
+
+get_nonzero_row_values_cpp <- function(y, idx_j) {
+    .Call(`_fastglmpca_get_nonzero_row_values_cpp`, y, idx_j)
+}
+
 update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
     invisible(.Call(`_fastglmpca_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol))
 }
@@ -31,6 +39,14 @@ update_loadings_sp <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num
 
 update_factors_sp <- function(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol) {
     .Call(`_fastglmpca_update_factors_sp`, L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
+}
+
+update_loadings_approx_reg <- function(F_T, L, non_zero_Y_idx_by_row, non_zero_Y_by_row, full_n_indices, a1, a2, n, update_indices, num_iter, line_search, alpha, beta) {
+    invisible(.Call(`_fastglmpca_update_loadings_approx_reg`, F_T, L, non_zero_Y_idx_by_row, non_zero_Y_by_row, full_n_indices, a1, a2, n, update_indices, num_iter, line_search, alpha, beta))
+}
+
+update_factors_approx_reg <- function(L_T, FF, non_zero_Y_idx_by_col, non_zero_Y_by_col, full_p_indices, a1, a2, p, update_indices, num_iter, line_search, alpha, beta) {
+    invisible(.Call(`_fastglmpca_update_factors_approx_reg`, L_T, FF, non_zero_Y_idx_by_col, non_zero_Y_by_col, full_p_indices, a1, a2, p, update_indices, num_iter, line_search, alpha, beta))
 }
 
 big_exp_crossprod <- function(L, F, n, p) {

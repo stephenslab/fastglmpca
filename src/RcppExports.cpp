@@ -93,6 +93,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// get_nonzero_row_indices_cpp
+Rcpp::List get_nonzero_row_indices_cpp(const std::vector<int>& idx_i, const std::vector<int>& idx_j);
+RcppExport SEXP _fastglmpca_get_nonzero_row_indices_cpp(SEXP idx_iSEXP, SEXP idx_jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type idx_i(idx_iSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type idx_j(idx_jSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_nonzero_row_indices_cpp(idx_i, idx_j));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_nonzero_row_values_cpp
+Rcpp::List get_nonzero_row_values_cpp(const std::vector<int>& y, const std::vector<int>& idx_j);
+RcppExport SEXP _fastglmpca_get_nonzero_row_values_cpp(SEXP ySEXP, SEXP idx_jSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type idx_j(idx_jSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_nonzero_row_values_cpp(y, idx_j));
+    return rcpp_result_gen;
+END_RCPP
+}
 // update_loadings
 void update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
 RcppExport SEXP _fastglmpca_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
@@ -171,6 +195,50 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_loadings_approx_reg
+void update_loadings_approx_reg(const arma::mat& F_T, arma::mat& L, const Rcpp::List non_zero_Y_idx_by_row, const Rcpp::List non_zero_Y_by_row, arma::uvec full_n_indices, const double a1, const double a2, const int n, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_loadings_approx_reg(SEXP F_TSEXP, SEXP LSEXP, SEXP non_zero_Y_idx_by_rowSEXP, SEXP non_zero_Y_by_rowSEXP, SEXP full_n_indicesSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP nSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_idx_by_row(non_zero_Y_idx_by_rowSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_by_row(non_zero_Y_by_rowSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type full_n_indices(full_n_indicesSEXP);
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type a2(a2SEXP);
+    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< const int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_loadings_approx_reg(F_T, L, non_zero_Y_idx_by_row, non_zero_Y_by_row, full_n_indices, a1, a2, n, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
+// update_factors_approx_reg
+void update_factors_approx_reg(const arma::mat& L_T, arma::mat& FF, const Rcpp::List non_zero_Y_idx_by_col, const Rcpp::List non_zero_Y_by_col, arma::uvec full_p_indices, const double a1, const double a2, const int p, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_factors_approx_reg(SEXP L_TSEXP, SEXP FFSEXP, SEXP non_zero_Y_idx_by_colSEXP, SEXP non_zero_Y_by_colSEXP, SEXP full_p_indicesSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP pSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_idx_by_col(non_zero_Y_idx_by_colSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_by_col(non_zero_Y_by_colSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type full_p_indices(full_p_indicesSEXP);
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type a2(a2SEXP);
+    Rcpp::traits::input_parameter< const int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< const int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_factors_approx_reg(L_T, FF, non_zero_Y_idx_by_col, non_zero_Y_by_col, full_p_indices, a1, a2, p, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
 // big_exp_crossprod
 double big_exp_crossprod(const arma::mat& L, const arma::mat& F, const int n, const int p);
 RcppExport SEXP _fastglmpca_big_exp_crossprod(SEXP LSEXP, SEXP FSEXP, SEXP nSEXP, SEXP pSEXP) {
@@ -219,10 +287,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fastglmpca_update_factors_bin", (DL_FUNC) &_fastglmpca_update_factors_bin, 10},
     {"_fastglmpca_update_loadings_missing_bin", (DL_FUNC) &_fastglmpca_update_loadings_missing_bin, 11},
     {"_fastglmpca_update_factors_missing_bin", (DL_FUNC) &_fastglmpca_update_factors_missing_bin, 11},
+    {"_fastglmpca_get_nonzero_row_indices_cpp", (DL_FUNC) &_fastglmpca_get_nonzero_row_indices_cpp, 2},
+    {"_fastglmpca_get_nonzero_row_values_cpp", (DL_FUNC) &_fastglmpca_get_nonzero_row_values_cpp, 2},
     {"_fastglmpca_update_loadings", (DL_FUNC) &_fastglmpca_update_loadings, 10},
     {"_fastglmpca_update_factors", (DL_FUNC) &_fastglmpca_update_factors, 10},
     {"_fastglmpca_update_loadings_sp", (DL_FUNC) &_fastglmpca_update_loadings_sp, 10},
     {"_fastglmpca_update_factors_sp", (DL_FUNC) &_fastglmpca_update_factors_sp, 10},
+    {"_fastglmpca_update_loadings_approx_reg", (DL_FUNC) &_fastglmpca_update_loadings_approx_reg, 13},
+    {"_fastglmpca_update_factors_approx_reg", (DL_FUNC) &_fastglmpca_update_factors_approx_reg, 13},
     {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
     {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},
     {"_fastglmpca_deriv_product", (DL_FUNC) &_fastglmpca_deriv_product, 2},

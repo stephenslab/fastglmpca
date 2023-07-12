@@ -34,7 +34,7 @@ approx_reg_ccd <- function(
     for (idx in 1:length(update_indices)) {
       
       j = update_indices[idx]
-      
+
       current_lik <- current_nonlinear_lik - w[j] * m[idx]
       deriv_prod <- exp_eta * X_nz[, j]
       first_deriv <- sqrd_factor * sum(w * Z_0[,j]) + sum(deriv_prod) - m[idx]
