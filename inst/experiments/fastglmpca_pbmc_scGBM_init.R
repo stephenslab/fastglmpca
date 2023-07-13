@@ -15,7 +15,7 @@ set.seed(1)
 
 # first, get an initial fit from scGBM
 scGBM_fit0 <- readr::read_rds(
-  "pbmc_scGBM_fit_{n_factor}_factors_init_1_iter_no_beta_infer.rds"
+  glue::glue("pbmc_scGBM_fit_{n_factor}_factors_init_1_iter_no_beta_infer.rds")
 )
 
 fit0 <- fastglmpca::init_glmpca_pois(
