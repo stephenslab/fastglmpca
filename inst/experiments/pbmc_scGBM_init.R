@@ -1,7 +1,7 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
 
-counts <- readr::read_rds("/home/ericweine/plash/inst/scratch/data/pbmc_68k_data_25_perc_var_genes.rds")
+load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/pbmc_68k.RData")
 
 library(scGBM)
 
