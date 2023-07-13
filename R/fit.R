@@ -141,6 +141,9 @@ aprox_ll_glmpca_pois <- function(
     summary_Y$j
   )
   
+  zero_y_idx_by_col <- lapply(1:p, function(i) which(Y[, i] == 0) - 1)
+  zero_y_idx_by_row <- lapply(1:n, function(i) which(Y[i, ] == 0) - 1)
+  
   non_zero_Y_idx_by_row <- get_nonzero_row_indices_cpp(
     summary_Y_T$i, 
     summary_Y_T$j
@@ -280,7 +283,7 @@ aprox_ll_glmpca_pois <- function(
         fit$LL,
         non_zero_Y_idx_by_row,
         non_zero_Y_by_row,
-        full_Y_row_indices,
+        zero_y_idx_by_row,
         a1,
         a2,
         n,
@@ -300,7 +303,7 @@ aprox_ll_glmpca_pois <- function(
         fit$FF,
         non_zero_Y_idx_by_col,
         non_zero_Y_by_col,
-        full_Y_col_indices,
+        zero_y_idx_by_col,
         a1,
         a2,
         p,

@@ -87,7 +87,7 @@ void update_loadings_approx_reg (
     arma::mat& L,
     const Rcpp::List non_zero_Y_idx_by_row,
     const Rcpp::List non_zero_Y_by_row,
-    arma::uvec full_n_indices,
+    const Rcpp::List zero_Y_idx_by_row,
     const double a1,
     const double a2,
     const int n,
@@ -100,21 +100,49 @@ void update_loadings_approx_reg (
   
   for (int i = 0; i < n; i++) {
     
-    arma::uvec rows_to_shed = non_zero_Y_idx_by_row[i];
-    arma::uvec full_indices = full_n_indices;
-    
-    for(uword l = rows_to_shed.n_elem; l>0; l--) {
+    // arma::uvec rows_to_shed = non_zero_Y_idx_by_row[i];
+    // arma::uvec full_indices = full_p_indices;
+    // 
+    // Rprintf("Iteration %i\n", i);
+    // 
+    // // print row indices before shedding
+    //   
+    //   Rprintf("full_indices = [");
+    //   
+    //   for(int w = 0; w < full_indices.n_elem - 1; w++) {
+    //     
+    //     Rprintf("%i, ", full_indices(w));
+    //     
+    //   }
+    //   
+    //   Rprintf("%i]\n", full_indices(full_indices.n_elem - 1));
+    // 
+    // 
+    // for (int k = 0; k < rows_to_shed.n_elem; k++) {
+    //   
+    //   full_indices.shed_row(rows_to_shed(k));
+    //   
+    // }
+    // 
+    // // print row indices before shedding
+    //   
+    //   Rprintf("indices_after_shedding = [");
+    //   
+    //   for(int w = 0; w < full_indices.n_elem - 1; w++) {
+    //     
+    //     Rprintf("%i, ", full_indices(w));
+    //     
+    //   }
+    //   
+    //   Rprintf("%i]\n", full_indices(full_indices.n_elem - 1));
       
-      full_indices.shed_row(l);
-      
-    }
     
     // Note, I may have to do some casting here
     L.col(i) = approx_reg_ccd_cpp (
       F_T,
       non_zero_Y_by_row[i],
       non_zero_Y_idx_by_row[i],
-      full_indices,
+      zero_Y_idx_by_row[i],
       L.col(i),
       a1,
       a2,
@@ -135,7 +163,7 @@ void update_factors_approx_reg (
     arma::mat& FF,
     const Rcpp::List non_zero_Y_idx_by_col,
     const Rcpp::List non_zero_Y_by_col,
-    arma::uvec full_p_indices,
+    const Rcpp::List zero_Y_idx_by_col,
     const double a1,
     const double a2,
     const int p,
@@ -146,24 +174,24 @@ void update_factors_approx_reg (
     const double beta
 ) {
   
-  #pragma omp parallel for private(full_p_indices)
+  //#pragma omp parallel for private(full_p_indices)
   for (int j = 0; j < p; j++) {
     
-    arma::uvec rows_to_shed = non_zero_Y_idx_by_col[j];
-    arma::uvec full_indices = full_p_indices; 
-
-    for(uword l = rows_to_shed.n_elem; l>0; l--) {
-      
-      full_indices.shed_row(l);
-      
-    }
+    // arma::uvec rows_to_shed = non_zero_Y_idx_by_col[j];
+    // arma::uvec full_indices = full_n_indices; 
+    // 
+    // for(uword l = rows_to_shed.n_elem; l>0; l--) {
+    //   
+    //   full_indices.shed_row(l);
+    //   
+    // }
     
     // Note, I may have to do some casting here
     FF.col(j) = approx_reg_ccd_cpp (
       L_T,
       non_zero_Y_by_col[j],
       non_zero_Y_idx_by_col[j],
-      full_indices,
+      zero_Y_idx_by_col[j],
       FF.col(j),
       a1,
       a2,

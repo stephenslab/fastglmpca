@@ -196,15 +196,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_loadings_approx_reg
-void update_loadings_approx_reg(const arma::mat& F_T, arma::mat& L, const Rcpp::List non_zero_Y_idx_by_row, const Rcpp::List non_zero_Y_by_row, arma::uvec full_n_indices, const double a1, const double a2, const int n, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_loadings_approx_reg(SEXP F_TSEXP, SEXP LSEXP, SEXP non_zero_Y_idx_by_rowSEXP, SEXP non_zero_Y_by_rowSEXP, SEXP full_n_indicesSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP nSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+void update_loadings_approx_reg(const arma::mat& F_T, arma::mat& L, const Rcpp::List non_zero_Y_idx_by_row, const Rcpp::List non_zero_Y_by_row, const Rcpp::List zero_Y_idx_by_row, const double a1, const double a2, const int n, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_loadings_approx_reg(SEXP F_TSEXP, SEXP LSEXP, SEXP non_zero_Y_idx_by_rowSEXP, SEXP non_zero_Y_by_rowSEXP, SEXP zero_Y_idx_by_rowSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP nSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_idx_by_row(non_zero_Y_idx_by_rowSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_by_row(non_zero_Y_by_rowSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type full_n_indices(full_n_indicesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type zero_Y_idx_by_row(zero_Y_idx_by_rowSEXP);
     Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
     Rcpp::traits::input_parameter< const double >::type a2(a2SEXP);
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
@@ -213,20 +213,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    update_loadings_approx_reg(F_T, L, non_zero_Y_idx_by_row, non_zero_Y_by_row, full_n_indices, a1, a2, n, update_indices, num_iter, line_search, alpha, beta);
+    update_loadings_approx_reg(F_T, L, non_zero_Y_idx_by_row, non_zero_Y_by_row, zero_Y_idx_by_row, a1, a2, n, update_indices, num_iter, line_search, alpha, beta);
     return R_NilValue;
 END_RCPP
 }
 // update_factors_approx_reg
-void update_factors_approx_reg(const arma::mat& L_T, arma::mat& FF, const Rcpp::List non_zero_Y_idx_by_col, const Rcpp::List non_zero_Y_by_col, arma::uvec full_p_indices, const double a1, const double a2, const int p, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_factors_approx_reg(SEXP L_TSEXP, SEXP FFSEXP, SEXP non_zero_Y_idx_by_colSEXP, SEXP non_zero_Y_by_colSEXP, SEXP full_p_indicesSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP pSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+void update_factors_approx_reg(const arma::mat& L_T, arma::mat& FF, const Rcpp::List non_zero_Y_idx_by_col, const Rcpp::List non_zero_Y_by_col, const Rcpp::List zero_Y_idx_by_col, const double a1, const double a2, const int p, const arma::uvec& update_indices, const int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_factors_approx_reg(SEXP L_TSEXP, SEXP FFSEXP, SEXP non_zero_Y_idx_by_colSEXP, SEXP non_zero_Y_by_colSEXP, SEXP zero_Y_idx_by_colSEXP, SEXP a1SEXP, SEXP a2SEXP, SEXP pSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_idx_by_col(non_zero_Y_idx_by_colSEXP);
     Rcpp::traits::input_parameter< const Rcpp::List >::type non_zero_Y_by_col(non_zero_Y_by_colSEXP);
-    Rcpp::traits::input_parameter< arma::uvec >::type full_p_indices(full_p_indicesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List >::type zero_Y_idx_by_col(zero_Y_idx_by_colSEXP);
     Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
     Rcpp::traits::input_parameter< const double >::type a2(a2SEXP);
     Rcpp::traits::input_parameter< const int >::type p(pSEXP);
@@ -235,7 +235,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    update_factors_approx_reg(L_T, FF, non_zero_Y_idx_by_col, non_zero_Y_by_col, full_p_indices, a1, a2, p, update_indices, num_iter, line_search, alpha, beta);
+    update_factors_approx_reg(L_T, FF, non_zero_Y_idx_by_col, non_zero_Y_by_col, zero_Y_idx_by_col, a1, a2, p, update_indices, num_iter, line_search, alpha, beta);
     return R_NilValue;
 END_RCPP
 }
