@@ -11,7 +11,7 @@ load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/pbmc_68k.RData"
 
 
 scGBM_fit0 <- readr::read_rds(
-  glue::glue("~/Downloads/pbmc_scGBM_fit_{n_factor}_factors_init_1_iter_no_beta_infer.rds")
+  glue::glue("/home/ericweine/glmpca_experiments/pbmc_scGBM_fit_{n_factor}_factors_init_1_iter_no_beta_infer.rds")
 )
 
 fit0 <- fastglmpca::init_glmpca_pois(
