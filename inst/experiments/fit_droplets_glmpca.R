@@ -7,7 +7,7 @@ library(Matrix)
 library(RhpcBLASctl)
 blas_set_num_threads(1)
 omp_set_num_threads(n_cores)
-load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplets.RData")
+load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 
 
 scGBM_fit0 <- readr::read_rds(

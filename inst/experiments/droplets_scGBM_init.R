@@ -1,7 +1,7 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
 
-load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplets.RData")
+load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 
 library(scGBM)
 
