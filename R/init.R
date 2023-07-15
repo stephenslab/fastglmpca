@@ -58,11 +58,14 @@ init_glmpca_pois <- function(
     K,
     LL,
     FF,
+    initialization = c("random", "expected_loglik"),
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
     fixed_loadings = NULL,
     fixed_factors = NULL
 ) {
+  
+  initialization <- match.arg(initialization)
   
   if (!missing(LL) && !missing(FF)) {
     
@@ -217,6 +220,46 @@ init_glmpca_pois <- function(
     
     fit$FF <- FF
     fit$fixed_factors <- fixed_factors
+    
+  }
+  
+  if (missing(LL) && initialization == "expected_loglik" && !missing(Y)) {
+    
+    FF_update_indices <- setdiff(1:nrow(fit$LL), fit$fixed_factors)
+    LL_update_indices <- setdiff(1:nrow(fit$LL), fit$fixed_loadings)
+    init_update_indices <- intersect(FF_update_indices, LL_update_indices)
+    init_fixed_indices <- union(fit$fixed_factors, fit$fixed_loadings)
+    
+    # Transform LL so that it is in the correct form
+    row_stds <- matrixStats::rowSds(fit$LL[init_update_indices, ])
+    
+    fit$FF[init_update_indices, ] <- row_stds * fit$FF[init_update_indices, ]
+    fit$LL[init_update_indices, ] <- (1 / row_stds) * fit$LL[init_update_indices, ]
+    
+    if (length(init_fixed_indices) > 0) {
+      
+      fixed_factor_vec <- colMeans(exp(crossprod(fit$LL[init_fixed_indices, ], fit$FF[init_fixed_indices, ])))
+      
+    }
+    
+    else {
+      
+      fixed_factor_vec <- rep(1, p)
+      
+    }
+      
+    update_factors_approx (
+      n,
+      p,
+      fit$FF,
+      colMeans(exp(crossprod(fit$LL[init_fixed_indices, ], fit$FF[init_fixed_indices, ]))),
+      as.matrix(fit$LL %*% Y),
+      init_update_indices - 1,
+      10,
+      TRUE,
+      .01,
+      .25
+    )
     
   }
   

@@ -17,6 +17,10 @@ update_factors_missing_bin <- function(L_T, FF, Y, N, nonmissing_index_list, upd
     .Call(`_fastglmpca_update_factors_missing_bin`, L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol)
 }
 
+update_factors_approx <- function(n, p, FF, fixed_factor_vec, linear_term_mat, update_indices, num_iter, line_search, alpha, beta) {
+    invisible(.Call(`_fastglmpca_update_factors_approx`, n, p, FF, fixed_factor_vec, linear_term_mat, update_indices, num_iter, line_search, alpha, beta))
+}
+
 update_loadings <- function(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta) {
     invisible(.Call(`_fastglmpca_update_loadings`, F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta))
 }

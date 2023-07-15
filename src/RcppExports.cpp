@@ -93,6 +93,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_factors_approx
+void update_factors_approx(unsigned int n, unsigned int p, arma::mat& FF, const arma::vec& fixed_factor_vec, const arma::mat& linear_term_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
+RcppExport SEXP _fastglmpca_update_factors_approx(SEXP nSEXP, SEXP pSEXP, SEXP FFSEXP, SEXP fixed_factor_vecSEXP, SEXP linear_term_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type fixed_factor_vec(fixed_factor_vecSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type linear_term_mat(linear_term_matSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
+    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
+    update_factors_approx(n, p, FF, fixed_factor_vec, linear_term_mat, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
+END_RCPP
+}
 // update_loadings
 void update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
 RcppExport SEXP _fastglmpca_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
@@ -254,6 +273,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fastglmpca_update_factors_bin", (DL_FUNC) &_fastglmpca_update_factors_bin, 10},
     {"_fastglmpca_update_loadings_missing_bin", (DL_FUNC) &_fastglmpca_update_loadings_missing_bin, 11},
     {"_fastglmpca_update_factors_missing_bin", (DL_FUNC) &_fastglmpca_update_factors_missing_bin, 11},
+    {"_fastglmpca_update_factors_approx", (DL_FUNC) &_fastglmpca_update_factors_approx, 10},
     {"_fastglmpca_update_loadings", (DL_FUNC) &_fastglmpca_update_loadings, 9},
     {"_fastglmpca_update_loadings_faster", (DL_FUNC) &_fastglmpca_update_loadings_faster, 9},
     {"_fastglmpca_update_factors", (DL_FUNC) &_fastglmpca_update_factors, 9},

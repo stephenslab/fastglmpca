@@ -171,6 +171,7 @@ fit_glmpca_pois <- function(
     Y, 
     K, 
     fit0, 
+    orthogonalize = TRUE,
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
@@ -359,6 +360,17 @@ fit_glmpca_pois <- function(
       
     if (length(LL_update_indices) > 0) {
       
+      if (orthogonalize) {
+        
+        svd_out <- svd(
+          t(fit$FF[FF_update_indices_R, ])
+        )
+        
+        fit$FF[FF_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[FF_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[FF_update_indices_R, ]
+        
+      }
+      
       update_loadings_faster(
         F_T = t(fit$FF),
         L = fit$LL,
@@ -374,6 +386,18 @@ fit_glmpca_pois <- function(
     }
     
     if (length(FF_update_indices) > 0) {
+      
+      if (orthogonalize) {
+        
+        svd_out <- svd(
+          t(fit$LL[LL_update_indices_R, ])
+        )
+        
+        fit$LL[LL_update_indices_R, ] <- t(svd_out$u)
+        
+        fit$FF[LL_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[LL_update_indices_R, ]
+        
+      }
       
       if (length(fit$fixed_factors) > 0) {
         
@@ -415,12 +439,6 @@ fit_glmpca_pois <- function(
       )
       
     }
-    
-    # rescale loadings and factors for numerical stability
-    d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))
-    d[fixed_rows] <- 1
-    fit$FF <- fit$FF * d
-    fit$LL <- fit$LL / d
 
     if (new_lik >= current_lik && t >= min_iter) {
       

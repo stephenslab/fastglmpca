@@ -9,6 +9,7 @@ init_glmpca_pois(
   K,
   LL,
   FF,
+  initialization = c("random", "expected_loglik"),
   fit_col_size_factor = FALSE,
   fit_row_intercept = FALSE,
   fixed_loadings = NULL,
