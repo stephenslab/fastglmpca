@@ -34,6 +34,16 @@ gc()
 
 library(tictoc)
 
+if (n_factor == 2) {
+  
+  lr = 2e-9
+  
+} else {
+  
+  lr = 5e-8
+  
+}
+
 tic()
 fit <- glmpca::glmpca(
     Y = Matrix::t(counts),
@@ -41,7 +51,7 @@ fit <- glmpca::glmpca(
     fam = "poi",
     optimizer = "avagrad",
     minibatch = "stochastic",
-    ctl = list(minIter = n_iter - 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps, lr = 5e-8),
+    ctl = list(minIter = n_iter - 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps, lr = lr),
     init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),])),
     sz = exp(fit0$FF[1, ]),
     init_coefX = matrix(data = fit0$LL[2, ], ncol = 1)
