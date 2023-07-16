@@ -8,6 +8,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0,
+  orthogonalize = TRUE,
   tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
