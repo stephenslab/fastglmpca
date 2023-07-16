@@ -395,7 +395,7 @@ fit_glmpca_pois <- function(
       if (length(fit$fixed_factors) > 0) {
         
         new_lik <- update_factors_faster(
-          L_T = LL_T,
+          L_T = t(fit$LL),
           FF = fit$FF,
           M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
           update_indices = FF_update_indices,
