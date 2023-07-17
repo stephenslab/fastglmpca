@@ -9,7 +9,7 @@ fit_glmpca_binom(
   N,
   K,
   fit0,
-  tol = 1e-04,
+  tol = 0.0001,
   min_iter = 1,
   max_iter = 100,
   control = list()
