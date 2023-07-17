@@ -623,6 +623,7 @@ fit_glmpca_control_default <- function() {
 #' @return An object capturing the final state of the model fit.
 #'
 #' @import Matrix
+#' @importFrom stats na.omit
 #' @importFrom utils modifyList
 #' @importFrom MatrixExtra mapSparse
 #' 
