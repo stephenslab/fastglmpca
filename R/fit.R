@@ -365,13 +365,17 @@ fit_glmpca_pois <- function(
     if (length(LL_update_indices) > 0) {
       
       # orthonormalize rows of FF that are not fixed
-      svd_out <- svd(
-        t(fit$FF[FF_update_indices_R, ])
-      )
-      
-      fit$FF[FF_update_indices_R, ] <- t(svd_out$u)
-      fit$LL[FF_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[FF_update_indices_R, ]
-      
+      if (length(FF_update_indices_R) > 1) {
+        
+        svd_out <- svd(
+          t(fit$FF[FF_update_indices_R, ])
+        )
+        
+        fit$FF[FF_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[FF_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[FF_update_indices_R, ]
+        
+      }
+
       update_loadings_faster(
         F_T = t(fit$FF),
         L = fit$LL,
@@ -388,14 +392,19 @@ fit_glmpca_pois <- function(
     
     if (length(FF_update_indices) > 0) {
       
-      # orthonormalize rows of LL that are not fixed
-      svd_out <- svd(
-        t(fit$LL[LL_update_indices_R, ])
-      )
-      
-      fit$LL[LL_update_indices_R, ] <- t(svd_out$u)
-      
-      fit$FF[LL_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[LL_update_indices_R, ]
+      if (length(LL_update_indices_R) > 2) {
+        
+        # orthonormalize rows of LL that are not fixed
+        svd_out <- svd(
+          t(fit$LL[LL_update_indices_R, ])
+        )
+        
+        fit$LL[LL_update_indices_R, ] <- t(svd_out$u)
+        
+        fit$FF[LL_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[LL_update_indices_R, ]
+        
+        
+      }
 
       if (length(fit$fixed_factors) > 0) {
         
