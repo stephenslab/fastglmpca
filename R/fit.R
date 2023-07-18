@@ -355,7 +355,12 @@ fit_glmpca_pois <- function(
       
     }
     
-    start_iter_LL <- fit$LL
+    if (calc_max_diff) {
+      
+      start_iter_LL <- fit$LL
+      start_iter_FF <- fit$FF
+      
+    }
       
     if (length(LL_update_indices) > 0) {
       
@@ -469,7 +474,7 @@ fit_glmpca_pois <- function(
     if (calc_max_diff) {
       
       fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
-      fit$progress$max_diff_FF[t + 1] <- max(abs(t(fit$FF) - FF_T))
+      fit$progress$max_diff_FF[t + 1] <- max(abs(fit$FF - start_iter_FF))
       
     }
     
@@ -481,7 +486,7 @@ fit_glmpca_pois <- function(
     } else if (calc_deriv) {
       
       fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
+      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
       
     }
     
