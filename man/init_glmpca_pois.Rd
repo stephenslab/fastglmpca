@@ -7,8 +7,8 @@
 init_glmpca_pois(
   Y,
   K,
-  LL,
-  FF,
+  U,
+  V,
   fit_col_size_factor = FALSE,
   fit_row_intercept = FALSE,
   fixed_loadings = NULL,
@@ -20,19 +20,19 @@ init_glmpca_pois(
 non-negative.}
 
 \item{K}{An integer 1 or greater giving the matrix rank. This
-argument should only be specified if the initial fit (\code{LL, FF})
+argument should only be specified if the initial fit (\code{U, V})
 is not provided.}
 
-\item{LL}{An optional argument giving the initial estimate of the
-loadings matrix. It should be an K x n matrix, where n is the
+\item{U}{An optional argument giving the initial estimate of the
+loadings matrix. It should be an n x K matrix, where n is the
 number of rows in the counts matrix \code{Y}, and K >= 1 is the rank
-of the matrix factorization. When \code{LL} and \code{FF} are not
+of the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
-\item{FF}{An optional argument giving is the initial estimate of the
-factors matrix. It should be a K x p matrix, where p is the number
+\item{V}{An optional argument giving is the initial estimate of the
+factors matrix. It should be a p x K matrix, where p is the number
 of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
-the matrix factorization. When \code{LL} and \code{FF} are not
+the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
 \item{fit_col_size_factor}{Boolean indicating if a size factor should be
@@ -49,12 +49,12 @@ scRNA experiment where rows represent genes and columns represent cells,
 and one wants to regress out mean differences between genes.}
 
 \item{fixed_loadings}{Vector of integers indicating, which, if any, loadings
-should be fixed at their initial values. This argument will be ignored if
-\code{LL} is not provided.}
+(i.e. columns of \code{U}) should be fixed at their initial values. 
+This argument will be ignored if \code{U} is not provided.}
 
 \item{fixed_factors}{Vector of integers indicating which, if any, factors
-should be fixed at their initial values. This argument will be ignored
-if \code{FF} is not provided.}
+(i.e. columns of \code{V}) should be fixed at their initial values. 
+This argument will be ignored if \code{V} is not provided.}
 }
 \value{
 An object capturing the initial state of the model fit. See

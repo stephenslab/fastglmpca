@@ -39,22 +39,22 @@ is.scalar <- function (x)
 
 # Verify that x is a valid GLM-PCA fit.
 verify.fit <- function (x, arg.name = deparse(substitute(x))) {
-  arg.name.LL <- paste0(arg.name,"$LL")
-  arg.name.FF <- paste0(arg.name,"$FF")
+  arg.name.U <- paste0(arg.name,"$U")
+  arg.name.V <- paste0(arg.name,"$V")
   arg.name   <- sprintf("\"%s\"",arg.name)
   msg        <- paste("Input argument",arg.name,"should be a list containing",
-                      "matrices \"LL\" and \"FF\"")
+                      "matrices \"U\" and \"V\"")
   if (!is.list(x))
     stop(msg)
-  else if (!all(is.element(c("LL","FF"),names(x))))
+  else if (!all(is.element(c("U","V"),names(x))))
     stop(msg)
-  verify.matrix(x$LL,arg.name.LL)
-  verify.matrix(x$FF,arg.name.FF)
-  arg.name.LL <- sprintf("\"%s\"",arg.name.LL)
-  arg.name.FF <- sprintf("\"%s\"",arg.name.FF)
-  if (nrow(x$LL) != nrow(x$FF))
-    stop(paste("Input matrices",arg.name.LL,"and",arg.name.FF,"should have",
-               "the same number of rows"))
+  verify.matrix(x$U,arg.name.U)
+  verify.matrix(x$V,arg.name.V)
+  arg.name.U <- sprintf("\"%s\"",arg.name.U)
+  arg.name.V <- sprintf("\"%s\"",arg.name.V)
+  if (ncol(x$U) != ncol(x$V))
+    stop(paste("Input matrices",arg.name.U,"and",arg.name.V,"should have",
+               "the same number of columns"))
   return(TRUE)
 }
 
