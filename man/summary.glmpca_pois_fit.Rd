@@ -5,9 +5,9 @@
 \alias{print.summary.glmpca_fit}
 \title{Summarize GLM-PCA Model Fit}
 \usage{
-\method{summary}{glmpca_fit}(object, ...)
+\method{summary}{glmpca_pois_fit}(object, ...)
 
-\method{print}{summary.glmpca_fit}(x, ...)
+\method{print}{summary.glmpca_pois_fit}(x, ...)
 }
 \arguments{
 \item{object}{An object of class \dQuote{glmpca_fit},
