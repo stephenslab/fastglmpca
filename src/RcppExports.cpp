@@ -11,106 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// update_loadings_bin
-arma::mat update_loadings_bin(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& N_T, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_loadings_bin(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP N_TSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N_T(N_TSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_loadings_bin(F_T, L, Y_T, N_T, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_factors_bin
-arma::mat update_factors_bin(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::mat& N, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_factors_bin(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP NSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors_bin(L_T, FF, Y, N, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_loadings_missing_bin
-arma::mat update_loadings_missing_bin(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& N_T, Rcpp::List nonmissing_index_list, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_loadings_missing_bin(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP N_TSEXP, SEXP nonmissing_index_listSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N_T(N_TSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type nonmissing_index_list(nonmissing_index_listSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_loadings_missing_bin(F_T, L, Y_T, N_T, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_factors_missing_bin
-arma::mat update_factors_missing_bin(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::mat& N, Rcpp::List nonmissing_index_list, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_factors_missing_bin(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP NSEXP, SEXP nonmissing_index_listSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type N(NSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type nonmissing_index_list(nonmissing_index_listSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors_missing_bin(L_T, FF, Y, N, nonmissing_index_list, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_loadings
-void update_loadings(const arma::mat& F_T, arma::mat& L, const arma::mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_loadings(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y_T(Y_TSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    update_loadings(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta);
-    return R_NilValue;
-END_RCPP
-}
 // update_loadings_faster
 void update_loadings_faster(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, const int n, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
 RcppExport SEXP _fastglmpca_update_loadings_faster(SEXP F_TSEXP, SEXP LSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP nSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
@@ -129,25 +29,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// update_factors
-double update_factors(const arma::mat& L_T, arma::mat& FF, const arma::mat& Y, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_factors(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta));
-    return rcpp_result_gen;
-END_RCPP
-}
 // update_factors_faster
 double update_factors_faster(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, const int p, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
 RcppExport SEXP _fastglmpca_update_factors_faster(SEXP L_TSEXP, SEXP FFSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP pSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
@@ -164,45 +45,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
     Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
     rcpp_result_gen = Rcpp::wrap(update_factors_faster(L_T, FF, M, update_indices, p, num_iter, line_search, alpha, beta));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_loadings_sp
-void update_loadings_sp(const arma::mat& F_T, arma::mat& L, const arma::sp_mat& Y_T, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_loadings_sp(SEXP F_TSEXP, SEXP LSEXP, SEXP Y_TSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::sp_mat& >::type Y_T(Y_TSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    update_loadings_sp(F_T, L, Y_T, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol);
-    return R_NilValue;
-END_RCPP
-}
-// update_factors_sp
-double update_factors_sp(const arma::mat& L_T, arma::mat& FF, const arma::sp_mat& Y, const arma::mat& deriv_const_mat, const std::vector<int> update_indices, unsigned int num_iter, const bool line_search, const double alpha, const double beta, const double ccd_iter_tol);
-RcppExport SEXP _fastglmpca_update_factors_sp(SEXP L_TSEXP, SEXP FFSEXP, SEXP YSEXP, SEXP deriv_const_matSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP ccd_iter_tolSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
-    Rcpp::traits::input_parameter< const arma::sp_mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type deriv_const_mat(deriv_const_matSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    Rcpp::traits::input_parameter< const double >::type ccd_iter_tol(ccd_iter_tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors_sp(L_T, FF, Y, deriv_const_mat, update_indices, num_iter, line_search, alpha, beta, ccd_iter_tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -250,16 +92,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fastglmpca_update_loadings_bin", (DL_FUNC) &_fastglmpca_update_loadings_bin, 10},
-    {"_fastglmpca_update_factors_bin", (DL_FUNC) &_fastglmpca_update_factors_bin, 10},
-    {"_fastglmpca_update_loadings_missing_bin", (DL_FUNC) &_fastglmpca_update_loadings_missing_bin, 11},
-    {"_fastglmpca_update_factors_missing_bin", (DL_FUNC) &_fastglmpca_update_factors_missing_bin, 11},
-    {"_fastglmpca_update_loadings", (DL_FUNC) &_fastglmpca_update_loadings, 9},
     {"_fastglmpca_update_loadings_faster", (DL_FUNC) &_fastglmpca_update_loadings_faster, 9},
-    {"_fastglmpca_update_factors", (DL_FUNC) &_fastglmpca_update_factors, 9},
     {"_fastglmpca_update_factors_faster", (DL_FUNC) &_fastglmpca_update_factors_faster, 9},
-    {"_fastglmpca_update_loadings_sp", (DL_FUNC) &_fastglmpca_update_loadings_sp, 10},
-    {"_fastglmpca_update_factors_sp", (DL_FUNC) &_fastglmpca_update_factors_sp, 10},
     {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
     {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},
     {"_fastglmpca_deriv_product", (DL_FUNC) &_fastglmpca_deriv_product, 2},

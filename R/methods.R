@@ -15,7 +15,7 @@
 #'
 #' @export
 #' 
-fitted.glmpca_fit <- function (object, ...) {
+fitted.glmpca_pois_fit <- function (object, ...) {
   verify.fit(object)
   exp(tcrossprod(object$U %*% object$D, object$V))
 }
@@ -42,15 +42,18 @@ fitted.glmpca_fit <- function (object, ...) {
 #'
 #' @export
 #' 
-summary.glmpca_fit <- function (object, ...) {
+summary.glmpca_pois_fit <- function (object, ...) {
   verify.fit(object)
-  numiter <- nrow(object$progress)
+  numiter <- length(object$progress$iter)
   out <- c(n       = nrow(object$U),
            p       = nrow(object$V),
            K       = ncol(object$U),
            numiter = numiter,
-           loglik  = object$progress[numiter,"loglik"])
-  class(out) <- c("summary.glmpca_fit","list")
+           loglik  = object$progress$loglik[numiter],
+           fixed_loadings = length(fit$fixed_loadings),
+           fixed_factors = length(fit$fixed_factors)
+           )
+  class(out) <- c("summary.glmpca_pois_fit","list")
   return(out)
 }
 
@@ -60,11 +63,13 @@ summary.glmpca_fit <- function (object, ...) {
 #'
 #' @export
 #'
-print.summary.glmpca_fit <- function (x, ...) {
+print.summary.glmpca_pois_fit <- function (x, ...) {
   cat("Model overview:\n")
   cat(sprintf("  Number of data rows, n: %d\n",x["n"]))
   cat(sprintf("  Number of data cols, p: %d\n",x["p"]))
   cat(sprintf("  Rank: %d\n",x["K"]))
+  cat(sprintf("    Fixed loadings: %d\n",x["fixed_loadings"]))
+  cat(sprintf("    Fixed factors: %d\n",x["fixed_factors"]))
   cat(sprintf("Evaluation of model fit (%d updates performed):\n",
               x["numiter"]))
   cat(sprintf("  log-likelihood: %+0.12e\n",x["loglik"]))
