@@ -42,7 +42,7 @@ iteration to the current iteration.}
 }
 \value{
 An object capturing the final state of the model fit. It will contain
-the final values of \eqn{L} and \eqn{F}, as well as a dataframe \code{progress}
+the final values of \eqn{U}, \eqn{D} and \eqn{V}, as well as a dataframe \code{progress}
 that records information about the algorithm progress at each iteration.
 }
 \description{
@@ -55,17 +55,21 @@ based on a Poisson likelihood (Townes et al, 2019), the counts
 \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 Poisson rate is defined as a linear combination of the parameters:
-\deqn{\log \lambda_{ij} = \sum_{k=1}^K u_{ik} v_{jk} = (UV')_{ij}.} The model
+\deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} = (UDV')_{ij}.} The model
 parameters are stored as an n x K matrix \eqn{U} with entries
-\eqn{u_{ik}} and an p x K matrix \eqn{V} with entries \eqn{v_{jk}}.
+\eqn{u_{ik}}, a p x K matrix \eqn{V} with entries \eqn{v_{jk}}, and a diagonal matrix
+D with kth diagonal entry \eqn{d_{k}}.
 \eqn{K} is a tuning parameter specifying the rank of the matrices
 \eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
-estimates (MLEs) of \eqn{U} and \eqn{V}.
+estimates (MLEs) of \eqn{U}, \eqn{D}, and \eqn{V}.
 
 The algorithm works by repeatedly alternating between updating \eqn{U} with
-\eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes
-the form of a series of Poisson regressions solved using cyclic co-ordinate
-descent (ccd).
+\eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes the 
+form of a series of Poisson regressions solved using cyclic co-ordinate
+descent (ccd). When the algorithm
+terminates, we rotate the columns of \eqn{U} and \eqn{V} that are not fixed
+so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
+This rotation does not change the final log-likelihood.
 
 The \code{control} argument is a list in which any of the following
 named components will override the default optimization algorithm
@@ -89,7 +93,7 @@ settings (as they are defined by \code{fit_glmpca_control_default}):
  cost for large matrices.}
   
 \item{\code{calc_max_diff}}{boolean indicating if maximum absolute difference 
-between successive updates of \eqn{U} and \eqn{V} should be calulcated and
+between successive updates of \eqn{U} and \eqn{V} should be calculated and
 stored. This may be useful for monitoring convergence.}
   
 }
