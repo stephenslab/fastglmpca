@@ -248,6 +248,8 @@ fit_glmpca_pois <- function(
   
   LL_update_indices_R <- LL_update_indices + 1
   FF_update_indices_R <- FF_update_indices + 1
+  
+  joint_update_indices_R <- intersect(LL_update_indices_R, FF_update_indices_R)
 
   Y_T <- Matrix::t(Y)
   
@@ -374,14 +376,14 @@ fit_glmpca_pois <- function(
     if (length(LL_update_indices) > 0) {
       
       # orthonormalize rows of FF that are not fixed
-      if (length(FF_update_indices_R) > 1) {
+      if (length(joint_update_indices_R) > 1) {
         
         svd_out <- svd(
-          t(fit$FF[FF_update_indices_R, ])
+          t(fit$FF[joint_update_indices_R, ])
         )
         
-        fit$FF[FF_update_indices_R, ] <- t(svd_out$u)
-        fit$LL[FF_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[FF_update_indices_R, ]
+        fit$FF[joint_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R, ]
         
       }
 
@@ -401,16 +403,16 @@ fit_glmpca_pois <- function(
     
     if (length(FF_update_indices) > 0) {
       
-      if (length(LL_update_indices_R) > 1) {
+      if (length(joint_update_indices_R) > 1) {
         
         # orthonormalize rows of LL that are not fixed
         svd_out <- svd(
-          t(fit$LL[LL_update_indices_R, ])
+          t(fit$LL[joint_update_indices_R, ])
         )
         
-        fit$LL[LL_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R, ] <- t(svd_out$u)
         
-        fit$FF[LL_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[LL_update_indices_R, ]
+        fit$FF[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R, ]
         
         
       }
@@ -420,21 +422,21 @@ fit_glmpca_pois <- function(
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
-        ) - loglik_const + sum((fit$LL[fit$fixed_factors, ] %*% Y) * fit$FF[fit$fixed_factors, ])
+        ) - loglik_const + sum(MatrixExtra::tcrossprod(fit$LL[fit$fixed_factors, ], Y_T) * fit$FF[fit$fixed_factors, ])
         
       } else {
         
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
