@@ -111,7 +111,6 @@ init_glmpca_pois <- function(
     
   }
   
-  
   if (missing(U)) {
     
     if (missing(K)) {
@@ -142,11 +141,6 @@ init_glmpca_pois <- function(
         fit$U[, 2] <- log(rowSums(Y) / sum(colMeans(Y)))
         
       }
-      
-      colnames(fit$U) <- c(
-        "size_factor", 
-        paste0("loading_", c(1:(K + fit_row_intercept)))
-      )
       
     } else {
       
@@ -201,7 +195,6 @@ init_glmpca_pois <- function(
       fit$V[, 2] <- 1
       
       fit$fixed_factors <- c(1, 2)
-      colnames(fit$V) <- c("size_factor", "intercept", paste0("factor_", c(1:K)))
       
     } else if (fit_col_size_factor) {
       
@@ -213,13 +206,11 @@ init_glmpca_pois <- function(
       
       fit$V[ ,1] <- log(colMeans(Y))
       fit$fixed_factors <- c(1)
-      colnames(fit$V) <- c("size_factor", paste0("factor_", c(1:K)))
       
     } else if (fit_row_intercept) {
       
       fit$V[ ,1] <- 1
       fit$fixed_factors <- c(1)
-      colnames(fit$V) <- c("intercept", paste0("factor_", c(1:K)))
       
     } else {
       
@@ -233,6 +224,46 @@ init_glmpca_pois <- function(
     fit$fixed_factors <- fixed_factors
     
   }
+  
+  if (missing(U)) {
+    
+    colnames_U <- paste0("loading_", c(1:K))
+    if (fit_row_intercept) {
+      
+      colnames_U <- c("intercept", colnames_U)
+      
+    }
+    
+    if (fit_col_size_factor) {
+      
+      colnames_U <- c("size_factor", colnames_U)
+      
+    }
+    
+    colnames(fit$U) <- colnames_U
+    
+  }
+  
+  if (missing(V)) {
+    
+    colnames_V <- paste0("factor_", c(1:K))
+    if (fit_row_intercept) {
+      
+      colnames_V <- c("intercept", colnames_V)
+      
+    }
+    
+    if (fit_col_size_factor) {
+      
+      colnames_V <- c("size_factor", colnames_V)
+      
+    }
+    
+    colnames(fit$V) <- colnames_V
+    
+  }
+  
+  fit <- orthonormalize_fit(fit)
   
   class(fit) <- c("glmpca_pois_fit", "list")
   

@@ -229,7 +229,7 @@ fit_glmpca_pois <- function(
   }
   
   fit <- list()
-  fit$LL <- t(fit0$U)
+  fit$LL <- t(fit0$U %*% fit0$D)
   fit$FF <- t(fit0$V)
   fit$fixed_loadings <- fit0$fixed_loadings
   fit$fixed_factors <- fit0$fixed_factors
@@ -551,47 +551,6 @@ fit_glmpca_pois <- function(
   colnames(fit$FF) <- colnames(Y)
   
   fit <- postprocess_fit(fit)
-  
-  return(fit)
-  
-}
-
-postprocess_fit <- function(fit) {
-  
-  names(fit)[names(fit) == "LL"] <- "U"
-  fit$U <- t(fit$U)
-  
-  names(fit)[names(fit) == "FF"] <- "V"
-  fit$V <- t(fit$V)
-  
-  # here, I should do some sort of normalization
-  # can leave that for later
-  
-  if ("max_FF_deriv" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_FF_deriv"] <- "max_deriv_V"
-    
-  }
-  
-  if ("max_LL_deriv" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_LL_deriv"] <- "max_deriv_U"
-    
-  }
-  
-  if ("max_diff_FF" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_diff_FF"] <- "max_diff_V"
-    
-  }
-  
-  if ("max_diff_LL" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_diff_LL"] <- "max_diff_U"
-    
-  }
-  
-  class(fit) <- c("glmpca_pois_fit", "list")
   
   return(fit)
   

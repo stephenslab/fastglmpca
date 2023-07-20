@@ -4,7 +4,7 @@
 \alias{fitted.glmpca_fit}
 \title{Get Fitted Values for GLM-PCA Model Fit}
 \usage{
-\method{fitted}{glmpca_fit}(object, ...)
+\method{fitted}{glmpca_pois_fit}(object, ...)
 }
 \arguments{
 \item{object}{An object of class \dQuote{glmpca_fit},
@@ -12,9 +12,9 @@ typically the result of calling \code{\link{fit_glmpca}}.}
 }
 \value{
 An n x p matrix of fitted means. Calculated as
-  \deqn{exp(L'F)} using the \code{fit} object.
+  \deqn{exp(UDV')} using the \code{fit} object.
 }
 \description{
 \code{fitted} method for the
-  \dQuote{glmpca_fit} class.
+  \dQuote{glmpca_pois_fit} class.
 }
