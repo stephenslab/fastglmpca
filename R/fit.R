@@ -420,21 +420,21 @@ fit_glmpca_pois <- function(
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
-        ) - loglik_const + sum(MatrixExtra::tcrossprod(fit$LL[fit$fixed_factors, ], Y_T) * fit$FF[fit$fixed_factors, ])
+        ) - loglik_const + sum((fit$LL[fit$fixed_factors, ] %*% Y) * fit$FF[fit$fixed_factors, ])
         
       } else {
         
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
+          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
