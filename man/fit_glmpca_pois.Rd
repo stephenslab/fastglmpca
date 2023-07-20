@@ -42,7 +42,7 @@ iteration to the current iteration.}
 }
 \value{
 An object capturing the final state of the model fit. It will contain
-the final values of \eqn{U}, \eqn{D} and \eqn{V}, as well as a dataframe \code{progress}
+the final values of \eqn{U}, \eqn{D} and \eqn{V}, as well as a list \code{progress}
 that records information about the algorithm progress at each iteration.
 }
 \description{
