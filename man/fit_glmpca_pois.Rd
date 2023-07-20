@@ -8,7 +8,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0,
-  tol = 0.0001,
+  tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
   verbose = TRUE,
@@ -55,15 +55,15 @@ based on a Poisson likelihood (Townes et al, 2019), the counts
 \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 Poisson rate is defined as a linear combination of the parameters:
-\deqn{\log \lambda_{ij} = \sum_{k=1}^K l_{ki} f_{kj} = (L'F)_{ij}.} The model
-parameters are stored as an K x n matrix \eqn{L} with entries
-\eqn{l_{ki}} and an K x p matrix \eqn{F} with entries \eqn{f_{kj}}.
+\deqn{\log \lambda_{ij} = \sum_{k=1}^K u_{ik} v_{jk} = (UV')_{ij}.} The model
+parameters are stored as an n x K matrix \eqn{U} with entries
+\eqn{u_{ik}} and an p x K matrix \eqn{V} with entries \eqn{v_{jk}}.
 \eqn{K} is a tuning parameter specifying the rank of the matrices
-\eqn{L} and \eqn{F}. \code{fit_glmpca_pois} computes maximum-likelihood
-estimates (MLEs) of \eqn{L} and \eqn{F}.
+\eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
+estimates (MLEs) of \eqn{U} and \eqn{V}.
 
-The algorithm works by repeatedly alternating between updating \eqn{L} with
-\eqn{F} fixed and updating \eqn{F} with \eqn{L} fixed. Each update takes
+The algorithm works by repeatedly alternating between updating \eqn{U} with
+\eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes
 the form of a series of Poisson regressions solved using cyclic co-ordinate
 descent (ccd).
 
@@ -84,12 +84,12 @@ settings (as they are defined by \code{fit_glmpca_control_default}):
 \item{\code{beta}}{beta value of line search between 0 and .5.}
   
 \item{\code{calc_deriv}}{boolean indicated if maximum absolute derivatives of
- \eqn{L} and \eqn{F} should be calculated at each step of optimization. This may
+ \eqn{U} and \eqn{V} should be calculated at each step of optimization. This may
  be useful for monitoring convergence though may have substantial computational
  cost for large matrices.}
   
 \item{\code{calc_max_diff}}{boolean indicating if maximum absolute difference 
-between successive updates of \eqn{L} and \eqn{F} should be calulcated and
+between successive updates of \eqn{U} and \eqn{V} should be calulcated and
 stored. This may be useful for monitoring convergence.}
   
 }

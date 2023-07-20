@@ -6,19 +6,19 @@
 #'   non-negative.
 #'   
 #' @param K An integer 1 or greater giving the matrix rank. This
-#'   argument should only be specified if the initial fit (\code{LL, FF})
+#'   argument should only be specified if the initial fit (\code{U, V})
 #'   is not provided.
 #'   
-#' @param LL An optional argument giving the initial estimate of the
-#'   loadings matrix. It should be an K x n matrix, where n is the
+#' @param U An optional argument giving the initial estimate of the
+#'   loadings matrix. It should be an n x K matrix, where n is the
 #'   number of rows in the counts matrix \code{Y}, and K >= 1 is the rank
-#'   of the matrix factorization. When \code{LL} and \code{FF} are not
+#'   of the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
-#' @param FF An optional argument giving is the initial estimate of the
-#'   factors matrix. It should be a K x p matrix, where p is the number
+#' @param V An optional argument giving is the initial estimate of the
+#'   factors matrix. It should be a p x K matrix, where p is the number
 #'   of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
-#'   the matrix factorization. When \code{LL} and \code{FF} are not
+#'   the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param fit_col_size_factor Boolean indicating if a size factor should be
@@ -35,12 +35,12 @@
 #'   and one wants to regress out mean differences between genes.
 #'
 #' @param fixed_loadings Vector of integers indicating, which, if any, loadings
-#'   should be fixed at their initial values. This argument will be ignored if
-#'   \code{LL} is not provided.
+#'   (i.e. columns of \code{U}) should be fixed at their initial values. 
+#'   This argument will be ignored if \code{U} is not provided.
 #'
 #' @param fixed_factors Vector of integers indicating which, if any, factors
-#'   should be fixed at their initial values. This argument will be ignored
-#'   if \code{FF} is not provided.
+#'   (i.e. columns of \code{V}) should be fixed at their initial values. 
+#'   This argument will be ignored if \code{V} is not provided.
 #'
 #' @return An object capturing the initial state of the model fit. See
 #'   \code{\link{fit_glmpca_pois}} for details.
@@ -56,38 +56,38 @@
 init_glmpca_pois <- function(
     Y,
     K,
-    LL,
-    FF,
+    U,
+    V,
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
     fixed_loadings = NULL,
     fixed_factors = NULL
 ) {
   
-  if (!missing(LL) && !missing(FF)) {
+  if (!missing(U) && !missing(V)) {
     
-    if (nrow(LL) != nrow(FF)) {
+    if (ncol(U) != ncol(V)) {
       
-      stop("Inputs \"LL\" and \"FF\" must have same number of rows")
+      stop("Inputs \"U\" and \"V\" must have same number of columns")
       
     }
     
   }
   
-  if (!missing(Y) && !missing(LL)) {
+  if (!missing(Y) && !missing(U)) {
     
-    if (ncol(LL) != nrow(Y)) {
+    if (nrow(U) != nrow(Y)) {
       
-      stop("Input \"LL\" must have same number of columns as \"Y\" has rows")
+      stop("Input \"U\" must have same number of rows as \"Y\" ")
       
     }
     
   }
   
-  if (!missing(Y) && !missing(FF)) {
-    if (ncol(FF) != ncol(Y)) {
+  if (!missing(Y) && !missing(V)) {
+    if (nrow(V) != ncol(Y)) {
       
-      stop("Input \"FF\" must have same number of columns as \"Y\"")
+      stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
       
     }
     
@@ -112,32 +112,38 @@ init_glmpca_pois <- function(
   }
   
   
-  if (missing(LL)) {
+  if (missing(U)) {
     
-    if (missing(K) || missing(Y)) {
+    if (missing(K)) {
       
-      stop("if \"LL\" is missing, must provide \"K\" and \"Y\"")
+      stop("if \"U\" is missing, must provide \"K\" ")
       
     }
       
-    fit$LL <- matrix(
+    fit$U <- matrix(
       data = rnorm(K_total * n, 0, sd=1e-5/(K + as.numeric(fit_row_intercept))),
-      nrow = K_total, 
-      ncol = n
+      ncol = K_total, 
+      nrow = n
     )
     
     if (fit_col_size_factor) {
       
-      fit$LL[1, ] <- 1
+      if (missing(Y)) {
+        
+        stop("if \"fit_col_size_factor\" is true, must provide \"Y\" ")
+        
+      }
+      
+      fit$U[, 1] <- 1
       fit$fixed_loadings <- c(1)
       
       if (fit_row_intercept) {
         
-        fit$LL[2, ] <- log(rowSums(Y) / sum(colMeans(Y)))
+        fit$U[, 2] <- log(rowSums(Y) / sum(colMeans(Y)))
         
       }
       
-      rownames(fit$LL) <- c(
+      colnames(fit$U) <- c(
         "size_factor", 
         paste0("loading_", c(1:(K + fit_row_intercept)))
       )
@@ -148,7 +154,13 @@ init_glmpca_pois <- function(
       
       if (fit_row_intercept) {
         
-        fit$LL[1, ] <- log(rowSums(Y) / sum(colMeans(Y)))
+        if (missing(Y)) {
+          
+          stop("if \"fit_row_intercept\" is true, must provide \"Y\" ")
+          
+        }
+        
+        fit$U[ ,1] <- log(rowSums(Y) / sum(colMeans(Y)))
         
       }
       
@@ -156,21 +168,23 @@ init_glmpca_pois <- function(
     
   } else {
     
-    fit$LL <- LL
+    fit$U <- U
     fit$fixed_loadings <- fixed_loadings
     
   }
   
-  if (missing(FF)) {
+  if (missing(V)) {
     
-    if (missing(K) || missing(Y)) {
+    if (missing(K)) {
       
-      stop("if \"FF\" is missing, must provide \"K\" and \"Y\"")
+      stop("if \"V\" is missing, must provide \"K\" ")
       
     }
       
-    fit$FF <- matrix(
-      data = rnorm(K_total * p, 0, sd = 1e-5 / K), nrow = K_total, ncol = p
+    fit$V <- matrix(
+      data = rnorm(K_total * p, 0, sd = 1e-5 / K), 
+      ncol = K_total, 
+      nrow = p
     )
     
     if (fit_col_size_factor && fit_row_intercept) {
@@ -181,13 +195,13 @@ init_glmpca_pois <- function(
         
       }
       
-      fit$FF[1, ] <- log(colMeans(Y))
+      fit$V[, 1] <- log(colMeans(Y))
       
       # Intercept
-      fit$FF[2, ] <- 1
+      fit$V[, 2] <- 1
       
       fit$fixed_factors <- c(1, 2)
-      rownames(fit$FF) <- c("size_factor", "intercept", paste0("factor_", c(1:K)))
+      colnames(fit$V) <- c("size_factor", "intercept", paste0("factor_", c(1:K)))
       
     } else if (fit_col_size_factor) {
       
@@ -197,15 +211,15 @@ init_glmpca_pois <- function(
         
       }
       
-      fit$FF[1, ] <- log(colMeans(Y))
+      fit$V[ ,1] <- log(colMeans(Y))
       fit$fixed_factors <- c(1)
-      rownames(fit$FF) <- c("size_factor", paste0("factor_", c(1:K)))
+      colnames(fit$V) <- c("size_factor", paste0("factor_", c(1:K)))
       
     } else if (fit_row_intercept) {
       
-      fit$FF[1, ] <- 1
+      fit$V[ ,1] <- 1
       fit$fixed_factors <- c(1)
-      rownames(fit$FF) <- c("intercept", paste0("factor_", c(1:K)))
+      colnames(fit$V) <- c("intercept", paste0("factor_", c(1:K)))
       
     } else {
       
@@ -215,12 +229,12 @@ init_glmpca_pois <- function(
     
   } else {
     
-    fit$FF <- FF
+    fit$V <- V
     fit$fixed_factors <- fixed_factors
     
   }
   
-  class(fit) <- c("glmpca_fit", "list")
+  class(fit) <- c("glmpca_pois_fit", "list")
   
   return(fit)
   

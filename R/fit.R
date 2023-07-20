@@ -66,15 +66,15 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 #' \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 #' Poisson rate is defined as a linear combination of the parameters:
-#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K l_{ki} f_{kj} = (L'F)_{ij}.} The model
-#' parameters are stored as an K x n matrix \eqn{L} with entries
-#' \eqn{l_{ki}} and an K x p matrix \eqn{F} with entries \eqn{f_{kj}}.
+#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K u_{ik} v_{jk} = (UV')_{ij}.} The model
+#' parameters are stored as an n x K matrix \eqn{U} with entries
+#' \eqn{u_{ik}} and an p x K matrix \eqn{V} with entries \eqn{v_{jk}}.
 #' \eqn{K} is a tuning parameter specifying the rank of the matrices
-#' \eqn{L} and \eqn{F}. \code{fit_glmpca_pois} computes maximum-likelihood
-#' estimates (MLEs) of \eqn{L} and \eqn{F}.
+#' \eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
+#' estimates (MLEs) of \eqn{U} and \eqn{V}.
 #' 
-#' The algorithm works by repeatedly alternating between updating \eqn{L} with
-#' \eqn{F} fixed and updating \eqn{F} with \eqn{L} fixed. Each update takes
+#' The algorithm works by repeatedly alternating between updating \eqn{U} with
+#' \eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes
 #' the form of a series of Poisson regressions solved using cyclic co-ordinate
 #' descent (ccd).
 #' 
@@ -95,12 +95,12 @@ lik_glmpca_pois_log1p <- function(Y, LL, FF, const) {
 #' \item{\code{beta}}{beta value of line search between 0 and .5.}
 #'   
 #' \item{\code{calc_deriv}}{boolean indicated if maximum absolute derivatives of
-#'  \eqn{L} and \eqn{F} should be calculated at each step of optimization. This may
+#'  \eqn{U} and \eqn{V} should be calculated at each step of optimization. This may
 #'  be useful for monitoring convergence though may have substantial computational
 #'  cost for large matrices.}
 #'   
 #' \item{\code{calc_max_diff}}{boolean indicating if maximum absolute difference 
-#' between successive updates of \eqn{L} and \eqn{F} should be calulcated and
+#' between successive updates of \eqn{U} and \eqn{V} should be calulcated and
 #' stored. This may be useful for monitoring convergence.}
 #'   
 #' }
@@ -213,21 +213,29 @@ fit_glmpca_pois <- function(
       
     }
     
-    fit <- init_glmpca_pois(
+    fit0 <- init_glmpca_pois(
       Y = Y,
       K = K
     )
     
   } else {
     
-    if (!inherits(fit0,"glmpca_fit"))
+    if (!inherits(fit0,"glmpca_pois_fit"))
       stop("Input argument \"fit0\" should be an object of class ",
            "\"glmpca_fit\", such as an output of init_glmpca_pois")
     
     verify.fit(fit0)
-    fit <- fit0
     
   }
+  
+  fit <- list()
+  fit$LL <- t(fit0$U)
+  fit$FF <- t(fit0$V)
+  fit$fixed_loadings <- fit0$fixed_loadings
+  fit$fixed_factors <- fit0$fixed_factors
+  
+  # remove initial fit from local scope to preserve memory
+  rm(fit0)
   
   LL_rownames <- rownames(fit$LL)
   FF_rownames <- rownames(fit$FF)
@@ -240,6 +248,8 @@ fit_glmpca_pois <- function(
   
   LL_update_indices_R <- LL_update_indices + 1
   FF_update_indices_R <- FF_update_indices + 1
+  
+  joint_update_indices_R <- intersect(LL_update_indices_R, FF_update_indices_R)
 
   Y_T <- Matrix::t(Y)
   
@@ -270,7 +280,8 @@ fit_glmpca_pois <- function(
   if (verbose) {
     cat(
       sprintf(
-        "Fitting rank-%d GLM-PCA model to a %d x %d matrix.\n", K, n, p
+        "Fitting rank-%d GLM-PCA model to a %d x %d matrix\n with %d fixed factors and %d fixed loadings.\n",
+        K, n, p, length(fit$fixed_factors), length(fit$fixed_loadings)
         )
       )
   }
@@ -365,14 +376,14 @@ fit_glmpca_pois <- function(
     if (length(LL_update_indices) > 0) {
       
       # orthonormalize rows of FF that are not fixed
-      if (length(FF_update_indices_R) > 1) {
+      if (length(joint_update_indices_R) > 1) {
         
         svd_out <- svd(
-          t(fit$FF[FF_update_indices_R, ])
+          t(fit$FF[joint_update_indices_R, ])
         )
         
-        fit$FF[FF_update_indices_R, ] <- t(svd_out$u)
-        fit$LL[FF_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[FF_update_indices_R, ]
+        fit$FF[joint_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R, ]
         
       }
 
@@ -392,16 +403,16 @@ fit_glmpca_pois <- function(
     
     if (length(FF_update_indices) > 0) {
       
-      if (length(LL_update_indices_R) > 2) {
+      if (length(joint_update_indices_R) > 1) {
         
         # orthonormalize rows of LL that are not fixed
         svd_out <- svd(
-          t(fit$LL[LL_update_indices_R, ])
+          t(fit$LL[joint_update_indices_R, ])
         )
         
-        fit$LL[LL_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R, ] <- t(svd_out$u)
         
-        fit$FF[LL_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[LL_update_indices_R, ]
+        fit$FF[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R, ]
         
         
       }
@@ -411,21 +422,21 @@ fit_glmpca_pois <- function(
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
-        ) - loglik_const + sum((fit$LL[fit$fixed_factors, ] %*% Y) * fit$FF[fit$fixed_factors, ])
+        ) - loglik_const + sum(MatrixExtra::tcrossprod(fit$LL[fit$fixed_factors, ], Y_T) * fit$FF[fit$fixed_factors, ])
         
       } else {
         
         new_lik <- update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(fit$LL[FF_update_indices_R, ] %*% Y),
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
           update_indices = FF_update_indices,
           p = p,
           num_iter = control$num_iter,
@@ -446,12 +457,6 @@ fit_glmpca_pois <- function(
       )
       
     }
-    
-    # rescale loadings and factors for numerical stability
-    d <- sqrt(abs(rowMeans(fit$LL)/rowMeans(fit$FF)))
-    d[fixed_rows] <- 1
-    fit$FF <- fit$FF * d
-    fit$LL <- fit$LL / d
 
     if (new_lik >= current_lik && t >= min_iter) {
       
@@ -541,6 +546,52 @@ fit_glmpca_pois <- function(
   
   rownames(fit$LL) <- LL_rownames
   rownames(fit$FF) <- FF_rownames
+  
+  colnames(fit$LL) <- rownames(Y)
+  colnames(fit$FF) <- colnames(Y)
+  
+  fit <- postprocess_fit(fit)
+  
+  return(fit)
+  
+}
+
+postprocess_fit <- function(fit) {
+  
+  names(fit)[names(fit) == "LL"] <- "U"
+  fit$U <- t(fit$U)
+  
+  names(fit)[names(fit) == "FF"] <- "V"
+  fit$V <- t(fit$V)
+  
+  # here, I should do some sort of normalization
+  # can leave that for later
+  
+  if ("max_FF_deriv" %in% names(fit$progress)) {
+    
+    names(fit$progress)[names(fit$progress) == "max_FF_deriv"] <- "max_deriv_V"
+    
+  }
+  
+  if ("max_LL_deriv" %in% names(fit$progress)) {
+    
+    names(fit$progress)[names(fit$progress) == "max_LL_deriv"] <- "max_deriv_U"
+    
+  }
+  
+  if ("max_diff_FF" %in% names(fit$progress)) {
+    
+    names(fit$progress)[names(fit$progress) == "max_diff_FF"] <- "max_diff_V"
+    
+  }
+  
+  if ("max_diff_LL" %in% names(fit$progress)) {
+    
+    names(fit$progress)[names(fit$progress) == "max_diff_LL"] <- "max_diff_U"
+    
+  }
+  
+  class(fit) <- c("glmpca_pois_fit", "list")
   
   return(fit)
   
