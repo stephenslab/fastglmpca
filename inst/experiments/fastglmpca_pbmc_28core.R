@@ -28,5 +28,5 @@ toc()
 
 readr::write_rds(
   fit,
-  glue::glue("droplets_pbmc_fit_28_cores_{n_factor}_factors_10_hrs.rds")
+  glue::glue("pbmc_fastglmpca_fit_28_cores_{n_factor}_factors_10_hrs.rds")
 )
