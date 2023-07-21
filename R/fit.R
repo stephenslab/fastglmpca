@@ -95,6 +95,8 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #'   Convergence is determined by comparing the log-likelihood at the previous
 #'   iteration to the current iteration. 
 #'   
+#' @param max_seconds_run Maximum number of seconds allowed to fit model.
+#'   
 #' @param min_iter Minimum number of updates to \eqn{L} and \eqn{F} to be run.
 #' 
 #' @param max_iter Maximum number of updates to \eqn{L} and \eqn{F} to be run.
@@ -145,6 +147,7 @@ fit_glmpca_pois <- function(
     Y, 
     K, 
     fit0, 
+    max_seconds_run = 10 * 3600,
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
@@ -326,6 +329,8 @@ fit_glmpca_pois <- function(
     
   }
   
+  full_model_start_time <- Sys.time()
+  
   while (!converged && t <= max_iter) {
     
     start_time <- Sys.time()
@@ -454,6 +459,7 @@ fit_glmpca_pois <- function(
     
     end_iter_time <- Sys.time()
     time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
+    time_since_model_start <- as.numeric(difftime(end_iter_time, full_model_start_time, units = "secs"))
     current_lik <- new_lik
     fit$progress$time[t + 1] <- time_since_start
     fit$progress$iter[t + 1] <- t
@@ -475,6 +481,21 @@ fit_glmpca_pois <- function(
       
       fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
       fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+      
+    }
+    
+    if (time_since_model_start >= max_seconds_run) {
+      
+      cat(
+        sprintf(
+          "Iteration %d: Log-Likelihood = %+0.8e\n", t - 1, new_lik
+        )
+      )
+      
+      warning(
+        sprintf("Algorithm reached maximum time without convergence.")
+      )
+      break
       
     }
     

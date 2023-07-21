@@ -8,6 +8,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0,
+  max_seconds_run = 10 * 3600,
   tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
@@ -27,6 +28,8 @@ argument will be ignored if the initial fit
 \item{fit0}{The initial model fit. It should be an object of class
 \dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
 or from a previous call to \code{fit_glmpca}.}
+
+\item{max_seconds_run}{Maximum number of seconds allowed to fit model.}
 
 \item{tol}{Positive scalar determining relative tolerance for assessing convergence.
 Convergence is determined by comparing the log-likelihood at the previous
