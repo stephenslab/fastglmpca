@@ -32,9 +32,9 @@ or from a previous call to \code{fit_glmpca}.}
 Convergence is determined by comparing the log-likelihood at the previous
 iteration to the current iteration.}
 
-\item{min_iter}{Minimum number of updates to \eqn{L} and \eqn{F} to be run.}
+\item{min_iter}{Minimum number of updates to \eqn{U} and \eqn{V} to be run.}
 
-\item{max_iter}{Maximum number of updates to \eqn{L} and \eqn{F} to be run.}
+\item{max_iter}{Maximum number of updates to \eqn{U} and \eqn{V} to be run.}
 
 \item{verbose}{Boolean indicating if likelihood should be printed at each step.}
 

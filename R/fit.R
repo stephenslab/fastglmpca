@@ -95,9 +95,9 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #'   Convergence is determined by comparing the log-likelihood at the previous
 #'   iteration to the current iteration. 
 #'   
-#' @param min_iter Minimum number of updates to \eqn{L} and \eqn{F} to be run.
+#' @param min_iter Minimum number of updates to \eqn{U} and \eqn{V} to be run.
 #' 
-#' @param max_iter Maximum number of updates to \eqn{L} and \eqn{F} to be run.
+#' @param max_iter Maximum number of updates to \eqn{U} and \eqn{V} to be run.
 #' 
 #' @param verbose Boolean indicating if likelihood should be printed at each step.
 #'   
