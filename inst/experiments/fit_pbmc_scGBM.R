@@ -1,6 +1,5 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
-n_iter = as.integer(command_args[2])
 
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/pbmc_68k.RData")
 
@@ -14,16 +13,16 @@ tic()
 fit <- scGBM::gbm.sc(
   Y = data,
   M = n_factor,
-  max.iter = n_iter,
+  max.iter = 1e8,
   tol = .Machine$double.eps,
   time.by.iter = TRUE,
   infer.beta = FALSE,
   return.W = FALSE,
-  min.iter = n_iter - 1
+  min.iter = 1e8 - 1
 )
 toc()
 
 readr::write_rds(
   fit,
-  glue::glue("pbmc_scGBM_fit_{n_factor}_factors_{n_iter}_iter_no_beta_infer.rds")
+  glue::glue("pbmc_scGBM_fit_{n_factor}_factors_no_beta_infer_10_hrs.rds")
 )
