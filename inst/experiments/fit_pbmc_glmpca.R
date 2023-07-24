@@ -21,7 +21,7 @@ fit <- glmpca::glmpca(
   fam = "poi",
   optimizer = "avagrad",
   minibatch = "stochastic",
-  ctl = list(minIter = 1e8 - 1, maxIter = 1e8, verbose = TRUE, tol = .Machine$double.eps, lr = 4e-11),
+  ctl = list(minIter = 1e8 - 1, maxIter = 1e8, verbose = TRUE, tol = .Machine$double.eps, lr = 5e-4),
   init = list(factors = fit0$V[, -c(1,2)], loadings = fit0$U[, -c(1,2)])
 )
 
