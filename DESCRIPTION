@@ -22,7 +22,8 @@ Imports:
     Rcpp (>= 1.0.8)
 LinkingTo: 
     Rcpp,
-    RcppArmadillo
+    RcppArmadillo,
+    RcppParallel
 LazyData: true
 NeedsCompilation: yes
 RoxygenNote: 7.2.3

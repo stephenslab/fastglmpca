@@ -11,41 +11,38 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// update_loadings_faster
-void update_loadings_faster(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, const int n, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_loadings_faster(SEXP F_TSEXP, SEXP LSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP nSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+// update_loadings_faster_parallel
+void update_loadings_faster_parallel(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta);
+RcppExport SEXP _fastglmpca_update_loadings_faster_parallel(SEXP F_TSEXP, SEXP LSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type M(MSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    update_loadings_faster(F_T, L, M, update_indices, n, num_iter, line_search, alpha, beta);
+    Rcpp::traits::input_parameter< bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    update_loadings_faster_parallel(F_T, L, M, update_indices, num_iter, line_search, alpha, beta);
     return R_NilValue;
 END_RCPP
 }
-// update_factors_faster
-double update_factors_faster(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, const int p, unsigned int num_iter, const bool line_search, const double alpha, const double beta);
-RcppExport SEXP _fastglmpca_update_factors_faster(SEXP L_TSEXP, SEXP FFSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP pSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
+// update_factors_faster_parallel
+void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta);
+RcppExport SEXP _fastglmpca_update_factors_faster_parallel(SEXP L_TSEXP, SEXP FFSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type L_T(L_TSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type FF(FFSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type M(MSEXP);
     Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< const int >::type p(pSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< const bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< const double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< const double >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_factors_faster(L_T, FF, M, update_indices, p, num_iter, line_search, alpha, beta));
-    return rcpp_result_gen;
+    Rcpp::traits::input_parameter< bool >::type line_search(line_searchSEXP);
+    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    update_factors_faster_parallel(L_T, FF, M, update_indices, num_iter, line_search, alpha, beta);
+    return R_NilValue;
 END_RCPP
 }
 // big_exp_crossprod
@@ -92,8 +89,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fastglmpca_update_loadings_faster", (DL_FUNC) &_fastglmpca_update_loadings_faster, 9},
-    {"_fastglmpca_update_factors_faster", (DL_FUNC) &_fastglmpca_update_factors_faster, 9},
+    {"_fastglmpca_update_loadings_faster_parallel", (DL_FUNC) &_fastglmpca_update_loadings_faster_parallel, 8},
+    {"_fastglmpca_update_factors_faster_parallel", (DL_FUNC) &_fastglmpca_update_factors_faster_parallel, 8},
     {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
     {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},
     {"_fastglmpca_deriv_product", (DL_FUNC) &_fastglmpca_deriv_product, 2},

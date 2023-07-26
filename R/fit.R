@@ -393,7 +393,7 @@ fit_glmpca_pois <- function(
 
       if (length(fit$fixed_factors) > 0) {
         
-        new_lik <- update_factors_faster(
+        update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
           M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
@@ -403,11 +403,11 @@ fit_glmpca_pois <- function(
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
-        ) - loglik_const + sum(MatrixExtra::tcrossprod(fit$LL[fit$fixed_factors, ], Y_T) * fit$FF[fit$fixed_factors, ])
+        ) 
         
       } else {
         
-        new_lik <- update_factors_faster(
+        update_factors_faster(
           L_T = t(fit$LL),
           FF = fit$FF,
           M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
@@ -417,7 +417,7 @@ fit_glmpca_pois <- function(
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
-        ) - loglik_const
+        ) 
         
       }
       
@@ -431,6 +431,13 @@ fit_glmpca_pois <- function(
       )
       
     }
+    
+    new_lik <- do.call(
+      loglik_func,
+      list(
+        Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
+      )
+    )
 
     if (new_lik >= current_lik && t >= min_iter) {
       
