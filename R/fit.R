@@ -361,12 +361,11 @@ fit_glmpca_pois <- function(
         
       }
 
-      update_loadings_faster(
+      update_loadings_faster_parallel(
         F_T = t(fit$FF),
         L = fit$LL,
         M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R, ], Y)),
         update_indices = LL_update_indices,
-        n = n,
         num_iter = control$num_iter,
         line_search = control$line_search,
         alpha = control$alpha,
@@ -393,12 +392,11 @@ fit_glmpca_pois <- function(
 
       if (length(fit$fixed_factors) > 0) {
         
-        update_factors_faster(
+        update_factors_faster_parallel(
           L_T = t(fit$LL),
           FF = fit$FF,
           M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
           update_indices = FF_update_indices,
-          p = p,
           num_iter = control$num_iter,
           line_search = control$line_search,
           alpha = control$alpha,
@@ -407,12 +405,11 @@ fit_glmpca_pois <- function(
         
       } else {
         
-        update_factors_faster(
+        update_factors_faster_parallel(
           L_T = t(fit$LL),
           FF = fit$FF,
           M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
           update_indices = FF_update_indices,
-          p = p,
           num_iter = control$num_iter,
           line_search = control$line_search,
           alpha = control$alpha,
