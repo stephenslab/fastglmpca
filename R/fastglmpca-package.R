@@ -1,5 +1,7 @@
 ## usethis namespace: start
 #' @importFrom Rcpp sourceCpp
-#' @useDynLib fastglmpca, .registration = TRUE
+#' @importFrom Rcpp evalCpp
+#' @importFrom RcppParallel RcppParallelLibs
+#' @useDynLib fastglmpca
 ## usethis namespace: end
 NULL
