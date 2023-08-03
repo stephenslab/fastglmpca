@@ -263,7 +263,7 @@ init_glmpca_pois <- function(
     
   }
   
-  fit <- orthonormalize_fit(fit)
+  fit <- orthonormalize_fit_qr(fit)
   
   class(fit) <- c("glmpca_pois_fit", "list")
   

@@ -209,9 +209,9 @@ fit_glmpca_pois <- function(
   fit$fixed_factors <- fit0$fixed_factors
   
   # remove initial fit from local scope to preserve memory
+  LL_rownames <- colnames(fit0$U)
   rm(fit0)
   
-  LL_rownames <- rownames(fit$LL)
   FF_rownames <- rownames(fit$FF)
   
   K <- nrow(fit$LL)
