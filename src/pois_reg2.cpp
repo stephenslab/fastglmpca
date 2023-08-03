@@ -1,8 +1,9 @@
 #include <RcppArmadillo.h>
-#include <omp.h>
+#include <RcppParallel.h>
 #include <Rcpp.h>
 using namespace arma;
 using namespace Rcpp;
+using namespace RcppParallel;
 
 inline arma::vec solve_pois_reg_faster_cpp (
     const arma::mat X, 
@@ -227,82 +228,62 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
   
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(openmp)]]
-// [[Rcpp::export]]
-void update_loadings_faster (
-    const arma::mat& F_T,
-    arma::mat& L,
-    const arma::mat& M,
-    const std::vector<int> update_indices,
-    const int n,
-    unsigned int num_iter,
-    const bool line_search,
-    const double alpha,
-    const double beta
-) {
+struct LoadingsUpdater : public Worker {
+  const arma::mat& F_T;
+  const arma::mat& M;
+  arma::mat& L;
+  const std::vector<int> update_indices;
+  const unsigned int num_iter;
+  const bool line_search;
+  const double alpha;
+  const double beta;
   
-  #pragma omp parallel for shared(F_T, M, L, num_iter) 
-  for (int i = 0; i < n; i++) {
-    
-    L.col(i) = solve_pois_reg_faster_cpp (
-      F_T, 
-      M.col(i),
-      L.col(i), 
-      update_indices,
-      num_iter,
-      line_search,
-      alpha,
-      beta
-    );
-    
+  LoadingsUpdater(const arma::mat& F_T, const arma::mat& M, arma::mat& L,
+                  const std::vector<int> update_indices, unsigned int num_iter,
+                  bool line_search, double alpha, double beta) 
+    : F_T(F_T), M(M), L(L), update_indices(update_indices), num_iter(num_iter), 
+      line_search(line_search), alpha(alpha), beta(beta) {}
+  
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t i = begin; i < end; i++) {
+      L.col(i) = solve_pois_reg_faster_cpp(F_T, M.col(i), L.col(i), update_indices, num_iter, line_search, alpha, beta);
+    }
   }
+};
+
+struct FactorsUpdater : public Worker {
+  const arma::mat& L_T;
+  const arma::mat& M;
+  arma::mat& FF;
+  const std::vector<int> update_indices;
+  const unsigned int num_iter;
+  const bool line_search;
+  const double alpha;
+  const double beta;
   
+  FactorsUpdater(const arma::mat& L_T, const arma::mat& M, arma::mat& FF,
+                 const std::vector<int> update_indices, unsigned int num_iter,
+                 bool line_search, double alpha, double beta) 
+    : L_T(L_T), M(M), FF(FF), update_indices(update_indices), num_iter(num_iter), 
+      line_search(line_search), alpha(alpha), beta(beta) {}
+  
+  void operator()(std::size_t begin, std::size_t end) {
+    for (std::size_t j = begin; j < end; j++) {
+      FF.col(j) = solve_pois_reg_faster_cpp(L_T, M.col(j), FF.col(j), update_indices, num_iter, line_search, alpha, beta);
+    }
+  }
+};
+
+// [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
+// [[Rcpp::export]]
+void update_loadings_faster_parallel(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta) {
+  LoadingsUpdater updater(F_T, M, L, update_indices, num_iter, line_search, alpha, beta);
+  parallelFor(0, L.n_cols, updater);
 }
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins(openmp)]]
+// [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
 // [[Rcpp::export]]
-double update_factors_faster (
-    const arma::mat& L_T,
-    arma::mat& FF,
-    const arma::mat& M,
-    const std::vector<int> update_indices,
-    const int p,
-    unsigned int num_iter,
-    const bool line_search,
-    const double alpha,
-    const double beta
-) {
-  
-  double end_lik_sum = 0.0;
-  
-  #pragma omp parallel for shared(L_T, M, FF, num_iter) reduction(+:end_lik_sum)
-  for (int j = 0; j < p; j++) {
-    
-    double* end_lik = (double*) malloc(sizeof(double));
-    *end_lik = 0.0;
-    
-    FF.col(j) = solve_pois_reg_faster_calc_lik_cpp (
-      L_T, 
-      M.col(j),
-      FF.col(j), 
-      update_indices,
-      num_iter,
-      line_search,
-      alpha,
-      beta,
-      end_lik
-    );
-    
-    // subtract end likelihood because inline function minimizes
-    // the negative log-likelihood
-    end_lik_sum -= *end_lik;
-    free(end_lik);
-    
-  }
-  
-  return(end_lik_sum);
-  
+void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta) {
+  FactorsUpdater updater(L_T, M, FF, update_indices, num_iter, line_search, alpha, beta);
+  parallelFor(0, FF.n_cols, updater);
 }
-
