@@ -6,7 +6,10 @@
 #'   \dQuote{glmpca_pois_fit} class.
 #'
 #' @param object An object of class \dQuote{glmpca_fit},
-#'   typically the result of calling \code{\link{fit_glmpca}}.
+#'   typically the result of calling \code{\link{fit_glmpca_pois}}.
+#'   
+#' @param \dots Additional arguments passed to the generic
+#'   \code{fitted} method.
 #'
 #' @return An n x p matrix of fitted means. Calculated as
 #'   \deqn{exp(UDV')} using the \code{fit} object.
@@ -28,7 +31,7 @@ fitted.glmpca_pois_fit <- function (object, ...) {
 #'   \dQuote{glmpcan_fit} class.
 #'
 #' @param object An object of class \dQuote{glmpca_fit},
-#'   typically the result of calling \code{\link{fit_glmpca}}.
+#'   typically the result of calling \code{\link{fit_glmpca_pois}}.
 #'
 #' @param x An object of class \dQuote{summary.glmpca_fit},
 #'   usually the result of a call to \code{summary.glmpca_fit}.
@@ -50,8 +53,8 @@ summary.glmpca_pois_fit <- function (object, ...) {
            K       = ncol(object$U),
            numiter = numiter,
            loglik  = object$progress$loglik[numiter],
-           fixed_loadings = length(fit$fixed_loadings),
-           fixed_factors = length(fit$fixed_factors)
+           fixed_loadings = length(object$fixed_loadings),
+           fixed_factors = length(object$fixed_factors)
            )
   class(out) <- c("summary.glmpca_pois_fit","list")
   return(out)

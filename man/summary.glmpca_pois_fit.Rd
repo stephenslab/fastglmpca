@@ -11,7 +11,7 @@
 }
 \arguments{
 \item{object}{An object of class \dQuote{glmpca_fit},
-typically the result of calling \code{\link{fit_glmpca}}.}
+typically the result of calling \code{\link{fit_glmpca_pois}}.}
 
 \item{\dots}{Additional arguments passed to the generic
 \code{summary} or \code{print.summary} method.}
