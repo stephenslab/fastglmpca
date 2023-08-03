@@ -1,4 +1,4 @@
-orthonormalize_fit <- function(fit) {
+orthonormalize_fit_qr <- function(fit) {
   
   K <- ncol(fit$U)
   
@@ -7,19 +7,22 @@ orthonormalize_fit <- function(fit) {
   
   joint_update_indices <- intersect(U_update_indices, V_update_indices)
   
+  d <- rep(1, K)
+  
   if (length(joint_update_indices) > 1) {
     
-    svd_1 <- svd(fit$U[, joint_update_indices])
-    svd_2 <- svd(fit$V[, joint_update_indices])
+    qr1 <- qr(fit$U[, joint_update_indices])
+    qr2 <- qr(fit$V[, joint_update_indices])
     
-    fit$U[, joint_update_indices] <- svd_1$u
-    D_joint_update_indices <- diag(svd_1$d) %*% svd_1$v %*% t(svd_2$v) %*% t(diag(svd_2$d))
-    d <- rep(1, K)
-    d[joint_update_indices] <- diag(D_joint_update_indices)
-    fit$D <- diag(d)
-    fit$V[, joint_update_indices] <- svd_2$u
+    svd1 <- svd(tcrossprod(qr.R(qr1), qr.R(qr2)))
     
-  }
+    fit$U[, joint_update_indices] <- qr.Q(qr1) %*% svd1$u
+    d[joint_update_indices] <- svd1$d
+    fit$V[, joint_update_indices] <- qr.Q(qr2) %*% svd1$v
+    
+  } 
+  
+  fit$D <- diag(d)
   
   return(fit)
   
@@ -32,9 +35,6 @@ postprocess_fit <- function(fit) {
   
   names(fit)[names(fit) == "FF"] <- "V"
   fit$V <- t(fit$V)
-  
-  # here, I should do some sort of normalization
-  # can leave that for later
   
   if ("max_FF_deriv" %in% names(fit$progress)) {
     
@@ -62,7 +62,10 @@ postprocess_fit <- function(fit) {
   
   class(fit) <- c("glmpca_pois_fit", "list")
   
-  fit <- orthonormalize_fit(fit)
+  fit <- orthonormalize_fit_qr(fit)
+  
+  rownames(fit$D) <- colnames(fit$U)
+  colnames(fit$D) <- colnames(fit$V)
   
   return(fit)
   
