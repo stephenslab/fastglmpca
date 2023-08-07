@@ -134,7 +134,7 @@ init_glmpca_pois <- function(
       }
       
       fit$U[, 1] <- 1
-      fit$fixed_loadings <- c(1)
+      fit$fixed_loadings <- 1
       
       if (fit_row_intercept) {
         
@@ -193,8 +193,7 @@ init_glmpca_pois <- function(
       
       # Intercept
       fit$V[, 2] <- 1
-      
-      fit$fixed_factors <- c(1, 2)
+      fit$fixed_factors <- 1:2
       
     } else if (fit_col_size_factor) {
       
@@ -205,12 +204,12 @@ init_glmpca_pois <- function(
       }
       
       fit$V[ ,1] <- log(colMeans(Y))
-      fit$fixed_factors <- c(1)
+      fit$fixed_factors <- 1
       
     } else if (fit_row_intercept) {
       
       fit$V[ ,1] <- 1
-      fit$fixed_factors <- c(1)
+      fit$fixed_factors <- 1
       
     } else {
       
