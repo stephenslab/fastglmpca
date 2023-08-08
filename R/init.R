@@ -64,6 +64,8 @@ init_glmpca_pois <- function(
     fixed_v_cols = NULL
 ) {
   
+  verify.count.matrix(Y)
+  
   if (!missing(U) && !missing(V)) {
     
     if (ncol(U) != ncol(V)) {
@@ -74,7 +76,7 @@ init_glmpca_pois <- function(
     
   }
   
-  if (!missing(Y) && !missing(U)) {
+  if (!missing(U)) {
     
     if (nrow(U) != nrow(Y)) {
       
@@ -84,7 +86,7 @@ init_glmpca_pois <- function(
     
   }
   
-  if (!missing(Y) && !missing(V)) {
+  if (!missing(V)) {
     if (nrow(V) != ncol(Y)) {
       
       stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
@@ -92,13 +94,9 @@ init_glmpca_pois <- function(
     }
     
   }
-  
-  if (!missing(Y)) {
     
-    n <- nrow(Y)
-    p <- ncol(Y)
-    
-  }
+  n <- nrow(Y)
+  p <- ncol(Y)
   
   fit <- list()
   
@@ -127,12 +125,6 @@ init_glmpca_pois <- function(
     
     if (fit_col_size_factor) {
       
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is true, must provide \"Y\" ")
-        
-      }
-      
       fit$U[, 1] <- 1
       fit$fixed_u_cols <- 1
       
@@ -147,12 +139,6 @@ init_glmpca_pois <- function(
       fit$fixed_u_cols <- numeric(0)
       
       if (fit_row_intercept) {
-        
-        if (missing(Y)) {
-          
-          stop("if \"fit_row_intercept\" is true, must provide \"Y\" ")
-          
-        }
         
         fit$U[ ,1] <- log(rowSums(Y) / sum(colMeans(Y)))
         
@@ -183,12 +169,6 @@ init_glmpca_pois <- function(
     
     if (fit_col_size_factor && fit_row_intercept) {
       
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is TRUE, must provide \"Y\"")
-        
-      }
-      
       fit$V[, 1] <- log(colMeans(Y))
       
       # Intercept
@@ -196,12 +176,6 @@ init_glmpca_pois <- function(
       fit$fixed_v_cols <- 1:2
       
     } else if (fit_col_size_factor) {
-      
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is TRUE, must provide \"Y\"")
-        
-      }
       
       fit$V[ ,1] <- log(colMeans(Y))
       fit$fixed_v_cols <- 1
