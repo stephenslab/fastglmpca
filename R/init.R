@@ -226,7 +226,7 @@ init_glmpca_pois <- function(
   
   if (missing(U)) {
     
-    colnames_U <- paste0("loading_", c(1:K))
+    colnames_U <- paste0("k_", c(1:K))
     if (fit_row_intercept) {
       
       colnames_U <- c("intercept", colnames_U)
@@ -245,7 +245,7 @@ init_glmpca_pois <- function(
   
   if (missing(V)) {
     
-    colnames_V <- paste0("factor_", c(1:K))
+    colnames_V <- paste0("k_", c(1:K))
     if (fit_row_intercept) {
       
       colnames_V <- c("intercept", colnames_V)
@@ -265,6 +265,9 @@ init_glmpca_pois <- function(
   fit <- orthonormalize_fit_qr(fit)
   
   class(fit) <- c("glmpca_pois_fit", "list")
+  
+  rownames(fit$U) <- rownames(Y)
+  rownames(fit$V) <- colnames(Y)
   
   return(fit)
   
