@@ -34,12 +34,12 @@
 #'   scRNA experiment where rows represent genes and columns represent cells,
 #'   and one wants to regress out mean differences between genes.
 #'
-#' @param fixed_loadings Vector of integers indicating, which, if any, loadings
-#'   (i.e. columns of \code{U}) should be fixed at their initial values. 
-#'   This argument will be ignored if \code{U} is not provided.
+#' @param fixed_u_cols Vector of integers indicating, which, if any, 
+#'  columns of \code{U} should be fixed at their initial values. 
+#'  This argument will be ignored if \code{U} is not provided.
 #'
-#' @param fixed_factors Vector of integers indicating which, if any, factors
-#'   (i.e. columns of \code{V}) should be fixed at their initial values. 
+#' @param fixed_v_cols Vector of integers indicating which, if any, 
+#'   columns of \code{V} should be fixed at their initial values. 
 #'   This argument will be ignored if \code{V} is not provided.
 #'
 #' @return An object capturing the initial state of the model fit. See
@@ -60,8 +60,8 @@ init_glmpca_pois <- function(
     V,
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
-    fixed_loadings = NULL,
-    fixed_factors = NULL
+    fixed_u_cols = NULL,
+    fixed_v_cols = NULL
 ) {
   
   if (!missing(U) && !missing(V)) {
@@ -134,7 +134,7 @@ init_glmpca_pois <- function(
       }
       
       fit$U[, 1] <- 1
-      fit$fixed_loadings <- 1
+      fit$fixed_u_cols <- 1
       
       if (fit_row_intercept) {
         
@@ -144,7 +144,7 @@ init_glmpca_pois <- function(
       
     } else {
       
-      fit$fixed_loadings <- NULL
+      fit$fixed_u_cols <- numeric(0)
       
       if (fit_row_intercept) {
         
@@ -163,7 +163,7 @@ init_glmpca_pois <- function(
   } else {
     
     fit$U <- U
-    fit$fixed_loadings <- fixed_loadings
+    fit$fixed_u_cols <- fixed_u_cols
     
   }
   
@@ -193,7 +193,7 @@ init_glmpca_pois <- function(
       
       # Intercept
       fit$V[, 2] <- 1
-      fit$fixed_factors <- 1:2
+      fit$fixed_v_cols <- 1:2
       
     } else if (fit_col_size_factor) {
       
@@ -204,23 +204,23 @@ init_glmpca_pois <- function(
       }
       
       fit$V[ ,1] <- log(colMeans(Y))
-      fit$fixed_factors <- 1
+      fit$fixed_v_cols <- 1
       
     } else if (fit_row_intercept) {
       
       fit$V[ ,1] <- 1
-      fit$fixed_factors <- 1
+      fit$fixed_v_cols <- 1
       
     } else {
       
-      fit$fixed_factors <- NULL
+      fit$fixed_v_cols <- numeric(0)
       
     }
     
   } else {
     
     fit$V <- V
-    fit$fixed_factors <- fixed_factors
+    fit$fixed_v_cols <- fixed_v_cols
     
   }
   
