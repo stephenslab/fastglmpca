@@ -203,22 +203,86 @@ fit_glmpca_pois <- function(
   }
   
   fit <- list()
-  fit$LL <- t(fit0$U %*% fit0$D)
-  fit$FF <- t(fit0$V)
-  fit$fixed_u_cols <- fit0$fixed_u_cols
-  fit$fixed_v_cols <- fit0$fixed_v_cols
+  
+  fit$LL <- t(
+    cbind(
+      fit0$U %*% fit0$D,
+      fit0$X,
+      fit0$W
+    )
+  )
+  
+  fit$FF <- t(
+    cbind(
+      fit0$V,
+      fit0$B,
+      fit0$Z
+    )
+  )
+  
+  if(identical(fit0$X, numeric(0))) {
+    
+    n_x <- 0
+    
+  } else {
+    
+    n_x <- ncol(fit0$X)
+    
+  }
+  
+  if(identical(fit0$Z, numeric(0))) {
+    
+    n_z <- 0
+    
+  } else {
+    
+    n_z <- ncol(fit0$Z)
+    
+  }
+  
+  out_K <- ncol(fit0$U)
+  
+  fit$fixed_loadings <- c()
+  fit$fixed_factors <- c()
+  
+  if (n_x > 0) {
+    
+    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + 1):(ncol(fit0$U) + n_x))
+    
+  }
+  
+  if(length(fit0$fixed_w_cols) > 0) {
+    
+    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + n_x) + fit0$fixed_w_cols)
+    
+  }
+  
+  if(length(fit0$fixed_b_cols) > 0) {
+    
+    fit$fixed_factors <- c(fit$fixed_factors, ncol(fit0$V) + fit0$fixed_b_cols)
+    
+  }
+  
+  if (n_z > 0) {
+    
+    fit$fixed_factors <- c(fit$fixed_factors, (ncol(fit0$V) + n_x + 1):(ncol(fit0$V) + n_x + n_z))
+    
+  }
+  
+  LL_rownames <- colnames(fit0$U)
+  FF_rownames <- colnames(fit0$V)
+  
+  fit$fixed_w_cols <- fit0$fixed_w_cols
+  fit$fixed_b_cols <- fit0$fixed_b_cols
   
   # remove initial fit from local scope to preserve memory
-  LL_rownames <- colnames(fit0$U)
   rm(fit0)
-  
-  FF_rownames <- rownames(fit$FF)
   
   K <- nrow(fit$LL)
     
   # get update indices, subtracting 1 for C++ compatibility
-  LL_update_indices <- setdiff(1:K, fit$fixed_u_cols) - 1
-  FF_update_indices <- setdiff(1:K, fit$fixed_v_cols) - 1
+  LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
+  FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
   
   LL_update_indices_R <- LL_update_indices + 1
   FF_update_indices_R <- FF_update_indices + 1
@@ -254,8 +318,8 @@ fit_glmpca_pois <- function(
   if (verbose) {
     cat(
       sprintf(
-        "Fitting rank-%d GLM-PCA model to a %d x %d matrix\n with %d fixed factors and %d fixed loadings.\n",
-        K, n, p, length(fit$fixed_v_cols), length(fit$fixed_u_cols)
+        "Fitting rank-%d GLM-PCA model to a %d x %d matrix.\n",
+        out_K, n, p
         )
       )
   }
@@ -522,13 +586,10 @@ fit_glmpca_pois <- function(
       
   }
   
-  rownames(fit$LL) <- LL_rownames
-  rownames(fit$FF) <- FF_rownames
-  
   colnames(fit$LL) <- rownames(Y)
   colnames(fit$FF) <- colnames(Y)
   
-  fit <- postprocess_fit(fit)
+  fit <- postprocess_fit(fit, n_x, n_z, out_K)
   
   return(fit)
   

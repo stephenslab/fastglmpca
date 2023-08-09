@@ -21,26 +21,33 @@
 #'   the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
+#' @param X row covariates.
+#' 
+#' @param B initial estimates for row covariates.
+#' 
+#' @param Z column covariates.
+#' 
+#' @param W initial estimates for column covariates.
+#'   
 #' @param fit_col_size_factor Boolean indicating if a size factor should be
-#'   used to normalize the likelihood across columns. This is done by fixing
-#'   an element of each loading to 1 and fixing and element of each factor
-#'   as the log the mean value of it's corresponding column. This may be
+#'   used to normalize the likelihood across columns. This may be
 #'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
 #'   represent genes and columns represent cells.
+#'   
+#' @param fit_row_size_factor Boolean indicating if a size factor should be
+#'   used to normalize the likelihood across rows. This may be
+#'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
+#'   represent cells and columns represent genes.
 #' 
 #' @param fit_row_intercept Boolean indicating if intercept term should be fit
-#'   for each row of \code{Y}. This is done by fixing an element of each
-#'   factor to 1. This may be useful when \code{Y} is a matrix from a
+#'   for each row of \code{Y}. This may be useful when \code{Y} is a matrix from a
 #'   scRNA experiment where rows represent genes and columns represent cells,
 #'   and one wants to regress out mean differences between genes.
-#'
-#' @param fixed_u_cols Vector of integers indicating, which, if any, 
-#'  columns of \code{U} should be fixed at their initial values. 
-#'  This argument will be ignored if \code{U} is not provided.
-#'
-#' @param fixed_v_cols Vector of integers indicating which, if any, 
-#'   columns of \code{V} should be fixed at their initial values. 
-#'   This argument will be ignored if \code{V} is not provided.
+#'   
+#' @param fit_col_intercept Boolean indicating if intercept term should be fit
+#'   for each column of \code{Y}. This may be useful when \code{Y} is a matrix from a
+#'   scRNA experiment where rows represent cells and columns represent genes,
+#'   and one wants to regress out mean differences between genes.
 #'
 #' @return An object capturing the initial state of the model fit. See
 #'   \code{\link{fit_glmpca_pois}} for details.
@@ -58,56 +65,22 @@ init_glmpca_pois <- function(
     K,
     U,
     V,
-    fit_col_size_factor = FALSE,
-    fit_row_intercept = FALSE,
-    fixed_u_cols = NULL,
-    fixed_v_cols = NULL
+    X,
+    Z,
+    B,
+    W,
+    fit_col_size_factor = TRUE,
+    fit_row_intercept = TRUE,
+    fit_row_size_factor = FALSE,
+    fit_col_intercept = FALSE
 ) {
-  
+    
   verify.count.matrix(Y)
   
-  if (!missing(U) && !missing(V)) {
-    
-    if (ncol(U) != ncol(V)) {
-      
-      stop("Inputs \"U\" and \"V\" must have same number of columns")
-      
-    }
-    
-  }
-  
-  if (!missing(U)) {
-    
-    if (nrow(U) != nrow(Y)) {
-      
-      stop("Input \"U\" must have same number of rows as \"Y\" ")
-      
-    }
-    
-  }
-  
-  if (!missing(V)) {
-    if (nrow(V) != ncol(Y)) {
-      
-      stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
-      
-    }
-    
-  }
-    
   n <- nrow(Y)
   p <- ncol(Y)
   
   fit <- list()
-  
-  if(!missing(K)) {
-    
-    if(!is.scalar(K) || K < 1) 
-      stop("Input argument \"K\" must be a positive integer")
-    
-    K_total <- K + fit_col_size_factor + fit_row_intercept
-    
-  }
   
   if (missing(U)) {
     
@@ -118,38 +91,20 @@ init_glmpca_pois <- function(
     }
       
     fit$U <- matrix(
-      data = rnorm(K_total * n, 0, sd=1e-5/(K + as.numeric(fit_row_intercept))),
-      ncol = K_total, 
+      data = rnorm(K, 0, sd=1e-5),
+      ncol = K, 
       nrow = n
     )
     
-    if (fit_col_size_factor) {
+  } else {
+    
+    if (nrow(U) != nrow(Y)) {
       
-      fit$U[, 1] <- 1
-      fit$fixed_u_cols <- 1
-      
-      if (fit_row_intercept) {
-        
-        fit$U[, 2] <- log(rowSums(Y) / sum(colMeans(Y)))
-        
-      }
-      
-    } else {
-      
-      fit$fixed_u_cols <- numeric(0)
-      
-      if (fit_row_intercept) {
-        
-        fit$U[ ,1] <- log(rowSums(Y) / sum(colMeans(Y)))
-        
-      }
+      stop("Input \"U\" must have same number of rows as \"Y\" ")
       
     }
     
-  } else {
-    
     fit$U <- U
-    fit$fixed_u_cols <- fixed_u_cols
     
   }
   
@@ -162,77 +117,169 @@ init_glmpca_pois <- function(
     }
       
     fit$V <- matrix(
-      data = rnorm(K_total * p, 0, sd = 1e-5 / K), 
-      ncol = K_total, 
+      data = rnorm(K * p, 0, sd = 1e-5), 
+      ncol = K, 
       nrow = p
     )
     
-    if (fit_col_size_factor && fit_row_intercept) {
+  } else {
+    
+    if (nrow(V) != ncol(Y)) {
       
-      fit$V[, 1] <- log(colMeans(Y))
+      stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
       
-      # Intercept
-      fit$V[, 2] <- 1
-      fit$fixed_v_cols <- 1:2
+    }
+    
+    fit$V <- V
+    
+  }
+  
+  if (!missing(U) && !missing(V)) {
+    
+    if (ncol(U) != ncol(V)) {
       
-    } else if (fit_col_size_factor) {
+      stop("Inputs \"U\" and \"V\" must have same number of columns")
       
-      fit$V[ ,1] <- log(colMeans(Y))
-      fit$fixed_v_cols <- 1
+    }
+    
+  }
+  
+  if (missing(X)) {
+    
+    fit$X <- numeric(0)
+    fit$B <- numeric(0)
+    
+    n_x <- 0
+    
+  }
+  else {
+    
+    if (nrow(X) != nrow(Y)) {
       
-    } else if (fit_row_intercept) {
+      stop("Inputs \"X\" and \"Y\" must have same number of rows")
       
-      fit$V[ ,1] <- 1
-      fit$fixed_v_cols <- 1
+    }
+    
+    n_x <- ncol(X)
+    
+    fit$X <- X
+    
+    if(missing(B)) {
+      
+      B <- matrix(
+        data = rnorm(n = p * n_x, sd = 1e-5),
+        nrow = p,
+        ncol = n_x
+      )
       
     } else {
       
-      fit$fixed_v_cols <- numeric(0)
+      if (nrow(B) != ncol(Y)) {
+        
+        stop("Input \"B\" must have same number of rows as \"Y\" has columns")
+        
+      }
+      
+      if (ncol(B) != ncol(X)) {
+        
+        stop("Inputs \"B\" and \"X\" must have same number of columns")
+        
+      }
       
     }
+    
+    fit$B <- B
+    
+  }
+  
+  if (missing(Z)) {
+    
+    fit$Z <- numeric(0)
+    fit$W <- numeric(0)
+    
+    n_z <- 0
+    
+  }
+  else {
+    
+    if (nrow(Z) != ncol(Y)) {
+      
+      stop("Input \"Z\" must have same number of rows as \"Y\" has columns")
+      
+    }
+    
+    n_z <- ncol(Z)
+    
+    fit$Z <- Z
+    
+    if(missing(W)) {
+      
+      W <- matrix(
+        data = rnorm(n = n * n_z, sd = 1e-5),
+        nrow = n,
+        ncol = n_z
+      )
+      
+    } else {
+      
+      if (nrow(W) != nrow(Y)) {
+        
+        stop("Inputs \"W\" and \"Y\" must have same number of rows")
+        
+      }
+      
+      if (ncol(W) != ncol(Z)) {
+        
+        stop("Inputs \"W\" and \"Z\" must have same number of columns")
+        
+      }
+      
+    }
+    
+    fit$W <- W
+    
+  }
+  
+  # Now, want to add various row or column intercepts / size factors
+  if (fit_row_intercept) {
+    
+    fit$Z <- cbind(fit$Z, rep(1, p))
+    fit$W <- cbind(fit$W, log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y))))
+    n_z <- n_z + 1
+    
+  }
+  
+  if (fit_col_intercept) {
+    
+    fit$X <- cbind(fit$X, rep(1, n))
+    fit$B <- cbind(fit$B, log(Matrix::colSums(Y) / sum(Matrix::rowMeans(Y))))
+    n_x <- n_x + 1
+    
+  }
+  
+  if (fit_row_size_factor) {
+    
+    fit$Z <- cbind(fit$Z, rep(1, p))
+    fit$W <- cbind(fit$W, log(Matrix::rowMeans(Y)))
+    n_z <- n_z + 1
+    fit$fixed_w_cols <- c(n_z)
     
   } else {
     
-    fit$V <- V
-    fit$fixed_v_cols <- fixed_v_cols
+    fit$fixed_w_cols <- numeric(0)
     
   }
   
-  if (missing(U)) {
+  if (fit_col_size_factor) {
     
-    colnames_U <- paste0("k_", c(1:K))
-    if (fit_row_intercept) {
-      
-      colnames_U <- c("intercept", colnames_U)
-      
-    }
+    fit$X <- cbind(fit$X, rep(1, n))
+    fit$B <- cbind(fit$B, log(Matrix::colMeans(Y)))
+    n_x <- n_x + 1
+    fit$fixed_b_cols <- c(n_x)
     
-    if (fit_col_size_factor) {
-      
-      colnames_U <- c("size_factor", colnames_U)
-      
-    }
+  } else {
     
-    colnames(fit$U) <- colnames_U
-    
-  }
-  
-  if (missing(V)) {
-    
-    colnames_V <- paste0("k_", c(1:K))
-    if (fit_row_intercept) {
-      
-      colnames_V <- c("intercept", colnames_V)
-      
-    }
-    
-    if (fit_col_size_factor) {
-      
-      colnames_V <- c("size_factor", colnames_V)
-      
-    }
-    
-    colnames(fit$V) <- colnames_V
+    fit$fixed_b_cols <- numeric(0)
     
   }
   
@@ -241,7 +288,9 @@ init_glmpca_pois <- function(
   class(fit) <- c("glmpca_pois_fit", "list")
   
   rownames(fit$U) <- rownames(Y)
+  colnames(fit$U) <- paste0("k_", 1:ncol(fit$U))
   rownames(fit$V) <- colnames(Y)
+  colnames(fit$V) <- paste0("k_", 1:ncol(fit$V))
   
   return(fit)
   

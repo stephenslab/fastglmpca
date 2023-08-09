@@ -9,10 +9,14 @@ init_glmpca_pois(
   K,
   U,
   V,
-  fit_col_size_factor = FALSE,
-  fit_row_intercept = FALSE,
-  fixed_u_cols = NULL,
-  fixed_v_cols = NULL
+  X,
+  Z,
+  B,
+  W,
+  fit_col_size_factor = TRUE,
+  fit_row_intercept = TRUE,
+  fit_row_size_factor = FALSE,
+  fit_col_intercept = FALSE
 )
 }
 \arguments{
@@ -35,26 +39,33 @@ of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
 the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
+\item{X}{row covariates.}
+
+\item{Z}{column covariates.}
+
+\item{B}{initial estimates for row covariates.}
+
+\item{W}{initial estimates for column covariates.}
+
 \item{fit_col_size_factor}{Boolean indicating if a size factor should be
-used to normalize the likelihood across columns. This is done by fixing
-an element of each loading to 1 and fixing and element of each factor
-as the log the mean value of it's corresponding column. This may be
+used to normalize the likelihood across columns. This may be
 useful when \code{Y} is a matrix from a scRNA experiment where rows 
 represent genes and columns represent cells.}
 
 \item{fit_row_intercept}{Boolean indicating if intercept term should be fit
-for each row of \code{Y}. This is done by fixing an element of each
-factor to 1. This may be useful when \code{Y} is a matrix from a
+for each row of \code{Y}. This may be useful when \code{Y} is a matrix from a
 scRNA experiment where rows represent genes and columns represent cells,
 and one wants to regress out mean differences between genes.}
 
-\item{fixed_u_cols}{Vector of integers indicating, which, if any, 
-columns of \code{U} should be fixed at their initial values. 
-This argument will be ignored if \code{U} is not provided.}
+\item{fit_row_size_factor}{Boolean indicating if a size factor should be
+used to normalize the likelihood across rows. This may be
+useful when \code{Y} is a matrix from a scRNA experiment where rows 
+represent cells and columns represent genes.}
 
-\item{fixed_v_cols}{Vector of integers indicating which, if any, 
-columns of \code{V} should be fixed at their initial values. 
-This argument will be ignored if \code{V} is not provided.}
+\item{fit_col_intercept}{Boolean indicating if intercept term should be fit
+for each column of \code{Y}. This may be useful when \code{Y} is a matrix from a
+scRNA experiment where rows represent cells and columns represent genes,
+and one wants to regress out mean differences between genes.}
 }
 \value{
 An object capturing the initial state of the model fit. See
