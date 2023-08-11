@@ -1,12 +1,8 @@
 Encoding: UTF-8
 Type: Package
 Package: fastglmpca
-<<<<<<< HEAD
-Version: 0.1-19
-=======
-Version: 0.1-22
->>>>>>> 85424f4d3e05969f6e6d0897c3ce0cc2304e3474
-Date: 2023-08-07
+Version: 0.1-23
+Date: 2023-08-11
 Title: Fast Algorithms for Generalized Principal Component Analysis 
 Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
                     email="ericweine15@gmail.com"),
