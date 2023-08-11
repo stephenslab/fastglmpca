@@ -205,8 +205,8 @@ fit_glmpca_pois <- function(
   fit <- list()
   fit$LL <- t(fit0$U %*% fit0$D)
   fit$FF <- t(fit0$V)
-  fit$fixed_loadings <- fit0$fixed_loadings
-  fit$fixed_factors <- fit0$fixed_factors
+  fit$fixed_u_cols <- fit0$fixed_u_cols
+  fit$fixed_v_cols <- fit0$fixed_v_cols
   
   # remove initial fit from local scope to preserve memory
   LL_rownames <- colnames(fit0$U)
@@ -217,8 +217,8 @@ fit_glmpca_pois <- function(
   K <- nrow(fit$LL)
     
   # get update indices, subtracting 1 for C++ compatibility
-  LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
-  FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
+  LL_update_indices <- setdiff(1:K, fit$fixed_u_cols) - 1
+  FF_update_indices <- setdiff(1:K, fit$fixed_v_cols) - 1
   
   LL_update_indices_R <- LL_update_indices + 1
   FF_update_indices_R <- FF_update_indices + 1
@@ -255,7 +255,7 @@ fit_glmpca_pois <- function(
     cat(
       sprintf(
         "Fitting rank-%d GLM-PCA model to a %d x %d matrix\n with %d fixed factors and %d fixed loadings.\n",
-        K, n, p, length(fit$fixed_factors), length(fit$fixed_loadings)
+        K, n, p, length(fit$fixed_v_cols), length(fit$fixed_u_cols)
         )
       )
   }
@@ -274,7 +274,7 @@ fit_glmpca_pois <- function(
       data = 1, nrow = nrow(fit$LL), ncol = ncol(fit$LL)
     )
     
-    LL_mask[fit$fixed_loadings, ] <- 0
+    LL_mask[fit$fixed_u_cols, ] <- 0
     if(!inherits(Y, "sparseMatrix")) {
       
       LL_mask <- t(LL_mask)
@@ -285,7 +285,7 @@ fit_glmpca_pois <- function(
       data = 1, nrow = nrow(fit$FF), ncol = ncol(fit$FF)
     )
     
-    FF_mask[fit$fixed_factors, ] <- 0
+    FF_mask[fit$fixed_v_cols, ] <- 0
     if(!inherits(Y, "sparseMatrix")) {
       
       FF_mask <- t(FF_mask)
@@ -301,7 +301,7 @@ fit_glmpca_pois <- function(
     
   }
   
-  fixed_rows <- union(fit$fixed_factors, fit$fixed_loadings)
+  fixed_rows <- union(fit$fixed_v_cols, fit$fixed_u_cols)
   
   fit$progress$iter[1] <- 0
   fit$progress$loglik[1] <- current_lik
@@ -390,7 +390,7 @@ fit_glmpca_pois <- function(
         
       }
 
-      if (length(fit$fixed_factors) > 0) {
+      if (length(fit$fixed_v_cols) > 0) {
         
         update_factors_faster_parallel(
           L_T = t(fit$LL),

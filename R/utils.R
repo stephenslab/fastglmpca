@@ -2,8 +2,8 @@ orthonormalize_fit_qr <- function(fit) {
   
   K <- ncol(fit$U)
   
-  U_update_indices <- setdiff(1:K, fit$fixed_loadings) 
-  V_update_indices <- setdiff(1:K, fit$fixed_factors) 
+  U_update_indices <- setdiff(1:K, fit$fixed_u_cols) 
+  V_update_indices <- setdiff(1:K, fit$fixed_v_cols) 
   
   joint_update_indices <- intersect(U_update_indices, V_update_indices)
   

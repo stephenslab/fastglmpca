@@ -34,12 +34,12 @@
 #'   scRNA experiment where rows represent genes and columns represent cells,
 #'   and one wants to regress out mean differences between genes.
 #'
-#' @param fixed_loadings Vector of integers indicating, which, if any, loadings
-#'   (i.e. columns of \code{U}) should be fixed at their initial values. 
-#'   This argument will be ignored if \code{U} is not provided.
+#' @param fixed_u_cols Vector of integers indicating, which, if any, 
+#'  columns of \code{U} should be fixed at their initial values. 
+#'  This argument will be ignored if \code{U} is not provided.
 #'
-#' @param fixed_factors Vector of integers indicating which, if any, factors
-#'   (i.e. columns of \code{V}) should be fixed at their initial values. 
+#' @param fixed_v_cols Vector of integers indicating which, if any, 
+#'   columns of \code{V} should be fixed at their initial values. 
 #'   This argument will be ignored if \code{V} is not provided.
 #'
 #' @return An object capturing the initial state of the model fit. See
@@ -60,9 +60,11 @@ init_glmpca_pois <- function(
     V,
     fit_col_size_factor = FALSE,
     fit_row_intercept = FALSE,
-    fixed_loadings = NULL,
-    fixed_factors = NULL
+    fixed_u_cols = NULL,
+    fixed_v_cols = NULL
 ) {
+  
+  verify.count.matrix(Y)
   
   if (!missing(U) && !missing(V)) {
     
@@ -74,7 +76,7 @@ init_glmpca_pois <- function(
     
   }
   
-  if (!missing(Y) && !missing(U)) {
+  if (!missing(U)) {
     
     if (nrow(U) != nrow(Y)) {
       
@@ -84,7 +86,7 @@ init_glmpca_pois <- function(
     
   }
   
-  if (!missing(Y) && !missing(V)) {
+  if (!missing(V)) {
     if (nrow(V) != ncol(Y)) {
       
       stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
@@ -92,13 +94,9 @@ init_glmpca_pois <- function(
     }
     
   }
-  
-  if (!missing(Y)) {
     
-    n <- nrow(Y)
-    p <- ncol(Y)
-    
-  }
+  n <- nrow(Y)
+  p <- ncol(Y)
   
   fit <- list()
   
@@ -127,14 +125,12 @@ init_glmpca_pois <- function(
     
     if (fit_col_size_factor) {
       
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is true, must provide \"Y\" ")
-        
-      }
-      
       fit$U[, 1] <- 1
+<<<<<<< HEAD
       fit$fixed_loadings <- 1
+=======
+      fit$fixed_u_cols <- 1
+>>>>>>> 85424f4d3e05969f6e6d0897c3ce0cc2304e3474
       
       if (fit_row_intercept) {
         
@@ -144,15 +140,9 @@ init_glmpca_pois <- function(
       
     } else {
       
-      fit$fixed_loadings <- NULL
+      fit$fixed_u_cols <- numeric(0)
       
       if (fit_row_intercept) {
-        
-        if (missing(Y)) {
-          
-          stop("if \"fit_row_intercept\" is true, must provide \"Y\" ")
-          
-        }
         
         fit$U[ ,1] <- log(rowSums(Y) / sum(colMeans(Y)))
         
@@ -163,7 +153,7 @@ init_glmpca_pois <- function(
   } else {
     
     fit$U <- U
-    fit$fixed_loadings <- fixed_loadings
+    fit$fixed_u_cols <- fixed_u_cols
     
   }
   
@@ -183,50 +173,38 @@ init_glmpca_pois <- function(
     
     if (fit_col_size_factor && fit_row_intercept) {
       
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is TRUE, must provide \"Y\"")
-        
-      }
-      
       fit$V[, 1] <- log(colMeans(Y))
       
       # Intercept
       fit$V[, 2] <- 1
-      fit$fixed_factors <- 1:2
+      fit$fixed_v_cols <- 1:2
       
     } else if (fit_col_size_factor) {
       
-      if (missing(Y)) {
-        
-        stop("if \"fit_col_size_factor\" is TRUE, must provide \"Y\"")
-        
-      }
-      
       fit$V[ ,1] <- log(colMeans(Y))
-      fit$fixed_factors <- 1
+      fit$fixed_v_cols <- 1
       
     } else if (fit_row_intercept) {
       
       fit$V[ ,1] <- 1
-      fit$fixed_factors <- 1
+      fit$fixed_v_cols <- 1
       
     } else {
       
-      fit$fixed_factors <- NULL
+      fit$fixed_v_cols <- numeric(0)
       
     }
     
   } else {
     
     fit$V <- V
-    fit$fixed_factors <- fixed_factors
+    fit$fixed_v_cols <- fixed_v_cols
     
   }
   
   if (missing(U)) {
     
-    colnames_U <- paste0("loading_", c(1:K))
+    colnames_U <- paste0("k_", c(1:K))
     if (fit_row_intercept) {
       
       colnames_U <- c("intercept", colnames_U)
@@ -245,7 +223,7 @@ init_glmpca_pois <- function(
   
   if (missing(V)) {
     
-    colnames_V <- paste0("factor_", c(1:K))
+    colnames_V <- paste0("k_", c(1:K))
     if (fit_row_intercept) {
       
       colnames_V <- c("intercept", colnames_V)
@@ -265,6 +243,9 @@ init_glmpca_pois <- function(
   fit <- orthonormalize_fit_qr(fit)
   
   class(fit) <- c("glmpca_pois_fit", "list")
+  
+  rownames(fit$U) <- rownames(Y)
+  rownames(fit$V) <- colnames(Y)
   
   return(fit)
   

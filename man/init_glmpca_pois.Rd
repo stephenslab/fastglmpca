@@ -11,8 +11,8 @@ init_glmpca_pois(
   V,
   fit_col_size_factor = FALSE,
   fit_row_intercept = FALSE,
-  fixed_loadings = NULL,
-  fixed_factors = NULL
+  fixed_u_cols = NULL,
+  fixed_v_cols = NULL
 )
 }
 \arguments{
@@ -48,12 +48,12 @@ factor to 1. This may be useful when \code{Y} is a matrix from a
 scRNA experiment where rows represent genes and columns represent cells,
 and one wants to regress out mean differences between genes.}
 
-\item{fixed_loadings}{Vector of integers indicating, which, if any, loadings
-(i.e. columns of \code{U}) should be fixed at their initial values. 
+\item{fixed_u_cols}{Vector of integers indicating, which, if any, 
+columns of \code{U} should be fixed at their initial values. 
 This argument will be ignored if \code{U} is not provided.}
 
-\item{fixed_factors}{Vector of integers indicating which, if any, factors
-(i.e. columns of \code{V}) should be fixed at their initial values. 
+\item{fixed_v_cols}{Vector of integers indicating which, if any, 
+columns of \code{V} should be fixed at their initial values. 
 This argument will be ignored if \code{V} is not provided.}
 }
 \value{
