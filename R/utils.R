@@ -62,6 +62,12 @@ postprocess_fit <- function(fit, n_x, n_z, K) {
     fit$X <- as.matrix(fit$U[,(K + 1):(K + n_x)])
     fit$B <- as.matrix(fit$V[,(K + 1):(K + n_x)])
     
+    rownames(fit$X) <- rownames(fit$U)
+    rownames(fit$B) <- rownames(fit$B)
+    
+    colnames(fit$X) <- colnames(fit$U[(K + 1):(K + n_x)])
+    colnames(fit$B) <- colnames(fit$V[(K + 1):(K + n_x)])
+    
   } else {
     
     fit$X <- numeric(0)
@@ -73,6 +79,12 @@ postprocess_fit <- function(fit, n_x, n_z, K) {
     
     fit$Z <- as.matrix(fit$V[,(K + n_x + 1):(K + n_x + n_z)])
     fit$W <- as.matrix(fit$U[,(K + n_x + 1):(K + n_x + n_z)])
+    
+    rownames(fit$Z) <- rownames(fit$V)
+    rownames(fit$W) <- rownames(fit$U)
+    
+    colnames(fit$Z) <- colnames(fit$V[(K + n_x + 1):(K + n_x + n_z)])
+    colnames(fit$W) <- colnames(fit$U[(K + n_x + 1):(K + n_x + n_z)])
     
   } else {
     

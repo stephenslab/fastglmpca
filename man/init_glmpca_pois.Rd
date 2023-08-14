@@ -13,6 +13,8 @@ init_glmpca_pois(
   Z,
   B,
   W,
+  fixed_b_cols,
+  fixed_w_cols,
   fit_col_size_factor = TRUE,
   fit_row_intercept = TRUE,
   fit_row_size_factor = FALSE,
@@ -39,13 +41,33 @@ of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
 the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
-\item{X}{row covariates.}
+\item{X}{An optional argument giving row specific covariates of the 
+count matrix \code{Y}. It should be n x n_x matrix, where n
+is the number of rows of the count matrix \code{Y}, and
+n_x is the number of row covariates.}
 
-\item{Z}{column covariates.}
+\item{Z}{An optional argument giving column specific covariates of the 
+count matrix \code{Y}. It should be p x n_z matrix, where p
+is the number of columns of the count matrix \code{Y}, and
+n_z is the number of column covariates.}
 
-\item{B}{initial estimates for row covariates.}
+\item{B}{An optional argument giving the initial estimates
+for the coefficients of the row specific covariates of the 
+count matrix \code{Y}. It should be p x n_x matrix, where p
+is the number of columns of the count matrix \code{Y}, and
+n_x is the number of row covariates.}
 
-\item{W}{initial estimates for column covariates.}
+\item{W}{An optional argument giving the initial estimates
+for the coefficients of the column specific covariates of the 
+count matrix \code{Y}. It should be n x n_z matrix, where n
+is the number of rows of the count matrix \code{Y}, and
+n_z is the number of column covariates.}
+
+\item{fixed_b_cols}{An optional argument giving which, if any, columns
+of \code{B} should be fixed during optimization.}
+
+\item{fixed_w_cols}{An optional argument giving which, if any, columns
+of \code{W} should be fixed during optimization.}
 
 \item{fit_col_size_factor}{Boolean indicating if a size factor should be
 used to normalize the likelihood across columns. This may be

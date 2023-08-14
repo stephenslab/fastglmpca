@@ -21,13 +21,33 @@
 #'   the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
-#' @param X row covariates.
+#' @param X An optional argument giving row specific covariates of the 
+#'   count matrix \code{Y}. It should be n x n_x matrix, where n
+#'   is the number of rows of the count matrix \code{Y}, and
+#'   n_x is the number of row covariates.
 #' 
-#' @param B initial estimates for row covariates.
+#' @param B An optional argument giving the initial estimates
+#'   for the coefficients of the row specific covariates of the 
+#'   count matrix \code{Y}. It should be p x n_x matrix, where p
+#'   is the number of columns of the count matrix \code{Y}, and
+#'   n_x is the number of row covariates.
 #' 
-#' @param Z column covariates.
+#' @param Z An optional argument giving column specific covariates of the 
+#'   count matrix \code{Y}. It should be p x n_z matrix, where p
+#'   is the number of columns of the count matrix \code{Y}, and
+#'   n_z is the number of column covariates.
 #' 
-#' @param W initial estimates for column covariates.
+#' @param W An optional argument giving the initial estimates
+#'   for the coefficients of the column specific covariates of the 
+#'   count matrix \code{Y}. It should be n x n_z matrix, where n
+#'   is the number of rows of the count matrix \code{Y}, and
+#'   n_z is the number of column covariates.
+#'   
+#' @param fixed_b_cols An optional argument giving which, if any, columns
+#'   of \code{B} should be fixed during optimization.
+#'   
+#' @param fixed_w_cols An optional argument giving which, if any, columns
+#'   of \code{W} should be fixed during optimization.
 #'   
 #' @param fit_col_size_factor Boolean indicating if a size factor should be
 #'   used to normalize the likelihood across columns. This may be
@@ -69,6 +89,8 @@ init_glmpca_pois <- function(
     Z,
     B,
     W,
+    fixed_b_cols,
+    fixed_w_cols,
     fit_col_size_factor = TRUE,
     fit_row_intercept = TRUE,
     fit_row_size_factor = FALSE,
@@ -81,6 +103,26 @@ init_glmpca_pois <- function(
   p <- ncol(Y)
   
   fit <- list()
+  
+  if (missing(fixed_w_cols)) {
+    
+    fit$fixed_w_cols <- numeric(0)
+    
+  } else {
+    
+    fit$fixed_w_cols
+    
+  }
+  
+  if (missing(fixed_b_cols)) {
+    
+    fit$fixed_b_cols <- numeric(0)
+    
+  } else {
+    
+    fit$fixed_b_cols
+    
+  }
   
   if (missing(U)) {
     
@@ -164,6 +206,14 @@ init_glmpca_pois <- function(
     
     fit$X <- X
     
+    rownames(fit$X) <- rownames(Y)
+    
+    if(is.null(colnames(fit$X))) {
+      
+      colnames(fit$X) <- paste0("x_", 1:n_x)
+      
+    }
+    
     if(missing(B)) {
       
       B <- matrix(
@@ -190,6 +240,13 @@ init_glmpca_pois <- function(
     
     fit$B <- B
     
+    rownames(fit$B) <- colnames(Y)
+    if(is.null(colnames(fit$B))) {
+      
+      colnames(fit$B) <- paste0("b_", 1:n_x)
+      
+    }
+    
   }
   
   if (missing(Z)) {
@@ -211,6 +268,13 @@ init_glmpca_pois <- function(
     n_z <- ncol(Z)
     
     fit$Z <- Z
+    
+    rownames(fit$Z) <- colnames(Y)
+    if(is.null(colnames(fit$Z))) {
+      
+      colnames(fit$Z) <- paste0("z_", 1:n_z)
+      
+    }
     
     if(missing(W)) {
       
@@ -237,51 +301,85 @@ init_glmpca_pois <- function(
     }
     
     fit$W <- W
+    rownames(W) <- rownames(Y)
+    if(is.null(colnames(W))) {
+      
+      colnames(W) <- paste0("w_", 1:n_z)
+      
+    }
     
   }
   
   # Now, want to add various row or column intercepts / size factors
   if (fit_row_intercept) {
     
-    fit$Z <- cbind(fit$Z, rep(1, p))
-    fit$W <- cbind(fit$W, log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y))))
+    Z_int <- rep(1, p)
+    names(Z_int) <- colnames(Y)
+    
+    W_int <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
+    names(W_int) <- rownames(Y)
+    
+    fit$Z <- cbind(fit$Z, Z_int)
+    fit$W <- cbind(fit$W, W_int)
     n_z <- n_z + 1
+    
+    colnames(fit$Z)[ncol(fit$Z)] <- "row_intercept"
+    colnames(fit$W)[ncol(fit$W)] <- "row_intercept"
     
   }
   
   if (fit_col_intercept) {
     
-    fit$X <- cbind(fit$X, rep(1, n))
-    fit$B <- cbind(fit$B, log(Matrix::colSums(Y) / sum(Matrix::rowMeans(Y))))
+    X_int <- rep(1, n)
+    names(X_int) <- rownames(Y)
+    
+    B_int <- log(Matrix::colSums(Y) / sum(Matrix::rowMeans(Y)))
+    names(B_int) <- colnames(Y)
+    
+    fit$X <- cbind(fit$X, X_int)
+    fit$B <- cbind(fit$B, B_int)
     n_x <- n_x + 1
+    
+    colnames(fit$X)[ncol(fit$X)] <- "col_intercept"
+    colnames(fit$B)[ncol(fit$B)] <- "col_intercept"
     
   }
   
   if (fit_row_size_factor) {
     
-    fit$Z <- cbind(fit$Z, rep(1, p))
-    fit$W <- cbind(fit$W, log(Matrix::rowMeans(Y)))
+    Z_size <- rep(1, p)
+    names(Z_size) <- colnames(Y)
+    
+    W_size <- log(Matrix::rowMeans(Y))
+    names(W_size) <- rownames(Y)
+    
+    fit$Z <- cbind(fit$Z, Z_size)
+    fit$W <- cbind(fit$W, W_size)
     n_z <- n_z + 1
-    fit$fixed_w_cols <- c(n_z)
+    fit$fixed_w_cols <- c(fit$fixed_w_cols, n_z)
     
-  } else {
+    colnames(fit$Z)[ncol(fit$Z)] <- "row_size_factor"
+    colnames(fit$W)[ncol(fit$W)] <- "row_size_factor"
     
-    fit$fixed_w_cols <- numeric(0)
-    
-  }
+  } 
   
   if (fit_col_size_factor) {
     
-    fit$X <- cbind(fit$X, rep(1, n))
-    fit$B <- cbind(fit$B, log(Matrix::colMeans(Y)))
+    X_size <- rep(1, n)
+    names(X_size) <- rownames(Y)
+    
+    B_size <- log(Matrix::colMeans(Y))
+    names(B_size) <- colnames(Y)
+    
+    fit$X <- cbind(fit$X, X_size)
+    fit$B <- cbind(fit$B, B_size)
     n_x <- n_x + 1
-    fit$fixed_b_cols <- c(n_x)
+    fit$fixed_b_cols <- c(fit$fixed_b_cols, n_x)
     
-  } else {
+    colnames(fit$X)[ncol(fit$X)] <- "col_size_factor"
+    colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
     
-    fit$fixed_b_cols <- numeric(0)
-    
-  }
+  } 
   
   fit <- orthonormalize_fit_qr(fit)
   
@@ -291,6 +389,8 @@ init_glmpca_pois <- function(
   colnames(fit$U) <- paste0("k_", 1:ncol(fit$U))
   rownames(fit$V) <- colnames(Y)
   colnames(fit$V) <- paste0("k_", 1:ncol(fit$V))
+  rownames(fit$D) <- paste0("k_", 1:nrow(fit$D))
+  colnames(fit$D) <- paste0("k_", 1:ncol(fit$D))
   
   return(fit)
   
