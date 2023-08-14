@@ -1,40 +1,104 @@
-orthonormalize_fit_qr <- function(fit) {
+orthonormalize <- function(U, V) {
   
-  K <- ncol(fit$U)
+  K <- ncol(U)
   
-  U_update_indices <- setdiff(1:K, fit$fixed_u_cols) 
-  V_update_indices <- setdiff(1:K, fit$fixed_v_cols) 
-  
-  joint_update_indices <- intersect(U_update_indices, V_update_indices)
-  
-  d <- rep(1, K)
-  
-  if (length(joint_update_indices) > 1) {
+  if (K == 1) {
     
-    qr1 <- qr(fit$U[, joint_update_indices])
-    qr2 <- qr(fit$V[, joint_update_indices])
+    d <- sqrt(abs(mean(U[,1])/mean(V[,1])))
+    U[,1] <- U[,1] / d
+    V[,1] <- V[,1] * d
+
+    return(
+      list(
+        U = U,
+        V = V,
+        D = matrix(data = d)
+      )
+    )
+    
+  } else {
+    
+    qr1 <- qr(U)
+    qr2 <- qr(V)
     
     svd1 <- svd(tcrossprod(qr.R(qr1), qr.R(qr2)))
     
-    fit$U[, joint_update_indices] <- qr.Q(qr1) %*% svd1$u
-    d[joint_update_indices] <- svd1$d
-    fit$V[, joint_update_indices] <- qr.Q(qr2) %*% svd1$v
+    U <- qr.Q(qr1) %*% svd1$u
+    V <- qr.Q(qr2) %*% svd1$v
     
-  } 
-  
-  fit$D <- diag(d)
-  
-  return(fit)
+    return(
+      list(
+        U = U,
+        V = V,
+        D = diag(svd1$d)
+      )
+    )
+    
+  }
   
 }
 
-postprocess_fit <- function(fit) {
+orthonormalize_fit_qr <- function(fit) {
+  
+  orthonormed <- orthonormalize(fit$U, fit$V)
+  fit$U <- orthonormed$U
+  fit$V <- orthonormed$V
+  fit$D <- orthonormed$D
+  
+  return(fit)
+
+}
+
+postprocess_fit <- function(fit, n_x, n_z, K) {
   
   names(fit)[names(fit) == "LL"] <- "U"
   fit$U <- t(fit$U)
   
   names(fit)[names(fit) == "FF"] <- "V"
   fit$V <- t(fit$V)
+  
+  if (n_x > 0) {
+    
+    fit$X <- as.matrix(fit$U[,(K + 1):(K + n_x)])
+    fit$B <- as.matrix(fit$V[,(K + 1):(K + n_x)])
+    
+    rownames(fit$X) <- rownames(fit$U)
+    rownames(fit$B) <- rownames(fit$B)
+    
+    colnames(fit$X) <- colnames(fit$U[(K + 1):(K + n_x)])
+    colnames(fit$B) <- colnames(fit$V[(K + 1):(K + n_x)])
+    
+  } else {
+    
+    fit$X <- numeric(0)
+    fit$B <- numeric(0)
+    
+  }
+  
+  if (n_z > 0) {
+    
+    fit$Z <- as.matrix(fit$V[,(K + n_x + 1):(K + n_x + n_z)])
+    fit$W <- as.matrix(fit$U[,(K + n_x + 1):(K + n_x + n_z)])
+    
+    rownames(fit$Z) <- rownames(fit$V)
+    rownames(fit$W) <- rownames(fit$U)
+    
+    colnames(fit$Z) <- colnames(fit$V[(K + n_x + 1):(K + n_x + n_z)])
+    colnames(fit$W) <- colnames(fit$U[(K + n_x + 1):(K + n_x + n_z)])
+    
+  } else {
+    
+    fit$Z <- numeric(0)
+    fit$W <- numeric(0)
+    
+  }
+  
+  if (n_x + n_z > 0) {
+    
+    fit$U <- as.matrix(fit$U[,1:K])
+    fit$V <- as.matrix(fit$V[,1:K])
+    
+  }
   
   if ("max_FF_deriv" %in% names(fit$progress)) {
     

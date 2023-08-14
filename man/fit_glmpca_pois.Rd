@@ -32,9 +32,11 @@ or from a previous call to \code{fit_glmpca}.}
 Convergence is determined by comparing the log-likelihood at the previous
 iteration to the current iteration.}
 
-\item{min_iter}{Minimum number of updates to \eqn{U} and \eqn{V} to be run.}
+\item{min_iter}{Minimum number of updates to 
+\eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.}
 
-\item{max_iter}{Maximum number of updates to \eqn{U} and \eqn{V} to be run.}
+\item{max_iter}{Maximum number of updates to 
+\eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.}
 
 \item{verbose}{Boolean indicating if likelihood should be printed at each step.}
 
@@ -55,19 +57,26 @@ based on a Poisson likelihood (Townes et al, 2019), the counts
 \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 Poisson rate is defined as a linear combination of the parameters:
-\deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} = (UDV')_{ij}.} The model
-parameters are stored as an n x K matrix \eqn{U} with entries
-\eqn{u_{ik}}, a p x K matrix \eqn{V} with entries \eqn{v_{jk}}, and a diagonal matrix
-D with kth diagonal entry \eqn{d_{k}}.
-\eqn{K} is a tuning parameter specifying the rank of the matrices
+\deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} + 
+\sum_{m=1}^{n_{x}} x_{im} b_{jm} +
+\sum_{l=1}^{n_{z}} w_{il} z_{jl} = (UDV' + XB' + WZ')_{ij},} where
+\eqn{U} is an orthonormal \eqn{n \times K} matrix, \eqn{D} is a diagonal \eqn{K \times K} matrix,
+\eqn{V} is an orthonormal \eqn{p \times K} matrix, \eqn{X} is a fixed \eqn{n \times n_{x}}
+matrix of row specific covariates, \eqn{B} is an \eqn{p \times n_{x}} matrix
+of coefficients of the row specific covariates, \eqn{Z} is a fixed 
+\eqn{p \times n_{z}} matrix of column specific covariates, and
+\eqn{W} is an \eqn{n \times n_{z}} matrix of coefficients of column
+specific covariates. \eqn{K} is a tuning parameter specifying the rank of the matrices
 \eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
-estimates (MLEs) of \eqn{U}, \eqn{D}, and \eqn{V}.
+estimates (MLEs) of \eqn{U}, \eqn{D}, \eqn{V}, and if any row or column
+covariates are present, respectively, \eqn{B} and \eqn{W}.
 
-The algorithm works by repeatedly alternating between updating \eqn{U} with
-\eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes the 
+The algorithm works by repeatedly alternating between updating \eqn{U} and \eqn{W} with
+\eqn{V} and \eqn{Z} fixed and updating
+\eqn{V} and \eqn{Z} with \eqn{U} and \eqn{W} fixed. Each update takes the 
 form of a series of Poisson regressions solved using cyclic co-ordinate
 descent (ccd). When the algorithm
-terminates, we rotate the columns of \eqn{U} and \eqn{V} that are not fixed
+terminates, we rotate the columns of \eqn{U} and \eqn{V} 
 so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
 This rotation does not change the final log-likelihood.
 

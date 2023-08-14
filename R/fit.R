@@ -36,19 +36,26 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #' \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 #' \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 #' Poisson rate is defined as a linear combination of the parameters:
-#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} = (UDV')_{ij}.} The model
-#' parameters are stored as an n x K matrix \eqn{U} with entries
-#' \eqn{u_{ik}}, a p x K matrix \eqn{V} with entries \eqn{v_{jk}}, and a diagonal matrix
-#' D with kth diagonal entry \eqn{d_{k}}.
-#' \eqn{K} is a tuning parameter specifying the rank of the matrices
+#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} + 
+#' \sum_{m=1}^{n_{x}} x_{im} b_{jm} +
+#' \sum_{l=1}^{n_{z}} w_{il} z_{jl} = (UDV' + XB' + WZ')_{ij},} where
+#' \eqn{U} is an orthonormal \eqn{n \times K} matrix, \eqn{D} is a diagonal \eqn{K \times K} matrix,
+#' \eqn{V} is an orthonormal \eqn{p \times K} matrix, \eqn{X} is a fixed \eqn{n \times n_{x}}
+#' matrix of row specific covariates, \eqn{B} is an \eqn{p \times n_{x}} matrix
+#' of coefficients of the row specific covariates, \eqn{Z} is a fixed 
+#' \eqn{p \times n_{z}} matrix of column specific covariates, and
+#' \eqn{W} is an \eqn{n \times n_{z}} matrix of coefficients of column
+#' specific covariates. \eqn{K} is a tuning parameter specifying the rank of the matrices
 #' \eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
-#' estimates (MLEs) of \eqn{U}, \eqn{D}, and \eqn{V}.
+#' estimates (MLEs) of \eqn{U}, \eqn{D}, \eqn{V}, and if any row or column
+#' covariates are present, respectively, \eqn{B} and \eqn{W}.
 #' 
-#' The algorithm works by repeatedly alternating between updating \eqn{U} with
-#' \eqn{V} fixed and updating \eqn{V} with \eqn{U} fixed. Each update takes the 
+#' The algorithm works by repeatedly alternating between updating \eqn{U} and \eqn{W} with
+#' \eqn{V} and \eqn{Z} fixed and updating
+#' \eqn{V} and \eqn{Z} with \eqn{U} and \eqn{W} fixed. Each update takes the 
 #' form of a series of Poisson regressions solved using cyclic co-ordinate
 #' descent (ccd). When the algorithm
-#' terminates, we rotate the columns of \eqn{U} and \eqn{V} that are not fixed
+#' terminates, we rotate the columns of \eqn{U} and \eqn{V} 
 #' so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
 #' This rotation does not change the final log-likelihood.
 #' 
@@ -95,9 +102,11 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #'   Convergence is determined by comparing the log-likelihood at the previous
 #'   iteration to the current iteration. 
 #'   
-#' @param min_iter Minimum number of updates to \eqn{U} and \eqn{V} to be run.
+#' @param min_iter Minimum number of updates to 
+#' \eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.
 #' 
-#' @param max_iter Maximum number of updates to \eqn{U} and \eqn{V} to be run.
+#' @param max_iter Maximum number of updates to 
+#' \eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.
 #' 
 #' @param verbose Boolean indicating if likelihood should be printed at each step.
 #'   
@@ -203,22 +212,86 @@ fit_glmpca_pois <- function(
   }
   
   fit <- list()
-  fit$LL <- t(fit0$U %*% fit0$D)
-  fit$FF <- t(fit0$V)
-  fit$fixed_u_cols <- fit0$fixed_u_cols
-  fit$fixed_v_cols <- fit0$fixed_v_cols
+  
+  fit$LL <- t(
+    cbind(
+      fit0$U %*% fit0$D,
+      fit0$X,
+      fit0$W
+    )
+  )
+  
+  fit$FF <- t(
+    cbind(
+      fit0$V,
+      fit0$B,
+      fit0$Z
+    )
+  )
+  
+  if(identical(fit0$X, numeric(0))) {
+    
+    n_x <- 0
+    
+  } else {
+    
+    n_x <- ncol(fit0$X)
+    
+  }
+  
+  if(identical(fit0$Z, numeric(0))) {
+    
+    n_z <- 0
+    
+  } else {
+    
+    n_z <- ncol(fit0$Z)
+    
+  }
+  
+  out_K <- ncol(fit0$U)
+  
+  fit$fixed_loadings <- c()
+  fit$fixed_factors <- c()
+  
+  if (n_x > 0) {
+    
+    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + 1):(ncol(fit0$U) + n_x))
+    
+  }
+  
+  if(length(fit0$fixed_w_cols) > 0) {
+    
+    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + n_x) + fit0$fixed_w_cols)
+    
+  }
+  
+  if(length(fit0$fixed_b_cols) > 0) {
+    
+    fit$fixed_factors <- c(fit$fixed_factors, ncol(fit0$V) + fit0$fixed_b_cols)
+    
+  }
+  
+  if (n_z > 0) {
+    
+    fit$fixed_factors <- c(fit$fixed_factors, (ncol(fit0$V) + n_x + 1):(ncol(fit0$V) + n_x + n_z))
+    
+  }
+  
+  LL_rownames <- colnames(fit0$U)
+  FF_rownames <- colnames(fit0$V)
+  
+  fit$fixed_w_cols <- fit0$fixed_w_cols
+  fit$fixed_b_cols <- fit0$fixed_b_cols
   
   # remove initial fit from local scope to preserve memory
-  LL_rownames <- colnames(fit0$U)
   rm(fit0)
-  
-  FF_rownames <- rownames(fit$FF)
   
   K <- nrow(fit$LL)
     
   # get update indices, subtracting 1 for C++ compatibility
-  LL_update_indices <- setdiff(1:K, fit$fixed_u_cols) - 1
-  FF_update_indices <- setdiff(1:K, fit$fixed_v_cols) - 1
+  LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
+  FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
   
   LL_update_indices_R <- LL_update_indices + 1
   FF_update_indices_R <- FF_update_indices + 1
@@ -254,8 +327,8 @@ fit_glmpca_pois <- function(
   if (verbose) {
     cat(
       sprintf(
-        "Fitting rank-%d GLM-PCA model to a %d x %d matrix\n with %d fixed factors and %d fixed loadings.\n",
-        K, n, p, length(fit$fixed_v_cols), length(fit$fixed_u_cols)
+        "Fitting rank-%d GLM-PCA model to a %d x %d matrix.\n",
+        out_K, n, p
         )
       )
   }
@@ -522,13 +595,10 @@ fit_glmpca_pois <- function(
       
   }
   
-  rownames(fit$LL) <- LL_rownames
-  rownames(fit$FF) <- FF_rownames
-  
   colnames(fit$LL) <- rownames(Y)
   colnames(fit$FF) <- colnames(Y)
   
-  fit <- postprocess_fit(fit)
+  fit <- postprocess_fit(fit, n_x, n_z, out_K)
   
   return(fit)
   
