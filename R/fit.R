@@ -280,6 +280,8 @@ fit_glmpca_pois <- function(
   fit$fixed_w_cols <- fit0$fixed_w_cols
   fit$fixed_b_cols <- fit0$fixed_b_cols
   
+  current_lik <- fit0$loglik
+  
   # remove initial fit from local scope to preserve memory
   rm(fit0)
   
@@ -308,13 +310,6 @@ fit_glmpca_pois <- function(
     loglik_func <- lik_glmpca_pois_log_sp
     
   } 
-  
-  current_lik <- do.call(
-    loglik_func,
-    list(
-      Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
-    )
-  )
 
   converged <- FALSE
   

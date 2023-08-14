@@ -435,6 +435,11 @@ init_glmpca_pois <- function(
   }
   
   fit$loglik <- loglik
+  fit$progress <- data.frame(
+    iter = 0,
+    loglik = loglik,
+    time = 0
+  )
   
   return(fit)
   
