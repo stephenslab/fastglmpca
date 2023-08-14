@@ -3,7 +3,7 @@
 #' @description Initialize a GLM-PCA Poisson model fit.
 #'
 #' @param Y n x p matrix of counts; all entries should be
-#'   non-negative.
+#'   non-negative. Sparse matrices lead to faster computations.
 #'   
 #' @param K An integer 1 or greater giving the matrix rank. This
 #'   argument should only be specified if the initial fit (\code{U, V})
@@ -391,6 +391,50 @@ init_glmpca_pois <- function(
   colnames(fit$V) <- paste0("k_", 1:ncol(fit$V))
   rownames(fit$D) <- paste0("k_", 1:nrow(fit$D))
   colnames(fit$D) <- paste0("k_", 1:ncol(fit$D))
+  
+  # here, want to calculate the loglik to add to the fit
+  if (!inherits(Y, "sparseMatrix")) {
+    
+    H <- tcrossprod(fit$U %*% fit$D, fit$V)
+    
+    if(!identical(fit$X, numeric(0))) {
+      
+      H <- H + tcrossprod(fit$X, fit$B)
+      
+    }
+    
+    if(!identical(fit$Z, numeric(0))) {
+      
+      H <- H + tcrossprod(fit$W, fit$Z)
+      
+    }
+    
+    loglik <- sum(Y * H - exp(H)) - sum(lfactorial(Y))
+    
+  } else {
+    
+    loglik <- lik_glmpca_pois_log_sp(
+      Y = Y, 
+      LL = t(
+        cbind(
+          fit$U %*% fit$D,
+          fit$X,
+          fit$W
+        )
+      ),
+      FF = t(
+        cbind(
+          fit$V,
+          fit$B,
+          fit$Z
+        )
+      ),
+      const = sum(mapSparse(Y, lfactorial))
+    )
+    
+  }
+  
+  fit$loglik <- loglik
   
   return(fit)
   

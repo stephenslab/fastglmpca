@@ -23,7 +23,7 @@ init_glmpca_pois(
 }
 \arguments{
 \item{Y}{n x p matrix of counts; all entries should be
-non-negative.}
+non-negative. Sparse matrices lead to faster computations.}
 
 \item{K}{An integer 1 or greater giving the matrix rank. This
 argument should only be specified if the initial fit (\code{U, V})

@@ -87,8 +87,7 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #' }
 #'
 #' @param Y The n x p matrix of counts; all entries of Y should be
-#'   non-negative. Y may be a sparse matrix from the \code{Matrix}
-#'   package. 
+#'   non-negative. Sparse matrices lead to faster computations.
 #'   
 #' @param K An integer 1 or greater giving the matrix rank. This
 #'   argument will be ignored if the initial fit
@@ -277,9 +276,6 @@ fit_glmpca_pois <- function(
     fit$fixed_factors <- c(fit$fixed_factors, (ncol(fit0$V) + n_x + 1):(ncol(fit0$V) + n_x + n_z))
     
   }
-  
-  LL_rownames <- colnames(fit0$U)
-  FF_rownames <- colnames(fit0$V)
   
   fit$fixed_w_cols <- fit0$fixed_w_cols
   fit$fixed_b_cols <- fit0$fixed_b_cols

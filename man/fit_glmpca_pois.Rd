@@ -17,8 +17,7 @@ fit_glmpca_pois(
 }
 \arguments{
 \item{Y}{The n x p matrix of counts; all entries of Y should be
-non-negative. Y may be a sparse matrix from the \code{Matrix}
-package.}
+non-negative. Sparse matrices lead to faster computations.}
 
 \item{K}{An integer 1 or greater giving the matrix rank. This
 argument will be ignored if the initial fit
