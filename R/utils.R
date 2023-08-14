@@ -148,6 +148,8 @@ postprocess_fit <- function(fit, n_x, n_z, K) {
   fit <- safe_remove_elem(fit, "fixed_loadings")
   fit <- safe_remove_elem(fit, "fixed_factors")
   
+  fit$progress <- as.data.frame(fit$progress)
+  
   return(fit)
   
 }
