@@ -1,3 +1,17 @@
+# remove element from list by name
+safe_remove_elem <- function(l, name) {
+  
+  if (name %in% names(l)) {
+    
+    l <- l[names(l) != name]
+    
+  }
+  
+  return(l)
+  
+}
+
+
 orthonormalize <- function(U, V) {
   
   K <- ncol(U)
@@ -130,6 +144,9 @@ postprocess_fit <- function(fit, n_x, n_z, K) {
   
   rownames(fit$D) <- colnames(fit$U)
   colnames(fit$D) <- colnames(fit$V)
+  
+  fit <- safe_remove_elem(fit, "fixed_loadings")
+  fit <- safe_remove_elem(fit, "fixed_factors")
   
   return(fit)
   
