@@ -482,16 +482,7 @@ fit_glmpca_pois <- function(
         
       }
       
-    } else {
-      
-      new_lik <- do.call(
-        loglik_func,
-        list(
-          Y = Y, LL = fit$LL, FF = fit$FF, const = loglik_const
-        )
-      )
-      
-    }
+    } 
     
     new_lik <- do.call(
       loglik_func,
