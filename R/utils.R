@@ -1,3 +1,40 @@
+# Orthonormalizes a GLM-PCA fit object.
+orthonormalize_fit <- function (fit) {
+  out <- orthonormalize(fit$U,fit$V)
+  fit$U <- out$U
+  fit$V <- out$V
+  fit$D <- out$D
+  return(fit)
+}
+
+# Given factorization Y = tcrossprod(U,V), return Y =
+# tcrossprod(U1*D,V1) satisfying the following constraints:
+#
+#   crossprod(U1) = I
+#   crossprod(V1) = I
+#   D = diag(d)
+#   d = sort(d,decreasing = TRUE)
+#   d > 0
+#
+orthonormalize <- function (U, V) {
+  K <- ncol(U)
+  if (K == 1) {
+    U <- drop(U)
+    V <- drop(V)
+    d <- sqrt(abs(mean(U)/mean(V)))
+    U <- U/d
+    V <- V*d
+    return(list(U = matrix(U),V = matrix(V),D = matrix(d)))
+  } else {
+    qr1 <- qr(U)
+    qr2 <- qr(V)
+    out <- svd(tcrossprod(qr.R(qr1),qr.R(qr2)))
+    U   <- qr.Q(qr1) %*% out$u
+    V   <- qr.Q(qr2) %*% out$v
+    return(list(U = U,V = V,D = diag(out$d)))
+  }
+}
+
 # remove element from list by name
 safe_remove_elem <- function(l, name) {
   
@@ -9,58 +46,6 @@ safe_remove_elem <- function(l, name) {
   
   return(l)
   
-}
-
-
-orthonormalize <- function(U, V) {
-  
-  K <- ncol(U)
-  
-  if (K == 1) {
-    
-    d <- sqrt(abs(mean(U[,1])/mean(V[,1])))
-    U[,1] <- U[,1] / d
-    V[,1] <- V[,1] * d
-
-    return(
-      list(
-        U = U,
-        V = V,
-        D = matrix(data = d)
-      )
-    )
-    
-  } else {
-    
-    qr1 <- qr(U)
-    qr2 <- qr(V)
-    
-    svd1 <- svd(tcrossprod(qr.R(qr1), qr.R(qr2)))
-    
-    U <- qr.Q(qr1) %*% svd1$u
-    V <- qr.Q(qr2) %*% svd1$v
-    
-    return(
-      list(
-        U = U,
-        V = V,
-        D = diag(svd1$d)
-      )
-    )
-    
-  }
-  
-}
-
-orthonormalize_fit_qr <- function(fit) {
-  
-  orthonormed <- orthonormalize(fit$U, fit$V)
-  fit$U <- orthonormed$U
-  fit$V <- orthonormed$V
-  fit$D <- orthonormed$D
-  
-  return(fit)
-
 }
 
 postprocess_fit <- function(fit, n_x, n_z, K) {
@@ -140,7 +125,7 @@ postprocess_fit <- function(fit, n_x, n_z, K) {
   
   class(fit) <- c("glmpca_pois_fit", "list")
   
-  fit <- orthonormalize_fit_qr(fit)
+  fit <- orthonormalize_fit(fit)
   
   rownames(fit$D) <- colnames(fit$U)
   colnames(fit$D) <- colnames(fit$V)

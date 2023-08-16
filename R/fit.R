@@ -28,8 +28,8 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 
 #' @title Fit Poisson GLM-PCA Model to Count Data
 #' 
-#' @description Fit a Poisson GLM-PCA model to input matrix \code{Y}
-#'   by maximum likelihood.
+#' @description Fit a Poisson GLM-PCA model to data matrix \code{Y}
+#'   by maximum-likelihood estimation.
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
 #' based on a Poisson likelihood (Townes et al, 2019), the counts
@@ -86,12 +86,13 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #'   
 #' }
 #'
-#' @param Y The n x p matrix of counts; all entries of Y should be
-#'   non-negative. Sparse matrices lead to faster computations.
+#' @param Y The n x m matrix of counts; all entries of \code{Y} should
+#'   be non-negative. It can be a sparse matrix (class
+#'   \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).
 #'   
-#' @param K An integer 1 or greater giving the matrix rank. This
-#'   argument will be ignored if the initial fit
-#'   (\code{fit0}) is provided.
+#' @param K Integer 1 or greater giving the rank of the matrix
+#'   factorization. This argument should only be specified if 
+#'   initial estimates \code{U}, \code{V} are not provided.
 #'   
 #' @param fit0 The initial model fit. It should be an object of class
 #'   \dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
@@ -172,7 +173,7 @@ fit_glmpca_pois <- function(
     stop("\"min_iter\" must be less than or equal to \"max_iter\"")
   
   n <- nrow(Y)
-  p <- ncol(Y)
+  m <- ncol(Y)
   
   control <- modifyList(
     fit_glmpca_control_default(), 
@@ -180,7 +181,7 @@ fit_glmpca_pois <- function(
     keep.null = TRUE
   )
   
-  calc_deriv <- control$calc_deriv
+  calc_deriv    <- control$calc_deriv
   calc_max_diff <- control$calc_max_diff
   
   if (missing(fit0)) {
@@ -359,10 +360,8 @@ fit_glmpca_pois <- function(
   }
   
   if (calc_max_diff) {
-    
     fit$progress[["max_diff_FF"]] <- numeric(max_iter)
     fit$progress[["max_diff_LL"]] <- numeric(max_iter)
-    
   }
   
   fixed_rows <- union(fit$fixed_v_cols, fit$fixed_u_cols)

@@ -1,23 +1,14 @@
-#' @title Initialize GLM-PCA Poisson Fit
-#' 
-#' @description Initialize a GLM-PCA Poisson model fit.
+#' @rdname fit_glmpca_pois
 #'
-#' @param Y n x p matrix of counts; all entries should be
-#'   non-negative. Sparse matrices lead to faster computations.
-#'   
-#' @param K An integer 1 or greater giving the matrix rank. This
-#'   argument should only be specified if the initial fit (\code{U, V})
-#'   is not provided.
-#'   
 #' @param U An optional argument giving the initial estimate of the
 #'   loadings matrix. It should be an n x K matrix, where n is the
-#'   number of rows in the counts matrix \code{Y}, and K >= 1 is the rank
+#'   number of rows in the counts matrix \code{Y}, and K > 0 is the rank
 #'   of the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param V An optional argument giving is the initial estimate of the
-#'   factors matrix. It should be a p x K matrix, where p is the number
-#'   of columns in the counts matrix \code{Y}, and K >= 1 is the rank of
+#'   factors matrix. It should be a m x K matrix, where m is the number
+#'   of columns in the counts matrix \code{Y}, and K > 0 is the rank of
 #'   the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
@@ -49,25 +40,27 @@
 #' @param fixed_w_cols An optional argument giving which, if any, columns
 #'   of \code{W} should be fixed during optimization.
 #'   
-#' @param fit_col_size_factor Boolean indicating if a size factor should be
+#' @param col_size_factor Boolean indicating if a size factor should be
 #'   used to normalize the likelihood across columns. This may be
 #'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
 #'   represent genes and columns represent cells.
 #'   
-#' @param fit_row_size_factor Boolean indicating if a size factor should be
+#' @param row_size_factor Boolean indicating if a size factor should be
 #'   used to normalize the likelihood across rows. This may be
 #'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
 #'   represent cells and columns represent genes.
 #' 
-#' @param fit_row_intercept Boolean indicating if intercept term should be fit
-#'   for each row of \code{Y}. This may be useful when \code{Y} is a matrix from a
-#'   scRNA experiment where rows represent genes and columns represent cells,
-#'   and one wants to regress out mean differences between genes.
+#' @param row_intercept Boolean indicating if intercept term should be
+#' fit for each row of \code{Y}. This may be useful when \code{Y} is a
+#' matrix from a scRNA experiment where rows represent genes and
+#' columns represent cells, and one wants to regress out mean
+#' differences between genes.
 #'   
-#' @param fit_col_intercept Boolean indicating if intercept term should be fit
-#'   for each column of \code{Y}. This may be useful when \code{Y} is a matrix from a
-#'   scRNA experiment where rows represent cells and columns represent genes,
-#'   and one wants to regress out mean differences between genes.
+#' @param col_intercept Boolean indicating if intercept term should be
+#' fit for each column of \code{Y}. This may be useful when \code{Y}
+#' is a matrix from a scRNA experiment where rows represent cells and
+#' columns represent genes, and one wants to regress out mean
+#' differences between genes.
 #'
 #' @return An object capturing the initial state of the model fit. See
 #'   \code{\link{fit_glmpca_pois}} for details.
@@ -89,102 +82,63 @@ init_glmpca_pois <- function(
     Z,
     B,
     W,
-    fixed_b_cols,
-    fixed_w_cols,
-    fit_col_size_factor = TRUE,
-    fit_row_intercept = TRUE,
-    fit_row_size_factor = FALSE,
-    fit_col_intercept = FALSE
+    fixed_b_cols = numeric(0),
+    fixed_w_cols = numeric(0),
+    col_size_factor = TRUE,
+    row_intercept = TRUE,
+    row_size_factor = FALSE,
+    col_intercept = FALSE
 ) {
-    
+
+  # Check and prepare input argument Y.
   verify.count.matrix(Y)
-  
   n <- nrow(Y)
-  p <- ncol(Y)
+  m <- ncol(Y)
   
-  fit <- list()
-  
-  if (missing(fixed_w_cols)) {
-    
-    fit$fixed_w_cols <- numeric(0)
-    
+  # Only one of K or (U, V) should be provided.
+  if (!((missing(K) & !missing(U) & !missing(V)) |
+        (!missing(K) & missing(U) & missing(V))))
+    stop("Provide a rank (K) or an initialization of U and V, but not both")
+
+  # Check and process input arguments K, U, V.
+  if (missing(K)) {
+
+    # Check the provided U and V.
+    if (!(is.matrix(U) & is.numeric(U)))
+      stop("Input argument \"U\" should be a numeric matrix (is.matrix(U) ",
+           "should return TRUE)")
+    if (is.integer(U))
+      storage.mode(U) <- "double"
+    if (!(is.matrix(V) & is.numeric(V)))
+      stop("Input argument \"V\" should be a numeric matrix (is.matrix(V) ",
+           "should return TRUE)")
+    if (is.integer(V))
+      storage.mode(V) <- "double"
+    if (nrow(U) != nrow(Y))
+      stop("Input argument \"U\" should have same number of rows as \"Y\"")
+    if (nrow(V) != ncol(Y))
+      stop("Input argument \"V\" should have same number of columns as \"Y\"")
+    if (ncol(U) != ncol(V))
+      stop("Inputs \"U\" and \"V\" should have same number of columns")
+    K <- ncol(U)
   } else {
-    
-    fit$fixed_w_cols
-    
+
+    # Initialize U and V.
+    U <- matrix(rnorm(n*K,0,sd = 0.1),n,K)
+    V <- matrix(rnorm(m*K,0,sd = 0.1),m,K)
   }
-  
-  if (missing(fixed_b_cols)) {
-    
-    fit$fixed_b_cols <- numeric(0)
-    
-  } else {
-    
-    fit$fixed_b_cols
-    
-  }
-  
-  if (missing(U)) {
-    
-    if (missing(K)) {
-      
-      stop("if \"U\" is missing, must provide \"K\" ")
-      
-    }
-      
-    fit$U <- matrix(
-      data = rnorm(K, 0, sd=1e-5),
-      ncol = K, 
-      nrow = n
-    )
-    
-  } else {
-    
-    if (nrow(U) != nrow(Y)) {
-      
-      stop("Input \"U\" must have same number of rows as \"Y\" ")
-      
-    }
-    
-    fit$U <- U
-    
-  }
-  
-  if (missing(V)) {
-    
-    if (missing(K)) {
-      
-      stop("if \"V\" is missing, must provide \"K\" ")
-      
-    }
-      
-    fit$V <- matrix(
-      data = rnorm(K * p, 0, sd = 1e-5), 
-      ncol = K, 
-      nrow = p
-    )
-    
-  } else {
-    
-    if (nrow(V) != ncol(Y)) {
-      
-      stop("Input \"V\" must have same number of rows as there are columns of \"Y\"")
-      
-    }
-    
-    fit$V <- V
-    
-  }
-  
-  if (!missing(U) && !missing(V)) {
-    
-    if (ncol(U) != ncol(V)) {
-      
-      stop("Inputs \"U\" and \"V\" must have same number of columns")
-      
-    }
-    
-  }
+
+  # Prepare the final output.
+  fit <- list(U = U,V = V)
+  fit <- orthonormalize_fit(fit)
+  class(fit) <- c("glmpca_pois_fit","list")
+  rownames(fit$U) <- rownames(Y)
+  rownames(fit$V) <- colnames(Y)
+  colnames(fit$U) <- paste("k",1:K,sep = "_")
+  colnames(fit$V) <- paste("k",1:K,sep = "_")
+  rownames(fit$D) <- paste("k",1:K,sep = "_")
+  colnames(fit$D) <- paste("k",1:K,sep = "_")
+  return(fit)
   
   if (missing(X)) {
     
@@ -217,25 +171,17 @@ init_glmpca_pois <- function(
     if(missing(B)) {
       
       B <- matrix(
-        data = rnorm(n = p * n_x, sd = 1e-5),
-        nrow = p,
+        data = rnorm(n = m*n_x, sd = 1e-5),
+        nrow = m,
         ncol = n_x
       )
       
     } else {
       
-      if (nrow(B) != ncol(Y)) {
-        
+      if (nrow(B) != ncol(Y))
         stop("Input \"B\" must have same number of rows as \"Y\" has columns")
-        
-      }
-      
-      if (ncol(B) != ncol(X)) {
-        
+      if (ncol(B) != ncol(X))
         stop("Inputs \"B\" and \"X\" must have same number of columns")
-        
-      }
-      
     }
     
     fit$B <- B
@@ -380,17 +326,6 @@ init_glmpca_pois <- function(
     colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
     
   } 
-  
-  fit <- orthonormalize_fit_qr(fit)
-  
-  class(fit) <- c("glmpca_pois_fit", "list")
-  
-  rownames(fit$U) <- rownames(Y)
-  colnames(fit$U) <- paste0("k_", 1:ncol(fit$U))
-  rownames(fit$V) <- colnames(Y)
-  colnames(fit$V) <- paste0("k_", 1:ncol(fit$V))
-  rownames(fit$D) <- paste0("k_", 1:nrow(fit$D))
-  colnames(fit$D) <- paste0("k_", 1:ncol(fit$D))
   
   # here, want to calculate the loglik to add to the fit
   if (!inherits(Y, "sparseMatrix")) {
