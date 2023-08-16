@@ -7,8 +7,9 @@ orthonormalize_fit <- function (fit) {
   return(fit)
 }
 
-# Given factorization Y = tcrossprod(U,V), return Y =
-# tcrossprod(U1*D,V1) satisfying the following constraints:
+# Given factorization Y = tcrossprod(U,V), return 
+# Y = tcrossprod(U1*D,V1) satisfying the following
+# constraints:
 #
 #   crossprod(U1) = I
 #   crossprod(V1) = I
