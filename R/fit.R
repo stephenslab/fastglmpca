@@ -127,8 +127,12 @@ lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
 #' that records information about the algorithm progress at each iteration.
 #'
 #' @import Matrix
+#' @importFrom Matrix tcrossprod
+#' @importFrom Matrix t
 #' @importFrom utils modifyList
 #' @importFrom MatrixExtra mapSparse
+#' @importFrom MatrixExtra t
+#' @importFrom MatrixExtra tcrossprod
 #' 
 #' @export
 #' 
