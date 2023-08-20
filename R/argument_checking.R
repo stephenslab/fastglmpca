@@ -1,7 +1,7 @@
 # Return true if x is a compressed, sparse, column-oriented numeric
 # matrix.
 is.sparse.matrix <- function (x)
-  inherits(x,"dgCMatrix")
+  inherits(x,"dgCMatrix") && is.numeric(x@x)
 
 # Verify that x is matrix with finite, numeric entries.
 verify.matrix <- function (x, arg.name = deparse(substitute(x))) {
@@ -19,22 +19,16 @@ verify.matrix <- function (x, arg.name = deparse(substitute(x))) {
 #
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colSums
-#' @importFrom matrixStats rowSds
-#' @importFrom matrixStats colSds
 #' 
 verify.count.matrix <- function (x, arg.name = deparse(substitute(x))) {
   arg.name <- sprintf("\"%s\"",arg.name)
   msg <- paste("Input argument",arg.name,"should be a non-negative,",
                "numeric matrix with at least 2 rows and 2 columns,",
-               "all entries should be finite and non-missing, and",
-               "and all rows/columns should have standard deviations",
-               "greater than zero")
+               "and all entries should be finite and non-missing")
   verify.matrix(x,arg.name)
   if (!(nrow(x) > 1 & ncol(x) > 1))
     stop(msg)
   else if (any(x < 0))
-    stop(msg)
-  else if (!(all(rowSds(x) > 0) & all(colSds(x) > 0)))
     stop(msg)
   return(TRUE)
 }

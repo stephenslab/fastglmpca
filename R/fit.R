@@ -287,12 +287,12 @@ fit_glmpca_pois <- function(
   
   current_lik <- fit0$loglik
   
-  # remove initial fit from local scope to preserve memory
+  # Remove initial fit from local scope to preserve memory.
   rm(fit0)
   
   K <- nrow(fit$LL)
     
-  # get update indices, subtracting 1 for C++ compatibility
+  # Get update indices, subtracting 1 for C++ compatibility.
   LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
   FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
   
