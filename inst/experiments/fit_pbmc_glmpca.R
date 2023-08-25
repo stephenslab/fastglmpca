@@ -1,67 +1,80 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
 n_iter = as.integer(command_args[2])
-n_cores = as.integer(command_args[3])
+optimizer = as.character(command_args[3])
+minibatch = as.character(command_args[4])
 
-library(Matrix)
-library(RhpcBLASctl)
-blas_set_num_threads(1)
-omp_set_num_threads(n_cores)
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/pbmc_68k.RData")
 
-
-scGBM_fit0 <- readr::read_rds(
-  glue::glue("/home/ericweine/glmpca_experiments/pbmc_scGBM_fit_{n_factor}_factors_init_1_iter_no_beta_infer.rds")
-)
-
-fit0 <- fastglmpca::init_glmpca_pois(
-  Y = Matrix::t(counts), K = n_factor, fit_col_size_factor = TRUE, fit_row_intercept = TRUE
-)
-
-# add intercepts
-fit0$LL[2, ] <- scGBM_fit0$alpha
-fit0$FF[1, ] <- scGBM_fit0$beta
-
-for (k in 1:n_factor) {
+if (optimizer == "fisher") {
   
-  fit0$LL[k+2, ] <- scGBM_fit0$U[,k]
-  fit0$FF[k+2, ] <- scGBM_fit0$V[,k]
+  data <- as.matrix(counts)
   
 }
 
-rm(scGBM_fit0)
-gc()
+set.seed(1)
+if (optimizer == "fisher") {
+  
+  fit0 <- fastglmpca::init_glmpca(
+    Y = t(data), 
+    K = n_factor, 
+    fit_col_size_factor = TRUE,
+    fit_row_intercept = TRUE
+  )
+  
+} else if (optimizer == "avagrad"){
+  
+  fit0 <- fastglmpca::init_glmpca_pois(
+    Y = Matrix::t(counts), 
+    K = n_factor, 
+    fit_col_size_factor = TRUE,
+    fit_row_intercept = TRUE
+  )
+  
+}
+
 
 library(tictoc)
 
-if (n_factor == 2) {
+if(optimizer == "fisher") {
   
-  lr = 2e-9
+  fit <- glmpca::glmpca(
+    Y = t(data),
+    L = n_factor,
+    fam = "poi",
+    optimizer = optimizer,
+    minibatch = minibatch,
+    ctl = list(
+      minIter = n_iter - 1, 
+      maxIter = n_iter, 
+      verbose = TRUE, 
+      tol = .Machine$double.eps,
+      lr = 1e-4
+    ),
+    init = list(factors = fit0$V, loadings = fit0$U)
+  )
   
 } else {
   
-  lr = 5e-8
-  
-}
-
-tic()
-fit <- glmpca::glmpca(
+  fit <- glmpca::glmpca(
     Y = Matrix::t(counts),
     L = n_factor,
     fam = "poi",
-    optimizer = "avagrad",
-    minibatch = "stochastic",
-    ctl = list(minIter = n_iter - 1, maxIter = n_iter, verbose = TRUE, tol = .Machine$double.eps, lr = lr),
-    init = list(factors = t(fit0$FF[-c(1,2),]), loadings = t(fit0$LL[-c(1,2),])),
-    sz = exp(fit0$FF[1, ]),
-    init_coefX = matrix(data = fit0$LL[2, ], ncol = 1)
+    optimizer = optimizer,
+    minibatch = minibatch,
+    ctl = list(
+      minIter = n_iter - 1, 
+      maxIter = n_iter, 
+      verbose = TRUE, 
+      tol = .Machine$double.eps,
+      lr = 1e-4
+    ),
+    init = list(factors = fit0$V, loadings = fit0$U)
   )
-
-toc()
+  
+}
 
 readr::write_rds(
   fit,
-  glue::glue(
-    "pbmc_glmpca_fit_{n_factor}_factors_{n_iter}_iter_avagrad_optimizer_minibatch_stochastic.rds"
-  )
+  glue::glue("pbmc_glmpca_fit_{n_factor}_factors_{n_iter}_iter_{optimizer}_optimizer_minibatch_{minibatch}.rds")
 )
