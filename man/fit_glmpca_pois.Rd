@@ -73,27 +73,18 @@ the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
 \item{X}{Optional argument giving row covariates of the count
-matrix \code{Y}. It should be an n x nx matrix, where n is the
-number of rows in \code{Y} and nx is the number of row
-covariates.}
+matrix \code{Y}. It should be an n x nx matrix.}
 
-\item{Z}{An optional argument giving column specific covariates of the 
-count matrix \code{Y}. It should be p x n_z matrix, where p
-is the number of columns of the count matrix \code{Y}, and
-n_z is the number of column covariates.}
+\item{Z}{Optional argument giving column covariates of the count
+matrix \code{Y}. It should be an m x nz matrix.}
 
-\item{B}{An optional argument giving the initial estimates
-for the coefficients of the row specific covariates of the 
-count matrix \code{Y}. It should be p x n_x matrix, where p
-is the number of columns of the count matrix \code{Y}, and
-n_x is the number of row covariates. This argument is ignored
-if X is not provided.}
+\item{B}{Optional argument giving the initial estimates for the
+coefficients of the row covariates. It should be an m x nx matrix.
+This argument is ignored if X is not provided.}
 
-\item{W}{An optional argument giving the initial estimates
-for the coefficients of the column specific covariates of the 
-count matrix \code{Y}. It should be n x n_z matrix, where n
-is the number of rows of the count matrix \code{Y}, and
-n_z is the number of column covariates.}
+\item{W}{Optional argument giving the initial estimates for the
+coefficients of the column covariates.  It should be an n x nz
+matrix. This argument is ignored if Z is not provided.}
 
 \item{fixed_b_cols}{An optional argument giving which, if any, columns
 of \code{B} should be fixed during optimization.}

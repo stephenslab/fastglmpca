@@ -13,27 +13,18 @@
 #'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param X Optional argument giving row covariates of the count
-#'   matrix \code{Y}. It should be an n x nx matrix, where n is the
-#'   number of rows in \code{Y} and nx is the number of row
-#'   covariates.
+#'   matrix \code{Y}. It should be an n x nx matrix.
 #' 
-#' @param B An optional argument giving the initial estimates
-#'   for the coefficients of the row specific covariates of the 
-#'   count matrix \code{Y}. It should be p x n_x matrix, where p
-#'   is the number of columns of the count matrix \code{Y}, and
-#'   n_x is the number of row covariates. This argument is ignored
-#'   if X is not provided.
+#' @param B Optional argument giving the initial estimates for the
+#'   coefficients of the row covariates. It should be an m x nx matrix.
+#'   This argument is ignored if X is not provided.
 #' 
-#' @param Z An optional argument giving column specific covariates of the 
-#'   count matrix \code{Y}. It should be p x n_z matrix, where p
-#'   is the number of columns of the count matrix \code{Y}, and
-#'   n_z is the number of column covariates.
+#' @param Z Optional argument giving column covariates of the count
+#'   matrix \code{Y}. It should be an m x nz matrix.
 #' 
-#' @param W An optional argument giving the initial estimates
-#'   for the coefficients of the column specific covariates of the 
-#'   count matrix \code{Y}. It should be n x n_z matrix, where n
-#'   is the number of rows of the count matrix \code{Y}, and
-#'   n_z is the number of column covariates.
+#' @param W Optional argument giving the initial estimates for the
+#'   coefficients of the column covariates.  It should be an n x nz
+#'   matrix. This argument is ignored if Z is not provided.
 #'   
 #' @param fixed_b_cols An optional argument giving which, if any, columns
 #'   of \code{B} should be fixed during optimization.
@@ -95,6 +86,8 @@ init_glmpca_pois <- function(
   verify.count.matrix(Y)
   n <- nrow(Y)
   m <- ncol(Y)
+  if (is.integer(Y))
+    storage.mode(Y) <- "double"
   
   # Only one of K or (U, V) should be provided.
   if (!((missing(K) & !missing(U) & !missing(V)) |
@@ -131,25 +124,46 @@ init_glmpca_pois <- function(
 
   # Check and prepare input arguments X and B.
   if (!missing(X) && length(X) > 0) {
-    if (nrow(X) != nrow(Y))
-      stop("Inputs \"X\" and \"Y\" must have same number of rows")
     nx <- ncol(X)
+    if (nrow(X) != nrow(Y))
+      stop("Inputs \"X\" and \"Y\" should have same number of rows")
     if (missing(B))
-      B <- matrix(rnorm(m*n_x,sd = 0.1),m,nx)      
+      B <- matrix(rnorm(m*nx,sd = 0.1),m,nx)      
     if (nrow(B) != ncol(Y))
-      stop("Input \"B\" must have same number of rows as \"Y\" has columns")
+      stop("Input \"B\" should have same number of rows as \"Y\" has columns")
     if (ncol(B) != ncol(X))
-        stop("Inputs \"B\" and \"X\" must have same number of columns")
-  } else
+        stop("Inputs \"B\" and \"X\" should have same number of columns")
+    if (is.integer(X))
+      storage.mode(X) <- "double"
+    if (is.integer(B))
+      storage.mode(B) <- "double"
+  } else {
     B <- numeric(0)
-
+    nx <- 0
+  }
+  
   # Check and prepare input arguments Z and W.
-  if (!missing(X) && length(X) > 0) {
-
+  if (!missing(Z) && length(Z) > 0) {
+    nz <- ncol(Z)
+    if (nrow(Z) != ncol(Y))
+      stop("Input \"Z\" should have as many rows as columns of \"Y\"")
+    if (missing(W))
+      W <- matrix(rnorm(n*nz,sd = 0.1),n,nz)
+    if (nrow(W) != nrow(Y))
+      stop("Input \"W\" should have same number of rows as \"Y\"")
+    if (ncol(W) != ncol(Z))
+      stop("Inputs \"W\" and \"Z\" should have same number of columns")
+    if (is.integer(Z))
+      storage.mode(Z) <- "double"
+    if (is.integer(W))
+      storage.mode(W) <- "double"
+  } else {
+    W <- numeric(0)
+    nz <- 0
   }
   
   # Prepare the final output.
-  fit <- list(U = U,V = V,X = X,Z = Z,B = B,W = W)
+  fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W)
   fit <- orthonormalize_fit(fit)
   class(fit) <- c("glmpca_pois_fit","list")
   rownames(fit$U) <- rownames(Y)
@@ -165,65 +179,14 @@ init_glmpca_pois <- function(
     rownames(fit$B) <- colnames(Y)
     colnames(fit$B) <- colnames(fit$X)
   }
-  return(fit)
-  
-  if (missing(Z)) {
-    
-    fit$Z <- numeric(0)
-    fit$W <- numeric(0)
-    
-    n_z <- 0
-    
-  }
-  else {
-    
-    if (nrow(Z) != ncol(Y)) {
-      
-      stop("Input \"Z\" must have same number of rows as \"Y\" has columns")
-      
-    }
-    
-    nz <- ncol(Z)
+  if (length(fit$Z) > 0) {
     rownames(fit$Z) <- colnames(Y)
-    if(is.null(colnames(fit$Z))) {
-      
-      colnames(fit$Z) <- paste0("z_", 1:n_z)
-      
-    }
-    
-    if(missing(W)) {
-      
-      W <- matrix(
-        data = rnorm(n = n * n_z, sd = 1e-5),
-        nrow = n,
-        ncol = n_z
-      )
-      
-    } else {
-      
-      if (nrow(W) != nrow(Y)) {
-        
-        stop("Inputs \"W\" and \"Y\" must have same number of rows")
-        
-      }
-      
-      if (ncol(W) != ncol(Z)) {
-        
-        stop("Inputs \"W\" and \"Z\" must have same number of columns")
-        
-      }
-      
-    }
-    
-    fit$W <- W
-    rownames(W) <- rownames(Y)
-    if(is.null(colnames(W))) {
-      
-      colnames(W) <- paste0("w_", 1:n_z)
-      
-    }
-    
+    if (is.null(colnames(fit$Z)))
+      colnames(fit$Z) <- paste0("z_",1:nz)
+    rownames(fit$W) <- rownames(Y)
+    colnames(fit$W) <- colnames(fit$Z)
   }
+  return(fit)
   
   # Now, want to add various row or column intercepts / size factors
   if (fit_row_intercept) {
