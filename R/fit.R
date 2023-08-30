@@ -591,7 +591,7 @@ fit_glmpca_control_default <- function() {
     alpha = .01,
     beta = .5,
     line_search = TRUE,
-    num_iter = 5,
+    num_iter = 3,
     ccd_iter_tol = 0,
     calc_deriv = FALSE,
     calc_max_diff = FALSE
