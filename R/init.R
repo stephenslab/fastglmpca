@@ -12,16 +12,17 @@
 #'   the matrix factorization. When \code{U} and \code{V} are not
 #'   provided, input argument \code{K} should be specified instead.
 #'   
-#' @param X An optional argument giving row specific covariates of the 
-#'   count matrix \code{Y}. It should be n x n_x matrix, where n
-#'   is the number of rows of the count matrix \code{Y}, and
-#'   n_x is the number of row covariates.
+#' @param X Optional argument giving row covariates of the count
+#'   matrix \code{Y}. It should be an n x nx matrix, where n is the
+#'   number of rows in \code{Y} and nx is the number of row
+#'   covariates.
 #' 
 #' @param B An optional argument giving the initial estimates
 #'   for the coefficients of the row specific covariates of the 
 #'   count matrix \code{Y}. It should be p x n_x matrix, where p
 #'   is the number of columns of the count matrix \code{Y}, and
-#'   n_x is the number of row covariates.
+#'   n_x is the number of row covariates. This argument is ignored
+#'   if X is not provided.
 #' 
 #' @param Z An optional argument giving column specific covariates of the 
 #'   count matrix \code{Y}. It should be p x n_z matrix, where p
@@ -78,10 +79,10 @@ init_glmpca_pois <- function(
     K,
     U,
     V,
-    X,
-    Z,
-    B,
-    W,
+    X = numeric(0),
+    Z = numeric(0),
+    B = numeric(0),
+    W = numeric(0),
     fixed_b_cols = numeric(0),
     fixed_w_cols = numeric(0),
     col_size_factor = TRUE,
@@ -100,7 +101,7 @@ init_glmpca_pois <- function(
         (!missing(K) & missing(U) & missing(V))))
     stop("Provide a rank (K) or an initialization of U and V, but not both")
 
-  # Check and process input arguments K, U, V.
+  # Check and prepare input arguments K, U and V.
   if (missing(K)) {
 
     # Check the provided U and V.
@@ -124,12 +125,31 @@ init_glmpca_pois <- function(
   } else {
 
     # Initialize U and V.
-    U <- matrix(rnorm(n*K,0,sd = 0.1),n,K)
-    V <- matrix(rnorm(m*K,0,sd = 0.1),m,K)
+    U <- matrix(rnorm(n*K,sd = 0.1),n,K)
+    V <- matrix(rnorm(m*K,sd = 0.1),m,K)
   }
 
+  # Check and prepare input arguments X and B.
+  if (!missing(X) && length(X) > 0) {
+    if (nrow(X) != nrow(Y))
+      stop("Inputs \"X\" and \"Y\" must have same number of rows")
+    nx <- ncol(X)
+    if (missing(B))
+      B <- matrix(rnorm(m*n_x,sd = 0.1),m,nx)      
+    if (nrow(B) != ncol(Y))
+      stop("Input \"B\" must have same number of rows as \"Y\" has columns")
+    if (ncol(B) != ncol(X))
+        stop("Inputs \"B\" and \"X\" must have same number of columns")
+  } else
+    B <- numeric(0)
+
+  # Check and prepare input arguments Z and W.
+  if (!missing(X) && length(X) > 0) {
+
+  }
+  
   # Prepare the final output.
-  fit <- list(U = U,V = V)
+  fit <- list(U = U,V = V,X = X,Z = Z,B = B,W = W)
   fit <- orthonormalize_fit(fit)
   class(fit) <- c("glmpca_pois_fit","list")
   rownames(fit$U) <- rownames(Y)
@@ -138,62 +158,14 @@ init_glmpca_pois <- function(
   colnames(fit$V) <- paste("k",1:K,sep = "_")
   rownames(fit$D) <- paste("k",1:K,sep = "_")
   colnames(fit$D) <- paste("k",1:K,sep = "_")
-  return(fit)
-  
-  if (missing(X)) {
-    
-    fit$X <- numeric(0)
-    fit$B <- numeric(0)
-    
-    n_x <- 0
-    
-  }
-  else {
-    
-    if (nrow(X) != nrow(Y)) {
-      
-      stop("Inputs \"X\" and \"Y\" must have same number of rows")
-      
-    }
-    
-    n_x <- ncol(X)
-    
-    fit$X <- X
-    
+  if (length(fit$X) > 0) {
     rownames(fit$X) <- rownames(Y)
-    
-    if(is.null(colnames(fit$X))) {
-      
-      colnames(fit$X) <- paste0("x_", 1:n_x)
-      
-    }
-    
-    if(missing(B)) {
-      
-      B <- matrix(
-        data = rnorm(n = m*n_x, sd = 1e-5),
-        nrow = m,
-        ncol = n_x
-      )
-      
-    } else {
-      
-      if (nrow(B) != ncol(Y))
-        stop("Input \"B\" must have same number of rows as \"Y\" has columns")
-      if (ncol(B) != ncol(X))
-        stop("Inputs \"B\" and \"X\" must have same number of columns")
-    }
-    
-    fit$B <- B
-    
+    if (is.null(colnames(fit$X)))
+      colnames(fit$X) <- paste0("x_",1:nx)
     rownames(fit$B) <- colnames(Y)
-    if(is.null(colnames(fit$B))) {
-      
-      colnames(fit$B) <- paste0("b_", 1:n_x)
-      
-    }
-    
+    colnames(fit$B) <- colnames(fit$X)
   }
+  return(fit)
   
   if (missing(Z)) {
     
@@ -211,10 +183,7 @@ init_glmpca_pois <- function(
       
     }
     
-    n_z <- ncol(Z)
-    
-    fit$Z <- Z
-    
+    nz <- ncol(Z)
     rownames(fit$Z) <- colnames(Y)
     if(is.null(colnames(fit$Z))) {
       

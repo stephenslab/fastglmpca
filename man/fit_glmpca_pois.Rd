@@ -21,10 +21,10 @@ init_glmpca_pois(
   K,
   U,
   V,
-  X,
-  Z,
-  B,
-  W,
+  X = numeric(0),
+  Z = numeric(0),
+  B = numeric(0),
+  W = numeric(0),
   fixed_b_cols = numeric(0),
   fixed_w_cols = numeric(0),
   col_size_factor = TRUE,
@@ -72,10 +72,10 @@ of columns in the counts matrix \code{Y}, and K > 0 is the rank of
 the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
-\item{X}{An optional argument giving row specific covariates of the 
-count matrix \code{Y}. It should be n x n_x matrix, where n
-is the number of rows of the count matrix \code{Y}, and
-n_x is the number of row covariates.}
+\item{X}{Optional argument giving row covariates of the count
+matrix \code{Y}. It should be an n x nx matrix, where n is the
+number of rows in \code{Y} and nx is the number of row
+covariates.}
 
 \item{Z}{An optional argument giving column specific covariates of the 
 count matrix \code{Y}. It should be p x n_z matrix, where p
@@ -86,7 +86,8 @@ n_z is the number of column covariates.}
 for the coefficients of the row specific covariates of the 
 count matrix \code{Y}. It should be p x n_x matrix, where p
 is the number of columns of the count matrix \code{Y}, and
-n_x is the number of row covariates.}
+n_x is the number of row covariates. This argument is ignored
+if X is not provided.}
 
 \item{W}{An optional argument giving the initial estimates
 for the coefficients of the column specific covariates of the 
