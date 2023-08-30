@@ -32,15 +32,11 @@
 #' @param fixed_w_cols An optional argument giving which, if any, columns
 #'   of \code{W} should be fixed during optimization.
 #'   
-#' @param col_size_factor Boolean indicating if a size factor should be
-#'   used to normalize the likelihood across columns. This may be
-#'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
-#'   represent genes and columns represent cells.
-#'   
-#' @param row_size_factor Boolean indicating if a size factor should be
-#'   used to normalize the likelihood across rows. This may be
-#'   useful when \code{Y} is a matrix from a scRNA experiment where rows 
-#'   represent cells and columns represent genes.
+#' @param row_size_factor If \code{row_size_factor = TRUE}, a size
+#'   factor should be used to normalize the likelihood across rows.
+#' 
+#' @param col_size_factor If \code{col_size_factor = TRUE}, should be
+#'   used to normalize the likelihood across columns.
 #' 
 #' @param row_intercept Boolean indicating if intercept term should be
 #' fit for each row of \code{Y}. This may be useful when \code{Y} is a
@@ -76,11 +72,10 @@ init_glmpca_pois <- function(
     W = numeric(0),
     fixed_b_cols = numeric(0),
     fixed_w_cols = numeric(0),
+    row_size_factor = FALSE,
     col_size_factor = TRUE,
     row_intercept = TRUE,
-    row_size_factor = FALSE,
-    col_intercept = FALSE
-) {
+    col_intercept = FALSE) {
 
   # Check and prepare input argument Y.
   verify.count.matrix(Y)
@@ -137,6 +132,8 @@ init_glmpca_pois <- function(
       storage.mode(X) <- "double"
     if (is.integer(B))
       storage.mode(B) <- "double"
+    if (is.null(colnames(fit$X)))
+      colnames(fit$X) <- paste0("x_",1:nx)
   } else {
     B <- numeric(0)
     nx <- 0
@@ -157,11 +154,39 @@ init_glmpca_pois <- function(
       storage.mode(Z) <- "double"
     if (is.integer(W))
       storage.mode(W) <- "double"
+    if (is.null(colnames(fit$Z)))
+      colnames(fit$Z) <- paste0("z_",1:nz)
   } else {
     W <- numeric(0)
     nz <- 0
   }
   
+  # Add the size factors if requested.
+  if (row_size_factor) {
+    out <- create_row_size_factor(Y)
+    Z <- cbind(Z,out$z)
+    W <- cbind(W,out$w)
+    nz <- nz + 1
+    fixed_w_cols <- c(fit$fixed_w_cols,nz)
+  } 
+  if (col_size_factor) {
+    out <- create_col_size_factor(Y)
+    
+    X_size <- rep(1, n)
+    
+    B_size <- log(colMeans(Y))
+    
+    X <- cbind(X,out$x)
+    B <- cbind(B,out$b)
+    nx <- nx + 1
+    fit$fixed_b_cols <- c(fit$fixed_b_cols,nx)
+  }
+  
+  # colnames(fit$Z)[ncol(fit$Z)] <- "row_size_factor"
+  # colnames(fit$W)[ncol(fit$W)] <- "row_size_factor"
+  # colnames(fit$X)[ncol(fit$X)] <- "col_size_factor"
+  # colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
+
   # Prepare the final output.
   fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W)
   fit <- orthonormalize_fit(fit)
@@ -174,39 +199,27 @@ init_glmpca_pois <- function(
   colnames(fit$D) <- paste("k",1:K,sep = "_")
   if (length(fit$X) > 0) {
     rownames(fit$X) <- rownames(Y)
-    if (is.null(colnames(fit$X)))
-      colnames(fit$X) <- paste0("x_",1:nx)
     rownames(fit$B) <- colnames(Y)
     colnames(fit$B) <- colnames(fit$X)
   }
   if (length(fit$Z) > 0) {
     rownames(fit$Z) <- colnames(Y)
-    if (is.null(colnames(fit$Z)))
-      colnames(fit$Z) <- paste0("z_",1:nz)
     rownames(fit$W) <- rownames(Y)
     colnames(fit$W) <- colnames(fit$Z)
   }
   return(fit)
   
-  # Now, want to add various row or column intercepts / size factors
-  if (fit_row_intercept) {
-    
-    Z_int <- rep(1, p)
-    names(Z_int) <- colnames(Y)
-    
-    W_int <- log(Matrix::rowSums(Y) / sum(Matrix::colMeans(Y)))
-    names(W_int) <- rownames(Y)
-    
-    fit$Z <- cbind(fit$Z, Z_int)
-    fit$W <- cbind(fit$W, W_int)
-    n_z <- n_z + 1
+  if (row_intercept) {
+    Z <- cbind(Z,out$z)
+    W <- cbind(W,out$w)
+    nz    <- nz + 1
     
     colnames(fit$Z)[ncol(fit$Z)] <- "row_intercept"
     colnames(fit$W)[ncol(fit$W)] <- "row_intercept"
     
   }
   
-  if (fit_col_intercept) {
+  if (col_intercept) {
     
     X_int <- rep(1, n)
     names(X_int) <- rownames(Y)
@@ -222,42 +235,6 @@ init_glmpca_pois <- function(
     colnames(fit$B)[ncol(fit$B)] <- "col_intercept"
     
   }
-  
-  if (fit_row_size_factor) {
-    
-    Z_size <- rep(1, p)
-    names(Z_size) <- colnames(Y)
-    
-    W_size <- log(Matrix::rowMeans(Y))
-    names(W_size) <- rownames(Y)
-    
-    fit$Z <- cbind(fit$Z, Z_size)
-    fit$W <- cbind(fit$W, W_size)
-    n_z <- n_z + 1
-    fit$fixed_w_cols <- c(fit$fixed_w_cols, n_z)
-    
-    colnames(fit$Z)[ncol(fit$Z)] <- "row_size_factor"
-    colnames(fit$W)[ncol(fit$W)] <- "row_size_factor"
-    
-  } 
-  
-  if (fit_col_size_factor) {
-    
-    X_size <- rep(1, n)
-    names(X_size) <- rownames(Y)
-    
-    B_size <- log(Matrix::colMeans(Y))
-    names(B_size) <- colnames(Y)
-    
-    fit$X <- cbind(fit$X, X_size)
-    fit$B <- cbind(fit$B, B_size)
-    n_x <- n_x + 1
-    fit$fixed_b_cols <- c(fit$fixed_b_cols, n_x)
-    
-    colnames(fit$X)[ncol(fit$X)] <- "col_size_factor"
-    colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
-    
-  } 
   
   # here, want to calculate the loglik to add to the fit
   if (!inherits(Y, "sparseMatrix")) {

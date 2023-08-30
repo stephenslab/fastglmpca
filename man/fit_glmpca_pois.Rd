@@ -27,9 +27,9 @@ init_glmpca_pois(
   W = numeric(0),
   fixed_b_cols = numeric(0),
   fixed_w_cols = numeric(0),
+  row_size_factor = FALSE,
   col_size_factor = TRUE,
   row_intercept = TRUE,
-  row_size_factor = FALSE,
   col_intercept = FALSE
 )
 }
@@ -92,21 +92,17 @@ of \code{B} should be fixed during optimization.}
 \item{fixed_w_cols}{An optional argument giving which, if any, columns
 of \code{W} should be fixed during optimization.}
 
-\item{col_size_factor}{Boolean indicating if a size factor should be
-used to normalize the likelihood across columns. This may be
-useful when \code{Y} is a matrix from a scRNA experiment where rows 
-represent genes and columns represent cells.}
+\item{row_size_factor}{If \code{row_size_factor = TRUE}, a size
+factor should be used to normalize the likelihood across rows.}
+
+\item{col_size_factor}{If \code{col_size_factor = TRUE}, should be
+used to normalize the likelihood across columns.}
 
 \item{row_intercept}{Boolean indicating if intercept term should be
 fit for each row of \code{Y}. This may be useful when \code{Y} is a
 matrix from a scRNA experiment where rows represent genes and
 columns represent cells, and one wants to regress out mean
 differences between genes.}
-
-\item{row_size_factor}{Boolean indicating if a size factor should be
-used to normalize the likelihood across rows. This may be
-useful when \code{Y} is a matrix from a scRNA experiment where rows 
-represent cells and columns represent genes.}
 
 \item{col_intercept}{Boolean indicating if intercept term should be
 fit for each column of \code{Y}. This may be useful when \code{Y}

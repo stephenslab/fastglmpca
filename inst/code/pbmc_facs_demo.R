@@ -8,7 +8,9 @@ n <- nrow(Y)
 m <- ncol(Y)
 X <- matrix(rnorm(2*n),n,2)
 Z <- matrix(rnorm(m),m,1)
-fit0 <- init_glmpca_pois(Y,X = X,Z = Z,K = 3)
+fit0 <- init_glmpca_pois(Y,X = X,Z = Z,K = 3,
+                         row_size_factor = TRUE,col_size_factor = TRUE,
+                         row_intercept = TRUE,col_intercept = TRUE)
 fit0_init <- init_glmpca_pois(Y,X = X,Z = Z,
                               U = matrix(rnorm(3*n),n,3),
                               V = matrix(rnorm(3*m),m,3))
