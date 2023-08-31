@@ -86,11 +86,13 @@ This argument is ignored if X is not provided.}
 coefficients of the column covariates.  It should be an n x nz
 matrix. This argument is ignored if Z is not provided.}
 
-\item{fixed_b_cols}{An optional argument giving which, if any, columns
-of \code{B} should be fixed during optimization.}
+\item{fixed_b_cols}{Optional numeric vector specifying which
+columns of \code{B} (if any) should be fixed during
+optimization. This argument is ignored if X is not provided.}
 
-\item{fixed_w_cols}{An optional argument giving which, if any, columns
-of \code{W} should be fixed during optimization.}
+\item{fixed_w_cols}{Optional numeric vector specifying which
+columns of \code{W} (if any) should be fixed during
+optimization. This argument is ignored if Z is not provided.}
 
 \item{row_size_factor}{If \code{row_size_factor = TRUE}, a size
 factor should be used to normalize the likelihood across rows.}

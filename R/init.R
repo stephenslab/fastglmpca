@@ -26,11 +26,13 @@
 #'   coefficients of the column covariates.  It should be an n x nz
 #'   matrix. This argument is ignored if Z is not provided.
 #'   
-#' @param fixed_b_cols An optional argument giving which, if any, columns
-#'   of \code{B} should be fixed during optimization.
+#' @param fixed_b_cols Optional numeric vector specifying which
+#'   columns of \code{B} (if any) should be fixed during
+#'   optimization. This argument is ignored if X is not provided.
 #'   
-#' @param fixed_w_cols An optional argument giving which, if any, columns
-#'   of \code{W} should be fixed during optimization.
+#' @param fixed_w_cols Optional numeric vector specifying which
+#'   columns of \code{W} (if any) should be fixed during
+#'   optimization. This argument is ignored if Z is not provided.
 #'   
 #' @param row_size_factor If \code{row_size_factor = TRUE}, a size
 #'   factor should be used to normalize the likelihood across rows.
@@ -137,6 +139,7 @@ init_glmpca_pois <- function(
   } else {
     B <- numeric(0)
     nx <- 0
+    fixed_b_cols <- numeric(0)
   }
   
   # Check and prepare input arguments Z and W.
@@ -159,6 +162,7 @@ init_glmpca_pois <- function(
   } else {
     W <- numeric(0)
     nz <- 0
+    fixed_w_cols <- numeric(0)
   }
   
   # Add the size factors if requested.
@@ -188,7 +192,8 @@ init_glmpca_pois <- function(
   # colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
 
   # Prepare the final output.
-  fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W)
+  fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W,
+              fixed_b_cols,fixed_w_cols)
   fit <- orthonormalize_fit(fit)
   class(fit) <- c("glmpca_pois_fit","list")
   rownames(fit$U) <- rownames(Y)
@@ -233,30 +238,20 @@ init_glmpca_pois <- function(
     
     colnames(fit$X)[ncol(fit$X)] <- "col_intercept"
     colnames(fit$B)[ncol(fit$B)] <- "col_intercept"
-    
   }
-  
-  # here, want to calculate the loglik to add to the fit
+
+  # TO DO: Move this code to a separate function so that it can be
+  # reused by fit_glmpca_pois.
+  #
+  # Compute the log-likelihood.
   if (!inherits(Y, "sparseMatrix")) {
-    
     H <- tcrossprod(fit$U %*% fit$D, fit$V)
-    
-    if(!identical(fit$X, numeric(0))) {
-      
+    if (!identical(fit$X,numeric(0)))
       H <- H + tcrossprod(fit$X, fit$B)
-      
-    }
-    
-    if(!identical(fit$Z, numeric(0))) {
-      
+    if (!identical(fit$Z,numeric(0)))
       H <- H + tcrossprod(fit$W, fit$Z)
-      
-    }
-    
     loglik <- sum(Y * H - exp(H)) - sum(lfactorial(Y))
-    
   } else {
-    
     loglik <- lik_glmpca_pois_log_sp(
       Y = Y, 
       LL = t(
@@ -275,7 +270,6 @@ init_glmpca_pois <- function(
       ),
       const = sum(mapSparse(Y, lfactorial))
     )
-    
   }
   
   fit$loglik <- loglik
@@ -284,7 +278,5 @@ init_glmpca_pois <- function(
     loglik = loglik,
     time = 0
   )
-  
   return(fit)
-  
 }
