@@ -59,6 +59,7 @@
 #'
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
+#' @importFrom MatrixExtra mapSparse
 #' @importFrom stats rnorm
 #' 
 #' @export
@@ -134,8 +135,8 @@ init_glmpca_pois <- function(
       storage.mode(X) <- "double"
     if (is.integer(B))
       storage.mode(B) <- "double"
-    if (is.null(colnames(fit$X)))
-      colnames(fit$X) <- paste0("x_",1:nx)
+    if (is.null(colnames(X)))
+      colnames(X) <- paste0("x_",1:nx)
   } else {
     B <- numeric(0)
     nx <- 0
@@ -157,34 +158,43 @@ init_glmpca_pois <- function(
       storage.mode(Z) <- "double"
     if (is.integer(W))
       storage.mode(W) <- "double"
-    if (is.null(colnames(fit$Z)))
-      colnames(fit$Z) <- paste0("z_",1:nz)
+    if (is.null(colnames(Z)))
+      colnames(Z) <- paste0("z_",1:nz)
   } else {
     W <- numeric(0)
     nz <- 0
     fixed_w_cols <- numeric(0)
   }
   
+  # Compute the log-likelihood.
+  LL <- t(cbind(U,X,W))
+  FF <- t(cbind(V,B,Z))
+  if (inherits(Y,"sparseMatrix"))
+    loglik <-
+      lik_glmpca_pois_log_sp(Y,LL,FF,const = sum(mapSparse(Y,lfactorial)))
+  else
+    loglik <- lik_glmpca_pois_log(Y,LL,FF,const = sum(lfactorial(Y)))
+  
   # Add the size factors if requested.
-  if (row_size_factor) {
-    out <- create_row_size_factor(Y)
-    Z <- cbind(Z,out$z)
-    W <- cbind(W,out$w)
-    nz <- nz + 1
-    fixed_w_cols <- c(fit$fixed_w_cols,nz)
-  } 
-  if (col_size_factor) {
-    out <- create_col_size_factor(Y)
+  ## if (row_size_factor) {
+  ##   out <- create_row_size_factor(Y)
+  ##   Z <- cbind(Z,out$z)
+  ##   W <- cbind(W,out$w)
+  ##   nz <- nz + 1
+  ##   fixed_w_cols <- c(fit$fixed_w_cols,nz)
+  ## } 
+  ## if (col_size_factor) {
+  ##   out <- create_col_size_factor(Y)
     
-    X_size <- rep(1, n)
+  ##   X_size <- rep(1, n)
     
-    B_size <- log(colMeans(Y))
+  ##   B_size <- log(colMeans(Y))
     
-    X <- cbind(X,out$x)
-    B <- cbind(B,out$b)
-    nx <- nx + 1
-    fit$fixed_b_cols <- c(fit$fixed_b_cols,nx)
-  }
+  ##   X <- cbind(X,out$x)
+  ##   B <- cbind(B,out$b)
+  ##   nx <- nx + 1
+  ##   fit$fixed_b_cols <- c(fit$fixed_b_cols,nx)
+  ## }
   
   # colnames(fit$Z)[ncol(fit$Z)] <- "row_size_factor"
   # colnames(fit$W)[ncol(fit$W)] <- "row_size_factor"
@@ -193,7 +203,9 @@ init_glmpca_pois <- function(
 
   # Prepare the final output.
   fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W,
-              fixed_b_cols,fixed_w_cols)
+              fixed_b_cols = fixed_b_cols,
+              fixed_w_cols = fixed_w_cols,
+              loglik = loglik)
   fit <- orthonormalize_fit(fit)
   class(fit) <- c("glmpca_pois_fit","list")
   rownames(fit$U) <- rownames(Y)
@@ -240,43 +252,6 @@ init_glmpca_pois <- function(
     colnames(fit$B)[ncol(fit$B)] <- "col_intercept"
   }
 
-  # TO DO: Move this code to a separate function so that it can be
-  # reused by fit_glmpca_pois.
-  #
-  # Compute the log-likelihood.
-  if (!inherits(Y, "sparseMatrix")) {
-    H <- tcrossprod(fit$U %*% fit$D, fit$V)
-    if (!identical(fit$X,numeric(0)))
-      H <- H + tcrossprod(fit$X, fit$B)
-    if (!identical(fit$Z,numeric(0)))
-      H <- H + tcrossprod(fit$W, fit$Z)
-    loglik <- sum(Y * H - exp(H)) - sum(lfactorial(Y))
-  } else {
-    loglik <- lik_glmpca_pois_log_sp(
-      Y = Y, 
-      LL = t(
-        cbind(
-          fit$U %*% fit$D,
-          fit$X,
-          fit$W
-        )
-      ),
-      FF = t(
-        cbind(
-          fit$V,
-          fit$B,
-          fit$Z
-        )
-      ),
-      const = sum(mapSparse(Y, lfactorial))
-    )
-  }
-  
-  fit$loglik <- loglik
-  fit$progress <- data.frame(
-    iter = 0,
-    loglik = loglik,
-    time = 0
-  )
+  fit$progress <- data.frame(iter = 0,loglik = loglik,time = 0)
   return(fit)
 }

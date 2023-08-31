@@ -1,31 +1,3 @@
-lik_glmpca_pois_log <- function(Y, LL, FF, const) {
-  
-  H <- crossprod(LL, FF)
-  lik <- sum(Y * H - exp(H)) - const
-  return(lik)
-  
-}
-
-lik_glmpca_pois_log_sp <- function(Y, LL, FF, const) {
-  
-  Y_summary <- summary(Y)
-  lik <- big_elementwise_mult_crossprod(
-    LL,
-    FF,
-    Y_summary$x,
-    Y_summary$i - 1,
-    Y_summary$j - 1,
-    nrow(Y_summary)
-  ) - big_exp_crossprod(
-    LL,
-    FF,
-    nrow(Y),
-    ncol(Y)
-  ) - const
-  return(lik)
-  
-}
-
 #' @title Fit Poisson GLM-PCA Model to Count Data
 #' 
 #' @description Fit a Poisson GLM-PCA model to data matrix \code{Y}
