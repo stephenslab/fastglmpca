@@ -1,8 +1,3 @@
-#' @importFrom Matrix rowMeans
-create_row_size_factor <- function (Y)
-  return(list(z = rep(1,ncol(Y)),
-              w = log(rowMeans(Y))))
-
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
 create_row_intercept <- function (Y)
@@ -13,12 +8,6 @@ create_row_intercept <- function (Y)
 create_col_size_factor <- function (Y)
   return(list(x = rep(1,nrow(Y)),
               b = log(colMeans(Y))))
-
-#' @importFrom Matrix colSums
-#' @importFrom Matrix rowMeans
-create_col_intercept <- function (Y)
-  return(list(x = rep(1,n),
-              b = log(colSums(Y)/sum(rowMeans(Y)))))
 
 # Orthonormalizes a GLM-PCA fit object.
 orthonormalize_fit <- function (fit) {

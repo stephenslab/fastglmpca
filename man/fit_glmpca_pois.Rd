@@ -27,10 +27,8 @@ init_glmpca_pois(
   W = numeric(0),
   fixed_b_cols = numeric(0),
   fixed_w_cols = numeric(0),
-  row_size_factor = FALSE,
   col_size_factor = TRUE,
-  row_intercept = TRUE,
-  col_intercept = FALSE
+  row_intercept = TRUE
 )
 }
 \arguments{
@@ -94,31 +92,22 @@ optimization. This argument is ignored if X is not provided.}
 columns of \code{W} (if any) should be fixed during
 optimization. This argument is ignored if Z is not provided.}
 
-\item{row_size_factor}{If \code{row_size_factor = TRUE}, a size
-factor should be used to normalize the likelihood across rows.}
+\item{col_size_factor}{If \code{col_size_factor = TRUE}, add a
+fixed factor accounting for average differences in Poisson rates
+across columns of \code{Y}. Setting \code{col_size_factor = TRUE}
+and \code{row_intercept = TRUE} is intended to replicate what
+\code{glmpca} does.}
 
-\item{col_size_factor}{If \code{col_size_factor = TRUE}, should be
-used to normalize the likelihood across columns.}
-
-\item{row_intercept}{Boolean indicating if intercept term should be
-fit for each row of \code{Y}. This may be useful when \code{Y} is a
-matrix from a scRNA experiment where rows represent genes and
-columns represent cells, and one wants to regress out mean
-differences between genes.}
-
-\item{col_intercept}{Boolean indicating if intercept term should be
-fit for each column of \code{Y}. This may be useful when \code{Y}
-is a matrix from a scRNA experiment where rows represent cells and
-columns represent genes, and one wants to regress out mean
-differences between genes.}
+\item{row_intercept}{If \code{row_intercept = TRUE}, add a fixed
+factor accounting for average differences in Poisson rates across
+rows of \code{Y}. Setting \code{col_size_factor = TRUE}
+and \code{row_intercept = TRUE} is intended to replicate what
+\code{glmpca} does.}
 }
 \value{
 An object capturing the final state of the model fit. It will contain
 the final values of \eqn{U}, \eqn{D} and \eqn{V}, as well as a list \code{progress}
 that records information about the algorithm progress at each iteration.
-
-An object capturing the initial state of the model fit. See
-  \code{\link{fit_glmpca_pois}} for details.
 }
 \description{
 Fit a Poisson GLM-PCA model to data matrix \code{Y}

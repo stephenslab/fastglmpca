@@ -34,26 +34,17 @@
 #'   columns of \code{W} (if any) should be fixed during
 #'   optimization. This argument is ignored if Z is not provided.
 #'   
-#' @param row_size_factor If \code{row_size_factor = TRUE}, a size
-#'   factor should be used to normalize the likelihood across rows.
+#' @param col_size_factor If \code{col_size_factor = TRUE}, add a
+#'   fixed factor accounting for average differences in Poisson rates
+#'   across columns of \code{Y}. Setting \code{col_size_factor = TRUE}
+#'   and \code{row_intercept = TRUE} is intended to replicate what
+#'   \code{glmpca} does.
 #' 
-#' @param col_size_factor If \code{col_size_factor = TRUE}, should be
-#'   used to normalize the likelihood across columns.
-#' 
-#' @param row_intercept Boolean indicating if intercept term should be
-#' fit for each row of \code{Y}. This may be useful when \code{Y} is a
-#' matrix from a scRNA experiment where rows represent genes and
-#' columns represent cells, and one wants to regress out mean
-#' differences between genes.
-#'   
-#' @param col_intercept Boolean indicating if intercept term should be
-#' fit for each column of \code{Y}. This may be useful when \code{Y}
-#' is a matrix from a scRNA experiment where rows represent cells and
-#' columns represent genes, and one wants to regress out mean
-#' differences between genes.
-#'
-#' @return An object capturing the initial state of the model fit. See
-#'   \code{\link{fit_glmpca_pois}} for details.
+#' @param row_intercept If \code{row_intercept = TRUE}, add a fixed
+#'   factor accounting for average differences in Poisson rates across
+#'   rows of \code{Y}. Setting \code{col_size_factor = TRUE}
+#'   and \code{row_intercept = TRUE} is intended to replicate what
+#'   \code{glmpca} does.
 #'
 #' @seealso \code{\link{fit_glmpca_pois}}
 #'
@@ -75,10 +66,8 @@ init_glmpca_pois <- function(
     W = numeric(0),
     fixed_b_cols = numeric(0),
     fixed_w_cols = numeric(0),
-    row_size_factor = FALSE,
     col_size_factor = TRUE,
-    row_intercept = TRUE,
-    col_intercept = FALSE) {
+    row_intercept = TRUE) {
 
   # Check and prepare input argument Y.
   verify.count.matrix(Y)
@@ -166,6 +155,28 @@ init_glmpca_pois <- function(
     fixed_w_cols <- numeric(0)
   }
   
+  # Add the fixed intercept and/or size factor if requested.
+  if (col_size_factor) {
+    x <- matrix(rep(1,nrow(Y)))
+    b <- matrix(log(colMeans(Y)))
+    colnames(x) <- "col_size_factor"
+    colnames(b) <- "col_size_factor"
+    X <- cbind(X,x)
+    B <- cbind(B,b)
+    nx <- nx + 1
+    fixed_b_cols <- c(fixed_b_cols,nx)
+  }
+  if (row_intercept) {
+    z <- matrix(rep(1,ncol(Y)))
+    w <- matrix(log(rowSums(Y)/sum(colMeans(Y))))
+    colnames(z) <- "row_intercept"
+    colnames(w) <- "row_intercept"
+    Z <- cbind(Z,z)
+    W <- cbind(W,w)
+    nz <- nz + 1
+    fixed_w_cols <- c(fixed_w_cols,nz)
+  }
+
   # Compute the log-likelihood.
   LL <- t(cbind(U,X,W))
   FF <- t(cbind(V,B,Z))
@@ -174,38 +185,13 @@ init_glmpca_pois <- function(
       lik_glmpca_pois_log_sp(Y,LL,FF,const = sum(mapSparse(Y,lfactorial)))
   else
     loglik <- lik_glmpca_pois_log(Y,LL,FF,const = sum(lfactorial(Y)))
-  
-  # Add the size factors if requested.
-  ## if (row_size_factor) {
-  ##   out <- create_row_size_factor(Y)
-  ##   Z <- cbind(Z,out$z)
-  ##   W <- cbind(W,out$w)
-  ##   nz <- nz + 1
-  ##   fixed_w_cols <- c(fit$fixed_w_cols,nz)
-  ## } 
-  ## if (col_size_factor) {
-  ##   out <- create_col_size_factor(Y)
-    
-  ##   X_size <- rep(1, n)
-    
-  ##   B_size <- log(colMeans(Y))
-    
-  ##   X <- cbind(X,out$x)
-  ##   B <- cbind(B,out$b)
-  ##   nx <- nx + 1
-  ##   fit$fixed_b_cols <- c(fit$fixed_b_cols,nx)
-  ## }
-  
-  # colnames(fit$Z)[ncol(fit$Z)] <- "row_size_factor"
-  # colnames(fit$W)[ncol(fit$W)] <- "row_size_factor"
-  # colnames(fit$X)[ncol(fit$X)] <- "col_size_factor"
-  # colnames(fit$B)[ncol(fit$B)] <- "col_size_factor"
 
   # Prepare the final output.
   fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W,
               fixed_b_cols = fixed_b_cols,
               fixed_w_cols = fixed_w_cols,
-              loglik = loglik)
+              loglik = loglik,
+              progress = data.frame(iter = 0,loglik = loglik,time = 0))
   fit <- orthonormalize_fit(fit)
   class(fit) <- c("glmpca_pois_fit","list")
   rownames(fit$U) <- rownames(Y)
@@ -224,34 +210,5 @@ init_glmpca_pois <- function(
     rownames(fit$W) <- rownames(Y)
     colnames(fit$W) <- colnames(fit$Z)
   }
-  return(fit)
-  
-  if (row_intercept) {
-    Z <- cbind(Z,out$z)
-    W <- cbind(W,out$w)
-    nz    <- nz + 1
-    
-    colnames(fit$Z)[ncol(fit$Z)] <- "row_intercept"
-    colnames(fit$W)[ncol(fit$W)] <- "row_intercept"
-    
-  }
-  
-  if (col_intercept) {
-    
-    X_int <- rep(1, n)
-    names(X_int) <- rownames(Y)
-    
-    B_int <- log(Matrix::colSums(Y) / sum(Matrix::rowMeans(Y)))
-    names(B_int) <- colnames(Y)
-    
-    fit$X <- cbind(fit$X, X_int)
-    fit$B <- cbind(fit$B, B_int)
-    n_x <- n_x + 1
-    
-    colnames(fit$X)[ncol(fit$X)] <- "col_intercept"
-    colnames(fit$B)[ncol(fit$B)] <- "col_intercept"
-  }
-
-  fit$progress <- data.frame(iter = 0,loglik = loglik,time = 0)
   return(fit)
 }
