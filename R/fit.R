@@ -1,10 +1,10 @@
 #' @title Fit Poisson GLM-PCA Model to Count Data
 #' 
 #' @description Fit a Poisson GLM-PCA model to data matrix \code{Y}
-#'   by maximum-likelihood estimation.
+#'   by maximum-likelihood.
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
-#' based on a Poisson likelihood (Townes et al, 2019), the counts
+#' based on a Poisson likelihood, the counts
 #' \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 #' \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 #' Poisson rate is defined as a linear combination of the parameters:
@@ -129,36 +129,32 @@
 fit_glmpca_pois <- function(
     Y, 
     K, 
-    fit0, 
+    fit0 = init_glmpca_pois(Y,K), 
     tol = 1e-4,
     min_iter = 1,
     max_iter = 100,
     verbose = TRUE,
-    control = list()
-) {
-  
+    control = list()) {
+
+  # Verify and prepare input argument "Y".
   verify.count.matrix(Y)
-  
-  if (!is.scalar(tol) || tol <= 0) {
-    
+  n <- nrow(Y)
+  m <- ncol(Y)
+
+  # Check input argument "tol".
+  if (!is.scalar(tol) || tol <= 0)
     stop("Input argument \"tol\" must be a positive scalar")
-    
-  }
-  
+
+  # Check input arguments "min_iter" and "max_iter".
   if (min_iter > max_iter)
     stop("\"min_iter\" must be less than or equal to \"max_iter\"")
   
-  n <- nrow(Y)
-  m <- ncol(Y)
-  
+  # Check and process input argument "control".
   control <- modifyList(
     fit_glmpca_control_default(), 
     control, 
     keep.null = TRUE
   )
-  
-  calc_deriv    <- control$calc_deriv
-  calc_max_diff <- control$calc_max_diff
   
   if (missing(fit0)) {
     
@@ -187,45 +183,9 @@ fit_glmpca_pois <- function(
     
   }
   
-  fit <- list()
+  fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
+              FF = t(cbind(fit0$V,fit0$B,fit0$Z)))
   
-  fit$LL <- t(
-    cbind(
-      fit0$U %*% fit0$D,
-      fit0$X,
-      fit0$W
-    )
-  )
-  
-  fit$FF <- t(
-    cbind(
-      fit0$V,
-      fit0$B,
-      fit0$Z
-    )
-  )
-  
-  if(identical(fit0$X, numeric(0))) {
-    
-    n_x <- 0
-    
-  } else {
-    
-    n_x <- ncol(fit0$X)
-    
-  }
-  
-  if(identical(fit0$Z, numeric(0))) {
-    
-    n_z <- 0
-    
-  } else {
-    
-    n_z <- ncol(fit0$Z)
-    
-  }
-  
-  out_K <- ncol(fit0$U)
   
   fit$fixed_loadings <- c()
   fit$fixed_factors <- c()
@@ -275,32 +235,22 @@ fit_glmpca_pois <- function(
 
   Y_T <- Matrix::t(Y)
   
-  # calculate part of log likelihood that doesn't change
-  if (!inherits(Y, "sparseMatrix")) {
-    
-    loglik_const <- sum(lfactorial(Y))
-    loglik_func <- lik_glmpca_pois_log
-    
-  } else {
-    
+  # These are used to compute the log-likelihood below.
+  if (inherits(Y,"sparseMatrix")) {
     loglik_const <- sum(mapSparse(Y, lfactorial))
-    loglik_func <- lik_glmpca_pois_log_sp
-    
+    loglik_func  <- lik_glmpca_pois_log_sp
+  else {
+    loglik_const <- sum(lfactorial(Y))
+    loglik_func  <- lik_glmpca_pois_log
   } 
 
   converged <- FALSE
-  
   t <- 1
-  
-  if (verbose) {
-    cat(
-      sprintf(
-        "Fitting rank-%d GLM-PCA model to a %d x %d matrix.\n",
-        out_K, n, p
-        )
-      )
-  }
-  
+  if (verbose)
+    cat(sprintf("Fitting rank-%d GLM-PCA model to a %d x %d count matrix.\n",
+                out_K,n,p))
+
+  # FIX THIS.
   fit$progress <- list()
   fit$progress[["iter"]] <- numeric(max_iter)
   fit$progress[["loglik"]] <- numeric(max_iter)
