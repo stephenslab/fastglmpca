@@ -8,7 +8,7 @@
 fit_glmpca_pois(
   Y,
   K,
-  fit0,
+  fit0 = init_glmpca_pois(Y, K),
   tol = 0.0001,
   min_iter = 1,
   max_iter = 100,
@@ -36,27 +36,28 @@ init_glmpca_pois(
 be non-negative. It can be a sparse matrix (class
 \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).}
 
-\item{K}{Integer 1 or greater giving the rank of the matrix
+\item{K}{An integer 1 or greater giving the rank of the matrix
 factorization. This argument should only be specified if 
-initial estimates \code{U}, \code{V} are not provided.}
+the initial fit (\code{fit0}) is not provided.}
 
-\item{fit0}{The initial model fit. It should be an object of class
-\dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
-or from a previous call to \code{fit_glmpca}.}
+\item{fit0}{An initial model fit. It should be an object of class
+\dQuote{glmpca_fit}, such as an output from
+\code{init_glmpca_pois}, or from a previous call to
+\code{fit_glmpca_pois}.}
 
-\item{tol}{Positive scalar determining relative tolerance for assessing convergence.
-Convergence is determined by comparing the log-likelihood at the previous
-iteration to the current iteration.}
+\item{tol}{Positive scalar determining relative tolerance for
+assessing convergence.  Convergence is determined by comparing the
+log-likelihood at the previous iteration to the current iteration.}
 
-\item{min_iter}{Minimum number of updates to 
-\eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.}
+\item{min_iter}{At least this number of updates will be performed.}
 
-\item{max_iter}{Maximum number of updates to 
-\eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.}
+\item{max_iter}{Upper limit on the number of updates to perform.}
 
-\item{verbose}{Boolean indicating if likelihood should be printed at each step.}
+\item{verbose}{Boolean indicating if likelihood should be printed
+at each step.}
 
-\item{control}{List of control parameters to modify behavior of \code{algorithm}.}
+\item{control}{List of control parameters to modify behavior of
+\code{algorithm}.}
 
 \item{U}{An optional argument giving the initial estimate of the
 loadings matrix. It should be an n x K matrix, where n is the
@@ -111,11 +112,11 @@ that records information about the algorithm progress at each iteration.
 }
 \description{
 Fit a Poisson GLM-PCA model to data matrix \code{Y}
-  by maximum-likelihood estimation.
+  by maximum-likelihood.
 }
 \details{
 In generalized principal component analysis (GLM-PCA)
-based on a Poisson likelihood (Townes et al, 2019), the counts
+based on a Poisson likelihood, the counts
 \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
 \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
 Poisson rate is defined as a linear combination of the parameters:

@@ -62,27 +62,28 @@
 #'   be non-negative. It can be a sparse matrix (class
 #'   \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).
 #'   
-#' @param K Integer 1 or greater giving the rank of the matrix
+#' @param K An integer 1 or greater giving the rank of the matrix
 #'   factorization. This argument should only be specified if 
-#'   initial estimates \code{U}, \code{V} are not provided.
+#'   the initial fit (\code{fit0}) is not provided.
 #'   
-#' @param fit0 The initial model fit. It should be an object of class
-#'   \dQuote{glmpca_fit}, such as an output from \code{init_glmpca_pois}, 
-#'   or from a previous call to \code{fit_glmpca}.
+#' @param fit0 An initial model fit. It should be an object of class
+#'   \dQuote{glmpca_fit}, such as an output from
+#'   \code{init_glmpca_pois}, or from a previous call to
+#'   \code{fit_glmpca_pois}.
 #'   
-#' @param tol Positive scalar determining relative tolerance for assessing convergence.
-#'   Convergence is determined by comparing the log-likelihood at the previous
-#'   iteration to the current iteration. 
+#' @param tol Positive scalar determining relative tolerance for
+#'   assessing convergence.  Convergence is determined by comparing the
+#'   log-likelihood at the previous iteration to the current iteration.
 #'   
-#' @param min_iter Minimum number of updates to 
-#' \eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.
+#' @param min_iter At least this number of updates will be performed.
 #' 
-#' @param max_iter Maximum number of updates to 
-#' \eqn{U}, \eqn{V}, \eqn{W}, and \eqn{B} to be run.
+#' @param max_iter Upper limit on the number of updates to perform.
 #' 
-#' @param verbose Boolean indicating if likelihood should be printed at each step.
+#' @param verbose Boolean indicating if likelihood should be printed
+#' at each step.
 #'   
-#' @param control List of control parameters to modify behavior of \code{algorithm}.
+#' @param control List of control parameters to modify behavior of
+#' \code{algorithm}.
 #' 
 #' @references
 #' Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
@@ -102,9 +103,9 @@
 #' @importFrom Matrix tcrossprod
 #' @importFrom Matrix t
 #' @importFrom utils modifyList
-#' @importFrom MatrixExtra mapSparse
 #' @importFrom MatrixExtra t
 #' @importFrom MatrixExtra tcrossprod
+#' @importFrom MatrixExtra mapSparse
 #' 
 #' @export
 #' 
@@ -239,7 +240,7 @@ fit_glmpca_pois <- function(
   if (inherits(Y,"sparseMatrix")) {
     loglik_const <- sum(mapSparse(Y, lfactorial))
     loglik_func  <- lik_glmpca_pois_log_sp
-  else {
+  } else {
     loglik_const <- sum(lfactorial(Y))
     loglik_func  <- lik_glmpca_pois_log
   } 
