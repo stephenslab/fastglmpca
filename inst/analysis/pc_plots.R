@@ -3,11 +3,23 @@ library(ggplot2)
 library(cowplot)
 
 # Compare pbmc, K = 2, glmpca vs. fastglmpca.
-cell_type_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
-                      "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a",
-                      "#ffff99")
+pbmc_colors <- c("forestgreen", # CD14+
+                 "dodgerblue",  # B cells
+                 "limegreen",   # CD34+
+                 "gray",        # NK cells
+                 "tomato",      # cytotoxic T cells
+                 "darkmagenta", # dendritic
+                 "gold")        # T cells
 #load("~/git/fastTopics-experiments/data/pbmc_68k.RData")
 load("~/Downloads/pbmc_68k.RData")
+samples$celltype <- as.factor(dplyr::if_else(
+  samples$celltype %in% c(
+    "CD4+ T Helper2","CD4+/CD25 T Reg","CD4+/CD45RA+/CD25- Naive T",
+    "CD4+/CD45RO+ Memory","CD8+/CD45RA+ Naive Cytotoxic"
+  ),
+  "T Cell",
+  samples$celltype
+))
 rm(counts)
 res1 <- readRDS(paste("pbmc_glmpca_fit_2_factors_avagrad_optimizer",
                       "minibatch_stochastic_10_hrs.rds",sep="_"))
@@ -31,25 +43,30 @@ pdat3 <- data.frame(celltype = samples$celltype,
                     PC2 = -res3$V[,1])
 p1 <- ggplot(pdat1,aes(x = PC1,y = PC2,color = celltype)) +
   geom_point(size = 1) +
-  scale_color_manual(values = cell_type_colors) +
+  scale_color_manual(values = pbmc_colors) +
   ggtitle("glmpca") + 
   theme_cowplot(font_size = 10)
 p2 <- ggplot(pdat2,aes(x = PC1,y = PC2,color = celltype)) +
   geom_point(size = 1) +
-  scale_color_manual(values = cell_type_colors) +
+  scale_color_manual(values = pbmc_colors) +
   ggtitle("fastglmpca") + 
   theme_cowplot(font_size = 10)
 p3 <- ggplot(pdat3,aes(x = PC1,y = PC2,color = celltype)) +
   geom_point(size = 1) +
-  scale_color_manual(values = cell_type_colors) +
+  scale_color_manual(values = pbmc_colors) +
   ggtitle("scGBM") + 
   theme_cowplot(font_size = 10)
 
 plot_grid(p1,p2,p3,nrow = 2,ncol = 2)
 
 # Compare droplet, K = 2, glmpca vs. fastglmpca.
-tissue_colors <- c("#e41a1c","#377eb8","#4daf4a","#984ea3","#ff7f00",
-                   "#ffff33","#a65628")
+tissue_colors <- c("royalblue",   # basal
+                   "firebrick",   # ciliated
+                   "forestgreen", # club
+                   "gold",        # goblet
+                   "darkmagenta", # ionocyte
+                   "darkorange",  # neuroendocrine
+                   "skyblue")     # tuft
 #load("~/git/fastTopics-experiments/data/droplet.RData")
 load("~/Downloads/droplet.RData")
 res1 <- readRDS(paste("droplets_glmpca_fit_2_factors_avagrad_optimizer",
