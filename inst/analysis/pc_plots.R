@@ -2,6 +2,8 @@ library(Matrix)
 library(ggplot2)
 library(cowplot)
 
+load("results.RData")
+
 # Compare pbmc, K = 2, glmpca vs. fastglmpca.
 pbmc_colors <- c("forestgreen", # CD14+
                  "dodgerblue",  # B cells
@@ -21,13 +23,9 @@ samples$celltype <- as.factor(dplyr::if_else(
   samples$celltype
 ))
 rm(counts)
-res1 <- readRDS(paste("pbmc_glmpca_fit_2_factors_avagrad_optimizer",
-                      "minibatch_stochastic_10_hrs.rds",sep="_"))
-res1 <- fastglmpca:::orthonormalize(as.matrix(res1$loadings),
-                                    as.matrix(res1$factors))
-res2 <- readRDS("pbmc_fastglmpca_fit_28_cores_2_factors_10_hrs.rds")
-res2 <- fastglmpca:::orthonormalize(res2$U[,3:4],res2$V[,3:4])
-res3 <- readRDS("pbmc_scGBM_fit_2_factors_no_beta_infer_10_hrs.rds")
+res1 <- pbmc_res_list$glmpca$`2_factors`
+res2 <- pbmc_res_list$fastglmpca_fit_28_cores$`2_factors`
+res3 <- pbmc_res_list$scGBM$`2_factors`
 plot(res1$V,res2$V,pch = 20,cex = 0.75,
      xlab = "glmpca V",ylab = "fastglmpca V",
      col = "dodgerblue")
@@ -69,13 +67,9 @@ tissue_colors <- c("royalblue",   # basal
                    "skyblue")     # tuft
 #load("~/git/fastTopics-experiments/data/droplet.RData")
 load("~/Downloads/droplet.RData")
-res1 <- readRDS(paste("droplets_glmpca_fit_2_factors_avagrad_optimizer",
-                      "minibatch_stochastic_10_hrs.rds",sep="_"))
-res1 <- fastglmpca:::orthonormalize(as.matrix(res1$loadings),
-                                    as.matrix(res1$factors))
-res2 <- readRDS("droplets_fastglmpca_fit_28_cores_2_factors_10_hrs.rds")
-res2 <- fastglmpca:::orthonormalize(res2$U[,3:4],res2$V[,3:4])
-res3 <- readRDS("droplets_scGBM_fit_2_factors_no_beta_infer_10_hrs.rds")
+res1 <- droplets_res_list$glmpca$`2_factors`
+res2 <- droplets_res_list$fastglmpca_fit_28_cores$`2_factors`
+res3 <- droplets_res_list$scGBM$`2_factors`
 plot(res1$V,c(-res2$V[,2],res2$V[,1]),pch = 20,cex = 0.75,
      xlab = "glmpca V",ylab = "fastglmpca V",col = "dodgerblue")
 abline(a = 0,b = 1,col = "black",lty = "dashed")
