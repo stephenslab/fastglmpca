@@ -1,0 +1,4 @@
+to do
+=====
+
++ Add continuous integration (e.g., Appveyor, CircleCI).

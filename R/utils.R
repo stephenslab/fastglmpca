@@ -31,11 +31,13 @@ orthonormalize_fit <- function (fit) {
 orthonormalize <- function (U, V) {
   K <- ncol(U)
   if (K == 1) {
-    U <- drop(U)
-    V <- drop(V)
-    d <- sqrt(abs(mean(U)/mean(V)))
-    U <- U/d
-    V <- V*d
+    U  <- drop(U)
+    V  <- drop(V)
+    du <- sqrt(sum(U^2))
+    dv <- sqrt(sum(V^2))
+    d  <- du*dv
+    U  <- U/du
+    V  <- V/dv
     return(list(U = matrix(U),V = matrix(V),D = matrix(d)))
   } else {
     qr1 <- qr(U)
