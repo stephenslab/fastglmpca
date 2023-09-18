@@ -36,22 +36,22 @@ init_glmpca_pois(
 be non-negative. It can be a sparse matrix (class
 \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).}
 
-\item{K}{An integer 1 or greater giving the rank of the matrix
-factorization. This argument should only be specified if 
-the initial fit (\code{fit0}) is not provided.}
+\item{K}{Integer 1 or greater specifying the rank of the matrix
+factorization. This should only be provided if the initial fit
+(\code{fit0}) is not.}
 
-\item{fit0}{An initial model fit. It should be an object of class
-\dQuote{glmpca_fit}, such as an output from
-\code{init_glmpca_pois}, or from a previous call to
+\item{fit0}{Initial model fit. It should be an object of class
+\dQuote{glmpca_fit_pois}, such as an output from
+\code{init_glmpca_pois} or a previous call to
 \code{fit_glmpca_pois}.}
 
-\item{tol}{Positive scalar determining relative tolerance for
-assessing convergence.  Convergence is determined by comparing the
-log-likelihood at the previous iteration to the current iteration.}
+\item{tol}{The optimization steps when the change in the
+log-likelihood between two successive iterations is less than this
+amount.}
 
-\item{min_iter}{At least this number of updates will be performed.}
+\item{min_iter}{Minimum nummber of updates to be performed.}
 
-\item{max_iter}{Upper limit on the number of updates to perform.}
+\item{max_iter}{Maximum number of updates to be performed.}
 
 \item{verbose}{Boolean indicating if likelihood should be printed
 at each step.}

@@ -62,22 +62,22 @@
 #'   be non-negative. It can be a sparse matrix (class
 #'   \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).
 #'   
-#' @param K An integer 1 or greater giving the rank of the matrix
-#'   factorization. This argument should only be specified if 
-#'   the initial fit (\code{fit0}) is not provided.
+#' @param K Integer 1 or greater specifying the rank of the matrix
+#'   factorization. This should only be provided if the initial fit
+#'   (\code{fit0}) is not.
 #'   
-#' @param fit0 An initial model fit. It should be an object of class
-#'   \dQuote{glmpca_fit}, such as an output from
-#'   \code{init_glmpca_pois}, or from a previous call to
+#' @param fit0 Initial model fit. It should be an object of class
+#'   \dQuote{glmpca_fit_pois}, such as an output from
+#'   \code{init_glmpca_pois} or a previous call to
 #'   \code{fit_glmpca_pois}.
 #'   
-#' @param tol Positive scalar determining relative tolerance for
-#'   assessing convergence.  Convergence is determined by comparing the
-#'   log-likelihood at the previous iteration to the current iteration.
+#' @param tol The optimization steps when the change in the
+#'   log-likelihood between two successive iterations is less than this
+#'   amount.
 #'   
-#' @param min_iter At least this number of updates will be performed.
+#' @param min_iter Minimum nummber of updates to be performed.
 #' 
-#' @param max_iter Upper limit on the number of updates to perform.
+#' @param max_iter Maximum number of updates to be performed.
 #' 
 #' @param verbose Boolean indicating if likelihood should be printed
 #' at each step.
@@ -141,52 +141,37 @@ fit_glmpca_pois <- function(
   verify.count.matrix(Y)
   n <- nrow(Y)
   m <- ncol(Y)
+  if (is.integer(Y))
+    storage.mode(Y) <- "double"
 
-  # Check input argument "tol".
-  if (!is.scalar(tol) || tol <= 0)
-    stop("Input argument \"tol\" must be a positive scalar")
-
-  # Check input arguments "min_iter" and "max_iter".
-  if (min_iter > max_iter)
-    stop("\"min_iter\" must be less than or equal to \"max_iter\"")
+  # Check and prepare input arguments "K" and "fit0"
+  if (!((missing(K) & !missing(fit0)) |
+        (!missing(K) & missing(fit0))))
+    stop("Provide either \"K\" or \"fit0\" but not both")
+  if (missing(fit0)) {
+    if (!(is.scalar(K) & all(K >= 1)))
+      stop("Input argument \"K\" should be an integer 1 or greater")
+    force(fit0)
+  }
+  if (!inherits(fit0,"glmpca_pois_fit"))
+    stop("Input argument \"fit0\" should be an object of class ",
+         "\"glmpca_fit_pois\", such as an output of init_glmpca_pois")
+  verify.fit(fit0)
+  K <- ncol(fit0$U)
+  
+  # Check input arguments "tol", "min_iter" and "max_iter".
+  if (!(is.scalar(tol) & all(tol > 0)))
+    stop("Input argument \"tol\" should be a positive number")
+  if (any(min_iter > max_iter))
+    stop("\"min_iter\" should be less than or equal to \"max_iter\"")
   
   # Check and process input argument "control".
-  control <- modifyList(
-    fit_glmpca_control_default(), 
-    control, 
-    keep.null = TRUE
-  )
-  
-  if (missing(fit0)) {
-    
-    if (missing(K)) {
-      
-      stop("must provide either a \"fit0\" or a value of \"K\"")
-      
-    } else if (!is.scalar(K) || K < 1) {
-      
-      stop("\"K\" must be an integer greater than or equal to 1")
-      
-    }
-    
-    fit0 <- init_glmpca_pois(
-      Y = Y,
-      K = K
-    )
-    
-  } else {
-    
-    if (!inherits(fit0,"glmpca_pois_fit"))
-      stop("Input argument \"fit0\" should be an object of class ",
-           "\"glmpca_fit\", such as an output of init_glmpca_pois")
-    
-    verify.fit(fit0)
-    
-  }
-  
+  control <- modifyList(fit_glmpca_control_default(),control, 
+                        keep.null = TRUE)
+
+  # Set up the internal "fit" object.
   fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
               FF = t(cbind(fit0$V,fit0$B,fit0$Z)))
-  
   
   fit$fixed_loadings <- c()
   fit$fixed_factors <- c()
@@ -197,23 +182,13 @@ fit_glmpca_pois <- function(
     
   }
   
-  if(length(fit0$fixed_w_cols) > 0) {
-    
+  if(length(fit0$fixed_w_cols) > 0)
     fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + n_x) + fit0$fixed_w_cols)
-    
-  }
-  
-  if(length(fit0$fixed_b_cols) > 0) {
-    
+  if(length(fit0$fixed_b_cols) > 0)
     fit$fixed_factors <- c(fit$fixed_factors, ncol(fit0$V) + fit0$fixed_b_cols)
-    
-  }
   
-  if (n_z > 0) {
-    
+  if (n_z > 0)
     fit$fixed_factors <- c(fit$fixed_factors, (ncol(fit0$V) + n_x + 1):(ncol(fit0$V) + n_x + n_z))
-    
-  }
   
   fit$fixed_w_cols <- fit0$fixed_w_cols
   fit$fixed_b_cols <- fit0$fixed_b_cols
@@ -222,17 +197,13 @@ fit_glmpca_pois <- function(
   
   # Remove initial fit from local scope to preserve memory.
   rm(fit0)
-  
-  K <- nrow(fit$LL)
     
   # Get update indices, subtracting 1 for C++ compatibility.
-  LL_update_indices <- setdiff(1:K, fit$fixed_loadings) - 1
-  FF_update_indices <- setdiff(1:K, fit$fixed_factors) - 1
-  
-  LL_update_indices_R <- LL_update_indices + 1
-  FF_update_indices_R <- FF_update_indices + 1
-  
-  joint_update_indices_R <- intersect(LL_update_indices_R, FF_update_indices_R)
+  LL_update_indices_R    <- setdiff(1:K,fit$fixed_loadings)
+  FF_update_indices_R    <- setdiff(1:K,fit$fixed_factors)
+  LL_update_indices      <- LL_update_indices_R - 1
+  FF_update_indices      <- FF_update_indices_R - 1
+  joint_update_indices_R <- intersect(LL_update_indices_R,FF_update_indices_R)
 
   Y_T <- Matrix::t(Y)
   
@@ -249,13 +220,13 @@ fit_glmpca_pois <- function(
   t <- 1
   if (verbose)
     cat(sprintf("Fitting rank-%d GLM-PCA model to a %d x %d count matrix.\n",
-                out_K,n,p))
+                K,n,p))
 
   # FIX THIS.
   fit$progress <- list()
-  fit$progress[["iter"]] <- numeric(max_iter)
+  fit$progress[["iter"]]   <- numeric(max_iter)
   fit$progress[["loglik"]] <- numeric(max_iter)
-  fit$progress[["time"]] <- numeric(max_iter)
+  fit$progress[["time"]]   <- numeric(max_iter)
   
   if (calc_deriv) {
     
@@ -320,15 +291,8 @@ fit_glmpca_pois <- function(
     
     start_time <- Sys.time()
     
-    if (verbose) {
-      
-      cat(
-        sprintf(
-          "Iteration %d: Log-Likelihood = %+0.8e\n", t-1, current_lik
-        )
-      )
-      
-    }
+    if (verbose)
+      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t-1,current_lik))
     
     if (calc_max_diff) {
       
@@ -506,10 +470,8 @@ fit_glmpca_pois <- function(
   colnames(fit$LL) <- rownames(Y)
   colnames(fit$FF) <- colnames(Y)
   
-  fit <- postprocess_fit(fit, n_x, n_z, out_K)
-  
+  fit <- postprocess_fit(fit, n_x, n_z,K)
   return(fit)
-  
 }
 
 fit_glmpca_control_default <- function() {

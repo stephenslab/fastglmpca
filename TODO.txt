@@ -1,4 +1,6 @@
 to do
 =====
 
++ Make the GitHub repository public.
+
 + Add continuous integration (e.g., Appveyor, CircleCI).
