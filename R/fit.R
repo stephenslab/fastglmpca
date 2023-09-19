@@ -1,7 +1,6 @@
 #' @title Fit Poisson GLM-PCA Model to Count Data
 #' 
-#' @description Fit a Poisson GLM-PCA model to data matrix \code{Y}
-#'   by maximum-likelihood.
+#' @description Fit a Poisson GLM-PCA model by maximum-likelihood.
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
 #' based on a Poisson likelihood, the counts
@@ -26,7 +25,7 @@
 #' \eqn{V} and \eqn{Z} fixed and updating
 #' \eqn{V} and \eqn{Z} with \eqn{U} and \eqn{W} fixed. Each update takes the 
 #' form of a series of Poisson regressions solved using cyclic co-ordinate
-#' descent (ccd). When the algorithm
+#' descent (CCD). When the algorithm
 #' terminates, we rotate the columns of \eqn{U} and \eqn{V} 
 #' so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
 #' This rotation does not change the final log-likelihood.
@@ -37,7 +36,7 @@
 #' 
 #' \describe{
 #'
-#' \item{\code{num_iter}}{Number of ccd updates to be made to parameters
+#' \item{\code{num_ccd_iter}}{Number of ccd updates to be made to parameters
 #'   at each iteration of the algorithm.}
 #'
 #' \item{\code{line_search}}{Boolean indicating if backtracking line search
@@ -167,14 +166,12 @@ fit_glmpca_pois <- function(
   # Set up the internal "fit" object.
   fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
               FF = t(cbind(fit0$V,fit0$B,fit0$Z)),
-              fixed_w_cols = fit0$fixed_w_cols,
-              fixed_b_cols = fit0$fixed_b_cols)
+              fixed_l = numeric(0)
+              fixed_f = numeric(0))
 
   # Determine which rows of LL, FF are "clamped".
   nx <- ifelse(length(fit0$X) > 0,ncol(fit0$X),0)
   nz <- ifelse(length(fit0$Z) > 0,ncol(fit0$Z),0)
-  fit$fixed_l <- numeric(0)
-  fit$fixed_f <- numeric(0)
   if (nx > 0)
     fit$fixed_l <- c(fit$fixed_l,K + seq(1,nx))
   fit$fixed_l <- c(fit$fixed_l,K + nx + fit0$fixed_w_cols)
@@ -190,11 +187,11 @@ fit_glmpca_pois <- function(
   fit$progress$iter <- fit$progress$iter[1:t]
   fit$progress$loglik <- fit$progress$loglik[1:t]
     
-  if (calc_deriv) {
+  if (control$calc_deriv) {
     fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
     fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
   }
-  if (calc_max_diff) {
+  if (control$calc_max_diff) {
     fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
     fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t] 
   }
@@ -215,7 +212,7 @@ fit_glmpca_pois <- function(
 fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
                                        verbose, control) {
   n <- nrow(Y)
-  n <- ncol(Y)
+  m <- ncol(Y)
   K <- nrow(fit$LL)
     
   # Get the rows to update, subtracting 1 for C/C++.
@@ -236,16 +233,16 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   } 
 
   # Set up the data structure for recording the algorithm's progress.
-  fit$progress <- data.frame(iter         = 1:max_iter,
-                             loglik       = rep(0,max_iter),
-                             time         = rep(0,max_iter),
-                             max_FF_deriv = rep(as.numeric(NA),max_iter),
-                             max_LL_deriv = rep(as.numeric(NA),max_iter),
-                             max_diff_FF  = rep(as.numeric(NA),max_iter),
-                             max_diff_LL  = rep(as.numeric(NA),max_iter))
+  progress <- data.frame(iter         = 1:max_iter,
+                         loglik       = rep(0,max_iter),
+                         time         = rep(0,max_iter),
+                         max_FF_deriv = rep(as.numeric(NA),max_iter),
+                         max_LL_deriv = rep(as.numeric(NA),max_iter),
+                         max_diff_FF  = rep(as.numeric(NA),max_iter),
+                         max_diff_LL  = rep(as.numeric(NA),max_iter))
 
   # Set up other data structures used in the calculations below.
-  if (calc_deriv) {
+  if (control$calc_deriv) {
     LL_mask <- matrix(1,K,n)
     LL_mask[fit$fixed_u_cols,] <- 0
     if (!inherits(Y,"sparseMatrix"))
@@ -255,7 +252,6 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     if (!inherits(Y,"sparseMatrix")) 
       FF_mask <- t(FF_mask)
   }
-  fixed_rows <- sort(union(fit$fixed_v_cols,fit$fixed_u_cols))
   
   # Some other housekeeping.
   current_lik <- fit0$loglik
@@ -264,13 +260,10 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   converged <- FALSE
   iter <- 1
   if (verbose)
-    cat(sprintf("Fitting rank-%d GLM-PCA model to a %d x %d count matrix.\n",
-                K,n,p))
+    cat(sprintf("Fitting GLM-PCA model to a %d x %d count matrix.\n",n,m))
   while (!converged && iter <= max_iter) {
     start_time <- proc.time()
-    if (verbose)
-      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t-1,current_lik))
-    if (calc_max_diff) {
+    if (control$calc_max_diff) {
       start_iter_LL <- fit$LL
       start_iter_FF <- fit$FF
     }
@@ -279,37 +272,37 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     
     if (length(LL_update_indices) > 0) {
       
-      # orthonormalize rows of FF that are not fixed
+      # Orthonormalize rows of FF that are not fixed.
       if (length(joint_update_indices_R) > 1) {
         svd_out <- svd(t(fit$FF[joint_update_indices_R,]))
-        fit$FF[joint_update_indices_R, ] <- t(svd_out$u)
-        fit$LL[joint_update_indices_R, ] <-
+        fit$FF[joint_update_indices_R,] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R,] <-
           diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R,]
       }
 
       update_loadings_faster_parallel(
         F_T = t(fit$FF),
         L = fit$LL,
-        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R, ], Y)),
+        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R,],Y)),
         update_indices = LL_update_indices,
-        num_iter = control$num_iter,
+        num_iter = control$num_ccd_iter,
         line_search = control$line_search,
         alpha = control$alpha,
         beta = control$beta
       )
-
     }
     
     if (length(FF_update_indices) > 0) {
       if (length(joint_update_indices_R) > 1) {
         
-        # orthonormalize rows of LL that are not fixed
-        svd_out <- svd(
-          t(fit$LL[joint_update_indices_R, ])
-        )
-        
-        fit$LL[joint_update_indices_R, ] <- t(svd_out$u)
-        fit$FF[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R, ]
+        # Orthonormalize rows of LL that are not fixed.
+        #
+        # TO DO: Add option to turn this on or off.
+        #
+        svd_out <- svd(t(fit$LL[joint_update_indices_R,]))
+        fit$LL[joint_update_indices_R,] <- t(svd_out$u)
+        fit$FF[joint_update_indices_R,] <-
+          diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R,]
       }
 
       if (length(fit$fixed_v_cols) > 0) {
@@ -318,7 +311,7 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
           FF = fit$FF,
           M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
           update_indices = FF_update_indices,
-          num_iter = control$num_iter,
+          num_iter = control$num_ccd_iter,
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
@@ -328,9 +321,9 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
         update_factors_faster_parallel(
           L_T = t(fit$LL),
           FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL,Y_T)),
           update_indices = FF_update_indices,
-          num_iter = control$num_iter,
+          num_iter = control$num_ccd_iter,
           line_search = control$line_search,
           alpha = control$alpha,
           beta = control$beta
@@ -339,15 +332,16 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     } 
     
     new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
+    # TO DO: Add check for decreasing log-likelihood.
     if (new_lik >= current_lik && iter >= min_iter) {
       rel_improvement <- new_lik - current_lik
       if (rel_improvement < tol) {
         converged <- TRUE
         if (verbose)
-          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t,new_lik))
+          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",iter,new_lik))
       } 
-    } 
-    
+    }
+
     end_iter_time <- proc.time()
     time_since_start <-
       as.numeric(difftime(end_iter_time,start_time,units = "secs"))
@@ -361,16 +355,19 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
       fit$progress$max_diff_FF[iter] <- max(abs(fit$FF - start_iter_FF))
     }
     
-    if(inherits(Y, "sparseMatrix") && calc_deriv) {
-      fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+    if(inherits(Y,"sparseMatrix") && calc_deriv) {
+      fit$progress$max_FF_deriv[iter] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+      fit$progress$max_LL_deriv[iter] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
     } else if (calc_deriv) {
-      fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+      fit$progress$max_FF_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+      fit$progress$max_LL_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
     }
-    t <- t + 1
+    iter <- iter + 1
   }
   
+  if (verbose)
+    cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",
+                iter,current_lik))
   if (t > max_iter && !converged) {
     if (verbose)
       cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t - 1,new_lik))
