@@ -106,9 +106,10 @@ and \code{row_intercept = TRUE} is intended to replicate what
 \code{glmpca} does.}
 }
 \value{
-An object capturing the final state of the model fit. It will contain
-the final values of \eqn{U}, \eqn{D} and \eqn{V}, as well as a list \code{progress}
-that records information about the algorithm progress at each iteration.
+An object capturing the final state of the model fit. It
+  will contain the final values of \eqn{U}, \eqn{D} and \eqn{V}, as
+  well as a list \code{progress} that records information about the
+  algorithm progress at each iteration.
 }
 \description{
 Fit a Poisson GLM-PCA model to data matrix \code{Y}
@@ -155,9 +156,9 @@ settings (as they are defined by \code{fit_glmpca_control_default}):
 \item{\code{line_search}}{Boolean indicating if backtracking line search
   should be performed at each ccd iteration.}
 
-\item{\code{alpha}}{alpha value of line search between 0 and .5.}
+\item{\code{alpha}}{alpha value of line search between 0 and 0.5.}
 
-\item{\code{beta}}{beta value of line search between 0 and .5.}
+\item{\code{beta}}{beta value of line search between 0 and 0.5.}
   
 \item{\code{calc_deriv}}{boolean indicated if maximum absolute derivatives of
  \eqn{U} and \eqn{V} should be calculated at each step of optimization. This may
