@@ -281,6 +281,8 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
           fit$LL[joint_update_indices_R,]
       }
 
+      # TO DO: Check that this gives the same result as
+      # update_factors_faster_parallel.
       update_loadings_faster_parallel(
         F_T = t(fit$FF),
         L = fit$LL,
