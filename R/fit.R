@@ -4,31 +4,37 @@
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
 #' based on a Poisson likelihood, the counts
-#' \eqn{y_{ij}} in the n x p matrix \eqn{Y} are modeled as
-#' \deqn{y_{ij} \sim Poisson(\lambda_{ij}).} The logarithm of each
-#' Poisson rate is defined as a linear combination of the parameters:
-#' \deqn{\log \lambda_{ij} = \sum_{k=1}^K d_{k} u_{ik} v_{jk} + 
-#' \sum_{m=1}^{n_{x}} x_{im} b_{jm} +
-#' \sum_{l=1}^{n_{z}} w_{il} z_{jl} = (UDV' + XB' + WZ')_{ij},} where
-#' \eqn{U} is an orthonormal \eqn{n \times K} matrix, \eqn{D} is a diagonal \eqn{K \times K} matrix,
-#' \eqn{V} is an orthonormal \eqn{p \times K} matrix, \eqn{X} is a fixed \eqn{n \times n_{x}}
-#' matrix of row specific covariates, \eqn{B} is an \eqn{p \times n_{x}} matrix
-#' of coefficients of the row specific covariates, \eqn{Z} is a fixed 
-#' \eqn{p \times n_{z}} matrix of column specific covariates, and
-#' \eqn{W} is an \eqn{n \times n_{z}} matrix of coefficients of column
-#' specific covariates. \eqn{K} is a tuning parameter specifying the rank of the matrices
-#' \eqn{U} and \eqn{V}. \code{fit_glmpca_pois} computes maximum-likelihood
-#' estimates (MLEs) of \eqn{U}, \eqn{D}, \eqn{V}, and if any row or column
-#' covariates are present, respectively, \eqn{B} and \eqn{W}.
+#' \eqn{y_{ij}} stored in an n x m matrix \eqn{Y} are modeled as
+#' \deqn{y_{ij} \sim Pois(\lambda_{ij}),} in which 
+#' the logarithm of each rate parameter \eqn{\lambda_{ij}}
+#' is defined as a linear combination of rank-K matrices to be
+#' estimated from the data:
+#' \deqn{\log \lambda_{ij} = (UDV')_{ij},}
+#' where \eqn{U} and \eqn{V} are orthogonal matrices of dimension
+#' \eqn{n x K} and \eqn{m x K}, respectively, and \eqn{D} is a
+#' diagonal \eqn{K x K} matrix in which the entries along its diagonal
+#' are positive and decreasing.  \eqn{K} is a tuning parameter
+#' specifying the rank of the matrix factorization. This is the same
+#' as the low-rank matrix decomposition underlying PCA (that is, the
+#' singular value decomposition), but because we are not using a
+#' linear (Gaussian) model, this called \dQuote{generalized PCA} or
+#' \dQuote{GLM PCA}.
+#'
+#' To allow for additional components that may be fixed,
+#' \code{fit_glmpca_pois} can also fit the more general model
+#' \deqn{\log \lambda_{ij} = (UDV' + XB' + WZ')_{ij},}
+#' in which \eqn{X}, \eqn{Z} are fixed matrices of dimension \eqn{n x
+#' nx} and \eqn{m x nz}, respectively, and \eqn{B}, \eqn{W} are
+#' matrices of dimension \eqn{m x nx} and \eqn{n x nz} to be estimated
+#' from the data.
 #' 
-#' The algorithm works by repeatedly alternating between updating \eqn{U} and \eqn{W} with
-#' \eqn{V} and \eqn{Z} fixed and updating
-#' \eqn{V} and \eqn{Z} with \eqn{U} and \eqn{W} fixed. Each update takes the 
-#' form of a series of Poisson regressions solved using cyclic co-ordinate
-#' descent (CCD). When the algorithm
-#' terminates, we rotate the columns of \eqn{U} and \eqn{V} 
-#' so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
-#' This rotation does not change the final log-likelihood.
+#' \code{fit_glmpca_pois} computes maximum-likelihood estimates (MLEs)
+#' of \eqn{U}, \eqn{V}, \eqn{D}, \eqn{B} and \eqn{W} satistifying the
+#' orthogonality constraints for \eqn{U} and \eqn{V} and the
+#' additional constraints on \eqn{D} that the entries are positive and
+#' decreasing. This is accomplished by iteratively fitting a series of
+#' Poisson GLMs, and each of these individual Poissons GLMs is fitted
+#' using a fast cyclic co-ordinate descent (CCD) algorithm.
 #' 
 #' The \code{control} argument is a list in which any of the following
 #' named components will override the default optimization algorithm
@@ -36,25 +42,30 @@
 #' 
 #' \describe{
 #'
-#' \item{\code{num_ccd_iter}}{Number of ccd updates to be made to parameters
-#'   at each iteration of the algorithm.}
+#' \item{\code{num_ccd_iter}}{Number of CD updates to be made to
+#'   parameters at each iteration of the algorithm.}
 #'
-#' \item{\code{line_search}}{Boolean indicating if backtracking line search
-#'   should be performed at each ccd iteration.}
+#' \item{\code{line_search}}{If \code{line_search = TRUE},
+#'   backtracking line search performed at each iteration of CCD to
+#'   guarantee improvement in the objective (the log-likelihood).}
 #'
-#' \item{\code{alpha}}{alpha value of line search between 0 and 0.5.}
+#' \item{\code{alpha}}{alpha parameter for backtracking line search.
+#'   (Should be a number between 0 and 0.5, typically a number near
+#'   zero.)}
 #'
-#' \item{\code{beta}}{beta value of line search between 0 and 0.5.}
+#' \item{\code{beta}}{beta parameter for backtracking line search
+#'   controlling the rate at which the step size is decreased.
+#'   (Should be a number between 0 and 0.5.)}
 #'   
-#' \item{\code{calc_deriv}}{boolean indicated if maximum absolute derivatives of
-#'  \eqn{U} and \eqn{V} should be calculated at each step of optimization. This may
-#'  be useful for monitoring convergence though may have substantial computational
-#'  cost for large matrices.}
+#' \item{\code{calc_deriv}}{If \code{calc_deriv = TRUE}, the maximum
+#'   gradient of \eqn{U} and \eqn{V} is calculated and stored after each
+#'   update. This may be useful for assessing convergence of the
+#'   optimization, though increases overhead.}
 #'   
-#' \item{\code{calc_max_diff}}{boolean indicating if maximum absolute difference 
-#' between successive updates of \eqn{U} and \eqn{V} should be calculated and
-#' stored. This may be useful for monitoring convergence.}
-#'   
+#' \item{\code{calc_max_diff}}{If \code{calc_max_diff = TRUE}, the
+#'   largest change in \eqn{U} and \eqn{V} after each update is
+#'   calculated and stored. This may be useful for monitoring progress
+#'   of the optimization algorithm.}
 #' }
 #'
 #' @param Y The n x m matrix of counts; all entries of \code{Y} should
@@ -78,26 +89,28 @@
 #' 
 #' @param max_iter Maximum number of updates to be performed.
 #' 
-#' @param verbose Boolean indicating if likelihood should be printed
-#' at each step.
+#' @param verbose If \code{verbose = TRUE}, information about the
+#'   algorithm's progress is printed after each update.
 #'   
 #' @param control List of control parameters to modify behavior of
-#' \code{algorithm}.
+#'   the optimization algorithm; see \dQuote{Details}.
 #' 
 #' @references
 #' Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
-#' R. A. (2019). Feature selection and dimension reduction for
-#' single-cell RNA-Seq based on a multinomial model. \emph{Genome Biology}
-#' \bold{20}, 295. \url{https://doi.org/10.1186/s13059-019-1861-6}
+#'   R. A. (2019). Feature selection and dimension reduction for
+#'   single-cell RNA-Seq based on a multinomial model. \emph{Genome Biology}
+#'   \bold{20}, 295. \url{https://doi.org/10.1186/s13059-019-1861-6}
 #'
-#' Collins, M., Dasgupta, S. and Schapire, R. E. (2002). A
-#' generalization of principal components analysis to the exponential
-#' family. In \emph{Advances in Neural Information Processing Systems} 14.
+#'   Collins, M., Dasgupta, S. and Schapire, R. E. (2002). A
+#'   generalization of principal components analysis to the exponential
+#'   family. In \emph{Advances in Neural Information Processing Systems} 14.
 #'
 #' @return An object capturing the final state of the model fit. It
-#'   will contain the final values of \eqn{U}, \eqn{D} and \eqn{V}, as
-#'   well as a list \code{progress} that records information about the
-#'   algorithm progress at each iteration.
+#'   contains the final estimates of \eqn{U}, \eqn{D} and \eqn{V}, and
+#'   the other parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}), as well
+#'   as the log-likelihood achieved (\code{loglik}), and a data frame
+#'   \code{progress} storing information about the algorithm's progress
+#'   after each update.
 #'
 #' @importFrom utils modifyList
 #' 
@@ -291,8 +304,7 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
         num_iter = control$num_ccd_iter,
         line_search = control$line_search,
         alpha = control$alpha,
-        beta = control$beta
-      )
+        beta = control$beta)
     }
     
     if (length(FF_update_indices) > 0) {
