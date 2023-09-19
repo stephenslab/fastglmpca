@@ -115,8 +115,7 @@ An object capturing the final state of the model fit. It
   algorithm progress at each iteration.
 }
 \description{
-Fit a Poisson GLM-PCA model to data matrix \code{Y}
-  by maximum-likelihood.
+Fit a Poisson GLM-PCA model by maximum-likelihood.
 }
 \details{
 In generalized principal component analysis (GLM-PCA)
@@ -142,7 +141,7 @@ The algorithm works by repeatedly alternating between updating \eqn{U} and \eqn{
 \eqn{V} and \eqn{Z} fixed and updating
 \eqn{V} and \eqn{Z} with \eqn{U} and \eqn{W} fixed. Each update takes the 
 form of a series of Poisson regressions solved using cyclic co-ordinate
-descent (ccd). When the algorithm
+descent (CCD). When the algorithm
 terminates, we rotate the columns of \eqn{U} and \eqn{V} 
 so that they form an orthonormal set, and then we calculate \eqn{D} appropriately.
 This rotation does not change the final log-likelihood.
@@ -153,7 +152,7 @@ settings (as they are defined by \code{fit_glmpca_pois_control_default}):
 
 \describe{
 
-\item{\code{num_iter}}{Number of ccd updates to be made to parameters
+\item{\code{num_ccd_iter}}{Number of ccd updates to be made to parameters
   at each iteration of the algorithm.}
 
 \item{\code{line_search}}{Boolean indicating if backtracking line search
