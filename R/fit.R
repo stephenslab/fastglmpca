@@ -216,8 +216,8 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   K <- nrow(fit$LL)
     
   # Get the rows to update, subtracting 1 for C/C++.
-  LL_update_indices_R    <- setdiff(1:K,fit$fixed_l)
-  FF_update_indices_R    <- setdiff(1:K,fit$fixed_f)
+  LL_update_indices_R    <- sort(setdiff(1:K,fit$fixed_l))
+  FF_update_indices_R    <- sort(setdiff(1:K,fit$fixed_f))
   joint_update_indices_R <- sort(intersect(LL_update_indices_R,
                                            FF_update_indices_R))
   LL_update_indices      <- LL_update_indices_R - 1
@@ -277,7 +277,8 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
         svd_out <- svd(t(fit$FF[joint_update_indices_R,]))
         fit$FF[joint_update_indices_R,] <- t(svd_out$u)
         fit$LL[joint_update_indices_R,] <-
-          diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R,]
+          diag(svd_out$d) %*% t(svd_out$v) %*%
+          fit$LL[joint_update_indices_R,]
       }
 
       update_loadings_faster_parallel(
@@ -302,7 +303,8 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
         svd_out <- svd(t(fit$LL[joint_update_indices_R,]))
         fit$LL[joint_update_indices_R,] <- t(svd_out$u)
         fit$FF[joint_update_indices_R,] <-
-          diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R,]
+          diag(svd_out$d) %*% t(svd_out$v) %*%
+          fit$FF[joint_update_indices_R,]
       }
 
       if (length(fit$fixed_v_cols) > 0) {
