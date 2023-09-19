@@ -108,7 +108,7 @@
 #' @return An object capturing the final state of the model fit. It
 #'   contains the final estimates of \eqn{U}, \eqn{D} and \eqn{V}, and
 #'   the other parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}), as well
-#'   as the log-likelihood achieved (\code{loglik}), and a data frame
+#'   as the log-likelihood achieved (\code{loglik}) and a data frame
 #'   \code{progress} storing information about the algorithm's progress
 #'   after each update.
 #'
