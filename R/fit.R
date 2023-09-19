@@ -351,13 +351,16 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     fit$progress$loglik[iter] <- current_lik
     
     if (calc_max_diff) {
-      fit$progress$max_diff_LL[iter] <- max(abs(fit$LL - start_iter_LL))
-      fit$progress$max_diff_FF[iter] <- max(abs(fit$FF - start_iter_FF))
+      fit$progress[iter,"max_diff_LL"] <- max(abs(fit$LL - start_iter_LL))
+      fit$progress[iter,"max_diff_FF"] <- max(abs(fit$FF - start_iter_FF))
     }
     
     if(inherits(Y,"sparseMatrix") && calc_deriv) {
-      fit$progress$max_FF_deriv[iter] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      fit$progress$max_LL_deriv[iter] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+      fit$progress$max_FF_deriv[iter] <-
+        max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+      fit$progress$max_LL_deriv[iter] <-
+        max(abs((deriv_product(fit$FF, fit$LL) -
+                 Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
     } else if (calc_deriv) {
       fit$progress$max_FF_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
       fit$progress$max_LL_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
