@@ -382,14 +382,11 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
 #'
 #' @export
 #' 
-fit_glmpca_pois_control_default <- function() {
-  list(
-    alpha = .01,
-    beta = .5,
-    line_search = TRUE,
-    num_iter = 3,
-    ccd_iter_tol = 0,
-    calc_deriv = FALSE,
-    calc_max_diff = FALSE
-  )
-}
+fit_glmpca_pois_control_default <- function()
+  list(alpha = 0.01,
+       beta = 0.5,
+       line_search = TRUE,
+       num_ccd_iter = 3,
+       ccd_iter_tol = 0,
+       calc_deriv = FALSE,
+       calc_max_diff = FALSE)
