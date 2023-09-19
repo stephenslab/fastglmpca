@@ -2,6 +2,7 @@
 % Please edit documentation in R/fit.R, R/init.R
 \name{fit_glmpca_pois}
 \alias{fit_glmpca_pois}
+\alias{fit_glmpca_pois_control_default}
 \alias{init_glmpca_pois}
 \title{Fit Poisson GLM-PCA Model to Count Data}
 \usage{
@@ -15,6 +16,8 @@ fit_glmpca_pois(
   verbose = TRUE,
   control = list()
 )
+
+fit_glmpca_pois_control_default()
 
 init_glmpca_pois(
   Y,
@@ -146,7 +149,7 @@ This rotation does not change the final log-likelihood.
 
 The \code{control} argument is a list in which any of the following
 named components will override the default optimization algorithm
-settings (as they are defined by \code{fit_glmpca_control_default}):
+settings (as they are defined by \code{fit_glmpca_pois_control_default}):
 
 \describe{
 

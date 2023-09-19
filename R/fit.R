@@ -33,7 +33,7 @@
 #' 
 #' The \code{control} argument is a list in which any of the following
 #' named components will override the default optimization algorithm
-#' settings (as they are defined by \code{fit_glmpca_control_default}):
+#' settings (as they are defined by \code{fit_glmpca_pois_control_default}):
 #' 
 #' \describe{
 #'
@@ -100,13 +100,7 @@
 #'   well as a list \code{progress} that records information about the
 #'   algorithm progress at each iteration.
 #'
-#' @import Matrix
-#' @importFrom Matrix tcrossprod
-#' @importFrom Matrix t
 #' @importFrom utils modifyList
-#' @importFrom MatrixExtra t
-#' @importFrom MatrixExtra tcrossprod
-#' @importFrom MatrixExtra mapSparse
 #' 
 #' @export
 #' 
@@ -167,237 +161,31 @@ fit_glmpca_pois <- function(
     stop("\"min_iter\" should be less than or equal to \"max_iter\"")
   
   # Check and process input argument "control".
-  control <- modifyList(fit_glmpca_control_default(),control, 
+  control <- modifyList(fit_glmpca_pois_control_default(),control, 
                         keep.null = TRUE)
 
   # Set up the internal "fit" object.
   fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
-              FF = t(cbind(fit0$V,fit0$B,fit0$Z)))
-  
-  fit$fixed_loadings <- c()
-  fit$fixed_factors <- c()
-  
-  if (n_x > 0) {
-    
-    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + 1):(ncol(fit0$U) + n_x))
-    
-  }
-  
-  if(length(fit0$fixed_w_cols) > 0)
-    fit$fixed_loadings <- c(fit$fixed_loadings, (ncol(fit0$U) + n_x) + fit0$fixed_w_cols)
-  if(length(fit0$fixed_b_cols) > 0)
-    fit$fixed_factors <- c(fit$fixed_factors, ncol(fit0$V) + fit0$fixed_b_cols)
-  
-  if (n_z > 0)
-    fit$fixed_factors <- c(fit$fixed_factors, (ncol(fit0$V) + n_x + 1):(ncol(fit0$V) + n_x + n_z))
-  
-  fit$fixed_w_cols <- fit0$fixed_w_cols
-  fit$fixed_b_cols <- fit0$fixed_b_cols
-  
-  current_lik <- fit0$loglik
-  
-  # Remove initial fit from local scope to preserve memory.
-  # rm(fit0)
-    
-  # Get update indices, subtracting 1 for C++ compatibility.
-  LL_update_indices_R    <- setdiff(1:K,fit$fixed_loadings)
-  FF_update_indices_R    <- setdiff(1:K,fit$fixed_factors)
-  LL_update_indices      <- LL_update_indices_R - 1
-  FF_update_indices      <- FF_update_indices_R - 1
-  joint_update_indices_R <- intersect(LL_update_indices_R,FF_update_indices_R)
+              FF = t(cbind(fit0$V,fit0$B,fit0$Z)),
+              fixed_w_cols = fit0$fixed_w_cols,
+              fixed_b_cols = fit0$fixed_b_cols)
 
-  Y_T <- Matrix::t(Y)
-  
-  # These are used to compute the log-likelihood below.
-  if (inherits(Y,"sparseMatrix")) {
-    loglik_const <- sum(mapSparse(Y, lfactorial))
-    loglik_func  <- lik_glmpca_pois_log_sp
-  } else {
-    loglik_const <- sum(lfactorial(Y))
-    loglik_func  <- lik_glmpca_pois_log
-  } 
+  # Determine which rows of LL, FF are "clamped".
+  nx <- ifelse(length(fit0$X) > 0,ncol(fit0$X),0)
+  nz <- ifelse(length(fit0$Z) > 0,ncol(fit0$Z),0)
+  fit$fixed_l <- numeric(0)
+  fit$fixed_f <- numeric(0)
+  if (nx > 0)
+    fit$fixed_l <- c(fit$fixed_l,K + seq(1,nx))
+  fit$fixed_l <- c(fit$fixed_l,K + nx + fit0$fixed_w_cols)
+  fit$fixed_f <- c(fit$fixed_f,K + fit0$fixed_b_cols)
+  if (nz > 0)
+    fit$fixed_f <- c(fit$fixed_f,K + nx + seq(1,nz))
 
-  converged <- FALSE
-  t <- 1
-  if (verbose)
-    cat(sprintf("Fitting rank-%d GLM-PCA model to a %d x %d count matrix.\n",
-                K,n,p))
-
-  # FIX THIS.
-  fit$progress <- list()
-  fit$progress[["iter"]]   <- numeric(max_iter)
-  fit$progress[["loglik"]] <- numeric(max_iter)
-  fit$progress[["time"]]   <- numeric(max_iter)
+  # Perform the updates.
+  fit <- fit_glmpca_pois_main_loop(fit,Y,min_iter,max_iter,tol,verbose,control)
   
-  if (calc_deriv) {
-    fit$progress[["max_FF_deriv"]] <- max_iter
-    fit$progress[["max_LL_deriv"]] <- max_iter
-    LL_mask <- matrix(1,nrow(fit$LL),ncol(fit$LL))    
-    LL_mask[fit$fixed_u_cols, ] <- 0
-    if(!inherits(Y, "sparseMatrix"))
-      LL_mask <- t(LL_mask)
-    FF_mask <- matrix(1,nrow(fit$FF),ncol(fit$FF))
-    FF_mask[fit$fixed_v_cols, ] <- 0
-    if (!inherits(Y, "sparseMatrix")) 
-      FF_mask <- t(FF_mask)
-  }
-  
-  if (calc_max_diff) {
-    fit$progress[["max_diff_FF"]] <- numeric(max_iter)
-    fit$progress[["max_diff_LL"]] <- numeric(max_iter)
-  }
-  
-  fixed_rows <- union(fit$fixed_v_cols,fit$fixed_u_cols)
-  
-  fit$progress$iter[1] <- 0
-  fit$progress$loglik[1] <- current_lik
-  fit$progress$time[1] <- 0
-  
-  if (calc_max_diff) {
-    fit$progress$max_diff_FF[1] <- 0
-    fit$progress$max_diff_LL[1] <- 0
-  }
-  
-  if(inherits(Y, "sparseMatrix") && calc_deriv) {
-    
-    fit$progress$max_FF_deriv[1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-    fit$progress$max_LL_deriv[1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
-    
-  } else if (calc_deriv) {
-    
-    fit$progress$max_FF_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-    fit$progress$max_LL_deriv[1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - Y_T, t(fit$FF)) * LL_mask))
-    
-  }
-  
-  while (!converged && t <= max_iter) {
-    start_time <- proc.time()
-    if (verbose)
-      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t-1,current_lik))
-
-    if (calc_max_diff) {
-      start_iter_LL <- fit$LL
-      start_iter_FF <- fit$FF
-    }
-      
-    if (length(LL_update_indices) > 0) {
-      
-      # orthonormalize rows of FF that are not fixed
-      if (length(joint_update_indices_R) > 1) {
-        
-        svd_out <- svd(
-          t(fit$FF[joint_update_indices_R, ])
-        )
-        
-        fit$FF[joint_update_indices_R, ] <- t(svd_out$u)
-        fit$LL[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R, ]
-        
-      }
-
-      update_loadings_faster_parallel(
-        F_T = t(fit$FF),
-        L = fit$LL,
-        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R, ], Y)),
-        update_indices = LL_update_indices,
-        num_iter = control$num_iter,
-        line_search = control$line_search,
-        alpha = control$alpha,
-        beta = control$beta
-      )
-
-    }
-    
-    if (length(FF_update_indices) > 0) {
-      
-      if (length(joint_update_indices_R) > 1) {
-        
-        # orthonormalize rows of LL that are not fixed
-        svd_out <- svd(
-          t(fit$LL[joint_update_indices_R, ])
-        )
-        
-        fit$LL[joint_update_indices_R, ] <- t(svd_out$u)
-        
-        fit$FF[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R, ]
-        
-        
-      }
-
-      if (length(fit$fixed_v_cols) > 0) {
-        
-        update_factors_faster_parallel(
-          L_T = t(fit$LL),
-          FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
-          update_indices = FF_update_indices,
-          num_iter = control$num_iter,
-          line_search = control$line_search,
-          alpha = control$alpha,
-          beta = control$beta
-        ) 
-        
-      } else {
-        
-        update_factors_faster_parallel(
-          L_T = t(fit$LL),
-          FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
-          update_indices = FF_update_indices,
-          num_iter = control$num_iter,
-          line_search = control$line_search,
-          alpha = control$alpha,
-          beta = control$beta
-        ) 
-        
-      }
-      
-    } 
-    
-    new_lik <- loglik_func(Y = Y,LL = fit$LL,FF = fit$FF,const = loglik_const)
-
-    if (new_lik >= current_lik && t >= min_iter) {
-      rel_improvement <- new_lik - current_lik
-      if (rel_improvement < tol) {
-        converged <- TRUE
-        if (verbose)
-          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t,new_lik))
-      } 
-    } 
-    
-    end_iter_time <- proc.time()
-    time_since_start <- as.numeric(difftime(end_iter_time, start_time, units = "secs"))
-    current_lik <- new_lik
-    fit$progress$time[t + 1]   <- time_since_start
-    fit$progress$iter[t + 1]   <- t
-    fit$progress$loglik[t + 1] <- current_lik
-    
-    if (calc_max_diff) {
-      
-      fit$progress$max_diff_LL[t + 1] <- max(abs(fit$LL - start_iter_LL))
-      fit$progress$max_diff_FF[t + 1] <- max(abs(fit$FF - start_iter_FF))
-      
-    }
-    
-    if(inherits(Y, "sparseMatrix") && calc_deriv) {
-      
-      fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
-      
-    } else if (calc_deriv) {
-      
-      fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
-      
-    }
-    t <- t + 1
-  }
-  
-  if (t > max_iter && !converged) {
-    if (verbose)
-      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t - 1,new_lik))
-    warning("Algorithm reached maximum iterations without convergence")
-  }
-    
+  # POSTPROCESSIING.
   fit$progress$time <- fit$progress$time[1:t]
   fit$progress$iter <- fit$progress$iter[1:t]
   fit$progress$loglik <- fit$progress$loglik[1:t]
@@ -414,11 +202,187 @@ fit_glmpca_pois <- function(
   colnames(fit$LL) <- rownames(Y)
   colnames(fit$FF) <- colnames(Y)
   
-  fit <- postprocess_fit(fit, n_x, n_z,K)
+  fit <- postprocess_fit(fit,nx,nz,K)
   return(fit)
 }
 
-fit_glmpca_control_default <- function() {
+# This implements the core part of fit_glmpca_pois.
+#
+#' @importFrom Matrix t
+#' @importFrom Matrix tcrossprod
+#' @importFrom MatrixExtra tcrossprod
+#' @importFrom MatrixExtra mapSparse
+fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
+                                       verbose, control) {
+  n <- nrow(Y)
+  n <- ncol(Y)
+  K <- nrow(fit$LL)
+    
+  # Get the rows to update, subtracting 1 for C/C++.
+  LL_update_indices_R    <- setdiff(1:K,fit$fixed_l)
+  FF_update_indices_R    <- setdiff(1:K,fit$fixed_f)
+  joint_update_indices_R <- sort(intersect(LL_update_indices_R,
+                                           FF_update_indices_R))
+  LL_update_indices      <- LL_update_indices_R - 1
+  FF_update_indices      <- FF_update_indices_R - 1
+
+  # These variables are used to compute the log-likelihood below.
+  if (inherits(Y,"sparseMatrix")) {
+    loglik_const <- sum(mapSparse(Y,lfactorial))
+    loglik_func  <- lik_glmpca_pois_log_sp
+  } else {
+    loglik_const <- sum(lfactorial(Y))
+    loglik_func  <- lik_glmpca_pois_log
+  } 
+
+  # Set up the data structure for recording the algorithm's progress.
+  fit$progress <- data.frame(iter         = 1:max_iter,
+                             loglik       = rep(0,max_iter),
+                             time         = rep(0,max_iter),
+                             max_FF_deriv = rep(as.numeric(NA),max_iter),
+                             max_LL_deriv = rep(as.numeric(NA),max_iter),
+                             max_diff_FF  = rep(as.numeric(NA),max_iter),
+                             max_diff_LL  = rep(as.numeric(NA),max_iter))
+
+  # Set up other data structures used in the calculations below.
+  if (calc_deriv) {
+    LL_mask <- matrix(1,K,n)
+    LL_mask[fit$fixed_u_cols,] <- 0
+    if (!inherits(Y,"sparseMatrix"))
+      LL_mask <- t(LL_mask)
+    FF_mask <- matrix(1,K,m)
+    FF_mask[fit$fixed_v_cols,] <- 0
+    if (!inherits(Y,"sparseMatrix")) 
+      FF_mask <- t(FF_mask)
+  }
+  fixed_rows <- sort(union(fit$fixed_v_cols,fit$fixed_u_cols))
+  
+  # Some other housekeeping.
+  current_lik <- fit0$loglik
+  Y_T <- Matrix::t(Y)
+  
+  converged <- FALSE
+  iter <- 1
+  if (verbose)
+    cat(sprintf("Fitting rank-%d GLM-PCA model to a %d x %d count matrix.\n",
+                K,n,p))
+  while (!converged && iter <= max_iter) {
+    start_time <- proc.time()
+    if (verbose)
+      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t-1,current_lik))
+    if (calc_max_diff) {
+      start_iter_LL <- fit$LL
+      start_iter_FF <- fit$FF
+    }
+
+    browser()
+    
+    if (length(LL_update_indices) > 0) {
+      
+      # orthonormalize rows of FF that are not fixed
+      if (length(joint_update_indices_R) > 1) {
+        svd_out <- svd(t(fit$FF[joint_update_indices_R,]))
+        fit$FF[joint_update_indices_R, ] <- t(svd_out$u)
+        fit$LL[joint_update_indices_R, ] <-
+          diag(svd_out$d) %*% t(svd_out$v) %*% fit$LL[joint_update_indices_R,]
+      }
+
+      update_loadings_faster_parallel(
+        F_T = t(fit$FF),
+        L = fit$LL,
+        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R, ], Y)),
+        update_indices = LL_update_indices,
+        num_iter = control$num_iter,
+        line_search = control$line_search,
+        alpha = control$alpha,
+        beta = control$beta
+      )
+
+    }
+    
+    if (length(FF_update_indices) > 0) {
+      if (length(joint_update_indices_R) > 1) {
+        
+        # orthonormalize rows of LL that are not fixed
+        svd_out <- svd(
+          t(fit$LL[joint_update_indices_R, ])
+        )
+        
+        fit$LL[joint_update_indices_R, ] <- t(svd_out$u)
+        fit$FF[joint_update_indices_R, ] <- diag(svd_out$d) %*% t(svd_out$v) %*% fit$FF[joint_update_indices_R, ]
+      }
+
+      if (length(fit$fixed_v_cols) > 0) {
+        update_factors_faster_parallel(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
+          update_indices = FF_update_indices,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) 
+        
+      } else {
+        update_factors_faster_parallel(
+          L_T = t(fit$LL),
+          FF = fit$FF,
+          M = as.matrix(MatrixExtra::tcrossprod(fit$LL, Y_T)),
+          update_indices = FF_update_indices,
+          num_iter = control$num_iter,
+          line_search = control$line_search,
+          alpha = control$alpha,
+          beta = control$beta
+        ) 
+      }
+    } 
+    
+    new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
+    if (new_lik >= current_lik && iter >= min_iter) {
+      rel_improvement <- new_lik - current_lik
+      if (rel_improvement < tol) {
+        converged <- TRUE
+        if (verbose)
+          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t,new_lik))
+      } 
+    } 
+    
+    end_iter_time <- proc.time()
+    time_since_start <-
+      as.numeric(difftime(end_iter_time,start_time,units = "secs"))
+    current_lik <- new_lik
+    fit$progress[iter,"time"] <- time_since_start
+    fit$progress[iter,"iter"] <- iter
+    fit$progress$loglik[iter] <- current_lik
+    
+    if (calc_max_diff) {
+      fit$progress$max_diff_LL[iter] <- max(abs(fit$LL - start_iter_LL))
+      fit$progress$max_diff_FF[iter] <- max(abs(fit$FF - start_iter_FF))
+    }
+    
+    if(inherits(Y, "sparseMatrix") && calc_deriv) {
+      fit$progress$max_FF_deriv[t + 1] <- max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
+      fit$progress$max_LL_deriv[t + 1] <- max(abs((deriv_product(fit$FF, fit$LL) - Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
+    } else if (calc_deriv) {
+      fit$progress$max_FF_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+      fit$progress$max_LL_deriv[t + 1] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+    }
+    t <- t + 1
+  }
+  
+  if (t > max_iter && !converged) {
+    if (verbose)
+      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t - 1,new_lik))
+    warning("Algorithm reached maximum iterations without convergence")
+  }
+}
+
+#' @rdname fit_glmpca_pois
+#'
+#' @export
+#' 
+fit_glmpca_pois_control_default <- function() {
   list(
     alpha = .01,
     beta = .5,
