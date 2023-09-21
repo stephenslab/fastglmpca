@@ -10,7 +10,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0 = init_glmpca_pois(Y, K),
-  tol = 1e-04,
+  tol = 0.0001,
   min_iter = 1,
   max_iter = 100,
   verbose = TRUE,
