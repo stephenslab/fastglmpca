@@ -235,12 +235,8 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   K <- nrow(fit$LL)
     
   # Get the rows to update, subtracting 1 for C/C++.
-  LL_update_indices_R    <- sort(setdiff(1:K,fit$fixed_l))
-  FF_update_indices_R    <- sort(setdiff(1:K,fit$fixed_f))
-  joint_update_indices_R <- sort(intersect(LL_update_indices_R,
-                                           FF_update_indices_R))
-  LL_update_indices      <- LL_update_indices_R - 1
-  FF_update_indices      <- FF_update_indices_R - 1
+  update_indices_l <- sort(setdiff(1:K,fit$fixed_l))
+  update_indices_f <- sort(setdiff(1:K,fit$fixed_f))
 
   # These variables are used to compute the log-likelihood below.
   if (inherits(Y,"sparseMatrix")) {
@@ -287,56 +283,13 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
       start_iter_FF <- fit$FF
     }
 
+    # Perform a single update of L and F.
+    fit <- update_glmpca_pois(Y,Y_T,fit,update_indices_l,
+                              update_indices_f,control)
+
     browser()
     
-    if (length(LL_update_indices) > 0) {
-      
-      # Orthonormalize rows of FF that are not fixed.
-      if (length(joint_update_indices_R) > 1 && control$orthonormalize) {
-        svd_out <- svd(t(fit$FF[joint_update_indices_R,]))
-        fit$FF[joint_update_indices_R,] <- t(svd_out$u)
-        fit$LL[joint_update_indices_R,] <-
-          diag(svd_out$d) %*% t(svd_out$v) %*%
-          fit$LL[joint_update_indices_R,]
-      }
-
-      # TO DO: Check that this gives the same result as
-      # update_factors_faster_parallel.
-      update_loadings_faster_parallel(
-        F_T = t(fit$FF),
-        L = fit$LL,
-        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[LL_update_indices_R,],Y)),
-        update_indices = LL_update_indices,
-        num_iter = control$num_ccd_iter,
-        line_search = control$line_search,
-        alpha = control$alpha,
-        beta = control$beta)
-    }
-    
-    if (length(FF_update_indices) > 0) {
-      if (length(joint_update_indices_R) > 1 && control$orthonormalize) {
-        
-        # Orthonormalize rows of LL that are not fixed.
-        svd_out <- svd(t(fit$LL[joint_update_indices_R,]))
-        fit$LL[joint_update_indices_R,] <- t(svd_out$u)
-        fit$FF[joint_update_indices_R,] <-
-          diag(svd_out$d) %*% t(svd_out$v) %*%
-          fit$FF[joint_update_indices_R,]
-      }
-
-      update_factors_faster_parallel(
-        L_T = t(fit$LL),
-        FF = fit$FF,
-        M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
-        update_indices = FF_update_indices,
-        num_iter = control$num_ccd_iter,
-        line_search = control$line_search,
-        alpha = control$alpha,
-        beta = control$beta
-      ) 
-        
-    } 
-    
+    # Update the "progress" data frame.
     new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
     # TO DO: Add check for decreasing log-likelihood.
     if (new_lik >= current_lik && iter >= min_iter) {
@@ -347,29 +300,27 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
           cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",iter,new_lik))
       } 
     }
-
     end_iter_time <- proc.time()
     time_since_start <-
       as.numeric(difftime(end_iter_time,start_time,units = "secs"))
     current_lik <- new_lik
-    fit$progress[iter,"time"] <- time_since_start
-    fit$progress[iter,"iter"] <- iter
-    fit$progress$loglik[iter] <- current_lik
-    
+    progress[iter,"loglik"] <- current_lik
+    progress[iter,"time"] <- time_since_start
     if (calc_max_diff) {
-      fit$progress[iter,"max_diff_LL"] <- max(abs(fit$LL - start_iter_LL))
-      fit$progress[iter,"max_diff_FF"] <- max(abs(fit$FF - start_iter_FF))
+      progress[iter,"max_diff_LL"] <- max(abs(fit$LL - start_iter_LL))
+      progress[iter,"max_diff_FF"] <- max(abs(fit$FF - start_iter_FF))
     }
-    
     if(inherits(Y,"sparseMatrix") && calc_deriv) {
-      fit$progress$max_FF_deriv[iter] <-
+      progress[iter,"max_FF_deriv"] <-
         max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      fit$progress$max_LL_deriv[iter] <-
+      progress[iter,"max_LL_deriv"] <-
         max(abs((deriv_product(fit$FF, fit$LL) -
                  Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
     } else if (calc_deriv) {
-      fit$progress$max_FF_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      fit$progress$max_LL_deriv[iter] <- max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+      progress[iter,"max_FF_deriv"] <-
+        max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
+      progress[iter,"max_LL_deriv"] <-
+        max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
     }
     iter <- iter + 1
   }
@@ -397,3 +348,62 @@ fit_glmpca_pois_control_default <- function()
        calc_deriv = FALSE,
        calc_max_diff = FALSE,
        orthonormalize = TRUE)
+
+# This implements a single update of L and F in the GLM-PCA model.
+update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
+                                update_indices_f, control) {
+  n <- nrow(Y)
+  m <- ncol(Y)
+  K <- nrow(fit$FF)
+  k <- sort(intersect(update_indices_l,update_indices_f))
+
+  if (length(update_indices_l) > 0) {
+      
+    # If requested, orthogonalize rows of FF that are not fixed.
+    if (length(k) > 1 & control$orthonormalize) {
+      out        <- svd(t(fit$FF[k,]))
+      fit$FF[k,] <- t(out$u)
+      fit$LL[k,] <- diag(out$d) %*% t(out$v) %*% fit$LL[k,]
+    }
+
+    # TO DO: Check that this gives the same result as
+    # update_factors_faster_parallel.
+    LLnew <- matrix(fit$LL,K,n)
+    i     <- update_indices_l - 1
+    update_loadings_faster_parallel(
+      F_T = t(fit$FF),
+      L = LLnew,
+      M = as.matrix(MatrixExtra::tcrossprod(fit$FF[update_indices_l,],Y)),
+      update_indices = i,
+      num_iter = control$num_ccd_iter,
+      line_search = control$line_search,
+      alpha = control$alpha,
+      beta = control$beta)
+    fit$LL <- LLnew
+  }
+
+  if (length(update_indices_f) > 0) {
+
+    # If requested, orthogonalize rows of LL that are not fixed.
+    if (length(k) > 1 & control$orthonormalize) {
+      out        <- svd(t(fit$LL[k,]))
+      fit$LL[k,] <- t(out$u)
+      fit$FF[k,] <- diag(out$d) %*% t(out$v) %*% fit$FF[k,]
+    }
+
+    FFnew <- matrix(fit$FF,K,m)
+    i <- update_indices_f - 1
+    update_factors_faster_parallel(
+      L_T = t(fit$LL),
+      FF = FFnew,
+      M = as.matrix(MatrixExtra::tcrossprod(fit$LL[update_indices_f,],Y_T)),
+      update_indices = i,
+      num_iter = control$num_ccd_iter,
+      line_search = control$line_search,
+      alpha = control$alpha,
+      beta = control$beta)
+    fit$FF <- FFnew
+  }
+
+  return(fit)
+}
