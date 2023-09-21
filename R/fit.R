@@ -291,15 +291,6 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     
     # Update the "progress" data frame.
     new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
-    # TO DO: Add check for decreasing log-likelihood.
-    if (new_lik >= current_lik && iter >= min_iter) {
-      rel_improvement <- new_lik - current_lik
-      if (rel_improvement < tol) {
-        converged <- TRUE
-        if (verbose)
-          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",iter,new_lik))
-      } 
-    }
     end_iter_time <- proc.time()
     time_since_start <-
       as.numeric(difftime(end_iter_time,start_time,units = "secs"))
@@ -321,6 +312,17 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
         max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
       progress[iter,"max_LL_deriv"] <-
         max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+    }
+
+    # Check whether the stopping criterion is met.
+    # TO DO: Add check for decreasing log-likelihood.
+    if (new_lik >= current_lik && iter >= min_iter) {
+      rel_improvement <- new_lik - current_lik
+      if (rel_improvement < tol) {
+        converged <- TRUE
+        if (verbose)
+          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",iter,new_lik))
+      } 
     }
     iter <- iter + 1
   }
