@@ -13,18 +13,22 @@
 #'   provided, input argument \code{K} should be specified instead.
 #'   
 #' @param X Optional argument giving row covariates of the count
-#'   matrix \code{Y}. It should be an n x nx matrix.
+#'   matrix \code{Y}. It should be an n x nx matrix, where nx is
+#'   the number of row covariates.
 #' 
 #' @param B Optional argument giving the initial estimates for the
-#'   coefficients of the row covariates. It should be an m x nx matrix.
+#'   coefficients of the row covariates. It should be an m x nx matrix,
+#'   where nx is the number of row covariates.
 #'   This argument is ignored if X is not provided.
 #' 
 #' @param Z Optional argument giving column covariates of the count
-#'   matrix \code{Y}. It should be an m x nz matrix.
+#'   matrix \code{Y}. It should be an m x nz matrix, where nz is the
+#'   number of column covariates.
 #' 
 #' @param W Optional argument giving the initial estimates for the
-#'   coefficients of the column covariates.  It should be an n x nz
-#'   matrix. This argument is ignored if Z is not provided.
+#'   coefficients of the column covariates.  It should be an n x nz matrix,
+#'   where nz is the number of column covariates.
+#'   This argument is ignored if Z is not provided.
 #'   
 #' @param fixed_b_cols Optional numeric vector specifying which
 #'   columns of \code{B} (if any) should be fixed during
@@ -37,14 +41,14 @@
 #' @param col_size_factor If \code{col_size_factor = TRUE}, add a
 #'   fixed factor accounting for average differences in Poisson rates
 #'   across columns of \code{Y}. Setting \code{col_size_factor = TRUE}
-#'   and \code{row_intercept = TRUE} is intended to replicate what
-#'   \code{glmpca} does.
+#'   and \code{row_intercept = TRUE} is intended to replicate the
+#'   default behavior of \code{glmpca}.
 #' 
 #' @param row_intercept If \code{row_intercept = TRUE}, add a fixed
 #'   factor accounting for average differences in Poisson rates across
 #'   rows of \code{Y}. Setting \code{col_size_factor = TRUE}
-#'   and \code{row_intercept = TRUE} is intended to replicate what
-#'   \code{glmpca} does.
+#'   and \code{row_intercept = TRUE} is intended to replicate the
+#'   default behavior of \code{glmpca}.
 #'
 #' @seealso \code{\link{fit_glmpca_pois}}
 #'

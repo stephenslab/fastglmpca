@@ -10,7 +10,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0 = init_glmpca_pois(Y, K),
-  tol = 0.0001,
+  tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
   verbose = TRUE,
@@ -48,11 +48,11 @@ factorization. This should only be provided if the initial fit
 \code{init_glmpca_pois} or a previous call to
 \code{fit_glmpca_pois}.}
 
-\item{tol}{The optimization steps when the change in the
+\item{tol}{The optimization stops when the change in the
 log-likelihood between two successive iterations is less than this
 amount.}
 
-\item{min_iter}{Minimum nummber of updates to be performed.}
+\item{min_iter}{Minimum number of updates to be performed.}
 
 \item{max_iter}{Maximum number of updates to be performed.}
 
@@ -75,18 +75,22 @@ the matrix factorization. When \code{U} and \code{V} are not
 provided, input argument \code{K} should be specified instead.}
 
 \item{X}{Optional argument giving row covariates of the count
-matrix \code{Y}. It should be an n x nx matrix.}
+matrix \code{Y}. It should be an n x nx matrix, where nx is
+the number of row covariates.}
 
 \item{Z}{Optional argument giving column covariates of the count
-matrix \code{Y}. It should be an m x nz matrix.}
+matrix \code{Y}. It should be an m x nz matrix, where nz is the
+number of column covariates.}
 
 \item{B}{Optional argument giving the initial estimates for the
-coefficients of the row covariates. It should be an m x nx matrix.
+coefficients of the row covariates. It should be an m x nx matrix,
+where nx is the number of row covariates.
 This argument is ignored if X is not provided.}
 
 \item{W}{Optional argument giving the initial estimates for the
-coefficients of the column covariates.  It should be an n x nz
-matrix. This argument is ignored if Z is not provided.}
+coefficients of the column covariates.  It should be an n x nz matrix,
+where nz is the number of column covariates.
+This argument is ignored if Z is not provided.}
 
 \item{fixed_b_cols}{Optional numeric vector specifying which
 columns of \code{B} (if any) should be fixed during
@@ -99,14 +103,14 @@ optimization. This argument is ignored if Z is not provided.}
 \item{col_size_factor}{If \code{col_size_factor = TRUE}, add a
 fixed factor accounting for average differences in Poisson rates
 across columns of \code{Y}. Setting \code{col_size_factor = TRUE}
-and \code{row_intercept = TRUE} is intended to replicate what
-\code{glmpca} does.}
+and \code{row_intercept = TRUE} is intended to replicate the
+default behavior of \code{glmpca}.}
 
 \item{row_intercept}{If \code{row_intercept = TRUE}, add a fixed
 factor accounting for average differences in Poisson rates across
 rows of \code{Y}. Setting \code{col_size_factor = TRUE}
-and \code{row_intercept = TRUE} is intended to replicate what
-\code{glmpca} does.}
+and \code{row_intercept = TRUE} is intended to replicate the
+default behavior of \code{glmpca}.}
 }
 \value{
 An object capturing the final state of the model fit. It
@@ -151,7 +155,7 @@ of \eqn{U}, \eqn{V}, \eqn{D}, \eqn{B} and \eqn{W} satistifying the
 orthogonality constraints for \eqn{U} and \eqn{V} and the
 additional constraints on \eqn{D} that the entries are positive and
 decreasing. This is accomplished by iteratively fitting a series of
-Poisson GLMs, and each of these individual Poissons GLMs is fitted
+Poisson GLMs, where each of these individual Poissons GLMs is fitted
 using a fast cyclic co-ordinate descent (CCD) algorithm.
 
 The \code{control} argument is a list in which any of the following
@@ -160,11 +164,12 @@ settings (as they are defined by \code{fit_glmpca_pois_control_default}):
 
 \describe{
 
-\item{\code{num_ccd_iter}}{Number of CD updates to be made to
-  parameters at each iteration of the algorithm.}
+\item{\code{num_ccd_iter}}{Number of co-ordinate descent
+ updates to be made to parameters at each iteration of 
+ the algorithm.}
 
-\item{\code{line_search}}{If \code{line_search = TRUE},
-  backtracking line search performed at each iteration of CCD to
+\item{\code{line_search}}{If \code{line_search = TRUE}, a
+  backtracking line search is performed at each iteration of CCD to
   guarantee improvement in the objective (the log-likelihood).}
 
 \item{\code{alpha}}{alpha parameter for backtracking line search.
@@ -184,6 +189,11 @@ settings (as they are defined by \code{fit_glmpca_pois_control_default}):
   largest change in \eqn{U} and \eqn{V} after each update is
   calculated and stored. This may be useful for monitoring progress
   of the optimization algorithm.}
+
+\item{\code{orthonormalize}}{If \code{orthonormalize = TRUE}, the
+  matrices \eqn{U} and \eqn{V} are made to be orthogonal after each
+  update step. This generally improves the speed of convergence
+  while incurring minimal overhead.}
 }
 }
 \examples{

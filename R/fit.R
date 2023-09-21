@@ -33,7 +33,7 @@
 #' orthogonality constraints for \eqn{U} and \eqn{V} and the
 #' additional constraints on \eqn{D} that the entries are positive and
 #' decreasing. This is accomplished by iteratively fitting a series of
-#' Poisson GLMs, and each of these individual Poissons GLMs is fitted
+#' Poisson GLMs, where each of these individual Poissons GLMs is fitted
 #' using a fast cyclic co-ordinate descent (CCD) algorithm.
 #' 
 #' The \code{control} argument is a list in which any of the following
@@ -42,11 +42,12 @@
 #' 
 #' \describe{
 #'
-#' \item{\code{num_ccd_iter}}{Number of CD updates to be made to
-#'   parameters at each iteration of the algorithm.}
+#' \item{\code{num_ccd_iter}}{Number of co-ordinate descent
+#'  updates to be made to parameters at each iteration of 
+#'  the algorithm.}
 #'
-#' \item{\code{line_search}}{If \code{line_search = TRUE},
-#'   backtracking line search performed at each iteration of CCD to
+#' \item{\code{line_search}}{If \code{line_search = TRUE}, a
+#'   backtracking line search is performed at each iteration of CCD to
 #'   guarantee improvement in the objective (the log-likelihood).}
 #'
 #' \item{\code{alpha}}{alpha parameter for backtracking line search.
@@ -66,6 +67,11 @@
 #'   largest change in \eqn{U} and \eqn{V} after each update is
 #'   calculated and stored. This may be useful for monitoring progress
 #'   of the optimization algorithm.}
+#' 
+#' \item{\code{orthonormalize}}{If \code{orthonormalize = TRUE}, the
+#'   matrices \eqn{U} and \eqn{V} are made to be orthogonal after each
+#'   update step. This generally improves the speed of convergence
+#'   while incurring minimal overhead.}
 #' }
 #'
 #' @param Y The n x m matrix of counts; all entries of \code{Y} should
@@ -81,11 +87,11 @@
 #'   \code{init_glmpca_pois} or a previous call to
 #'   \code{fit_glmpca_pois}.
 #'   
-#' @param tol The optimization steps when the change in the
+#' @param tol The optimization stops when the change in the
 #'   log-likelihood between two successive iterations is less than this
 #'   amount.
 #'   
-#' @param min_iter Minimum nummber of updates to be performed.
+#' @param min_iter Minimum number of updates to be performed.
 #' 
 #' @param max_iter Maximum number of updates to be performed.
 #' 
@@ -286,7 +292,7 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     if (length(LL_update_indices) > 0) {
       
       # Orthonormalize rows of FF that are not fixed.
-      if (length(joint_update_indices_R) > 1) {
+      if (length(joint_update_indices_R) > 1 && control$orthonormalize) {
         svd_out <- svd(t(fit$FF[joint_update_indices_R,]))
         fit$FF[joint_update_indices_R,] <- t(svd_out$u)
         fit$LL[joint_update_indices_R,] <-
@@ -308,12 +314,9 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     }
     
     if (length(FF_update_indices) > 0) {
-      if (length(joint_update_indices_R) > 1) {
+      if (length(joint_update_indices_R) > 1 && control$orthonormalize) {
         
         # Orthonormalize rows of LL that are not fixed.
-        #
-        # TO DO: Add option to turn this on or off.
-        #
         svd_out <- svd(t(fit$LL[joint_update_indices_R,]))
         fit$LL[joint_update_indices_R,] <- t(svd_out$u)
         fit$FF[joint_update_indices_R,] <-
@@ -321,30 +324,17 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
           fit$FF[joint_update_indices_R,]
       }
 
-      if (length(fit$fixed_v_cols) > 0) {
-        update_factors_faster_parallel(
-          L_T = t(fit$LL),
-          FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
-          update_indices = FF_update_indices,
-          num_iter = control$num_ccd_iter,
-          line_search = control$line_search,
-          alpha = control$alpha,
-          beta = control$beta
-        ) 
+      update_factors_faster_parallel(
+        L_T = t(fit$LL),
+        FF = fit$FF,
+        M = as.matrix(MatrixExtra::tcrossprod(fit$LL[FF_update_indices_R, ], Y_T)),
+        update_indices = FF_update_indices,
+        num_iter = control$num_ccd_iter,
+        line_search = control$line_search,
+        alpha = control$alpha,
+        beta = control$beta
+      ) 
         
-      } else {
-        update_factors_faster_parallel(
-          L_T = t(fit$LL),
-          FF = fit$FF,
-          M = as.matrix(MatrixExtra::tcrossprod(fit$LL,Y_T)),
-          update_indices = FF_update_indices,
-          num_iter = control$num_ccd_iter,
-          line_search = control$line_search,
-          alpha = control$alpha,
-          beta = control$beta
-        ) 
-      }
     } 
     
     new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
@@ -405,4 +395,5 @@ fit_glmpca_pois_control_default <- function()
        num_ccd_iter = 3,
        ccd_iter_tol = 0,
        calc_deriv = FALSE,
-       calc_max_diff = FALSE)
+       calc_max_diff = FALSE,
+       orthonormalize = TRUE)
