@@ -208,7 +208,7 @@ fit_glmpca_pois <- function(
               V = t(fit$FF),
               fixed_b_cols = fit0$fixed_b_cols,
               fixed_w_cols = fit0$fixed_w_cols,
-              loglik       = out$loglik,
+              loglik       = fit$loglik,
               progress     = rbind(fit0$progress,out$progress))
   if (nx > 0) {
     fit$X <- fit$U[,K + seq(1,nx)]
@@ -227,8 +227,8 @@ fit_glmpca_pois <- function(
   fit$U <- fit$U[,1:K]
   fit$V <- fit$V[,1:K]
   fit <- orthonormalize_fit(fit)
-  dimnames(fit$U) <- colnames(fit0$U)
-  dimnames(fit$V) <- colnames(fit0$V)
+  dimnames(fit$U) <- dimnames(fit0$U)
+  dimnames(fit$V) <- dimnames(fit0$V)
   dimnames(fit$X) <- dimnames(fit0$X)
   dimnames(fit$B) <- dimnames(fit0$B)
   dimnames(fit$Z) <- dimnames(fit0$Z)
@@ -284,14 +284,13 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   }
   
   # Some other housekeeping.
-  current_lik <- fit0$loglik
   Y_T <- Matrix::t(Y)
   
   converged <- FALSE
   iter <- 0
   if (verbose)
     cat(sprintf("Fitting GLM-PCA model to a %d x %d count matrix.\n",n,m))
-  while (!converged && iter < max_iter) {
+  while (!converged & iter < max_iter) {
     iter <- iter + 1
     start_time <- proc.time()
     if (control$calc_max_diff) {
@@ -306,7 +305,7 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     # Update the "progress" data frame.
     new_lik                 <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
     end_iter_time           <- proc.time()
-    progress[iter,"loglik"] <- current_lik
+    progress[iter,"loglik"] <- new_lik
     progress[iter,"time"]   <- (end_iter_time - start_time)["elapsed"]
     if (control$calc_max_diff) {
       progress[iter,"max_diff_l"] <- max(abs(fit$LL - start_iter_LL))
@@ -332,19 +331,17 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     # Check whether the stopping criterion is met.
     if (verbose)
       cat(sprintf("Iteration %d: log-Likelihood = %+0.8e\n",iter,new_lik))
-    if (new_lik < current_lik)
+    if (new_lik < fit$loglik)
       warning("Detected decrease in the log-likelihood")
-    if (new_lik >= current_lik && iter >= min_iter) {
-      if (new_lik - current_lik < tol)
+    if (new_lik >= fit$loglik & iter >= min_iter) {
+      if (new_lik - fit$loglik < tol)
         converged <- TRUE
     }
-    current_lik <- new_lik
+    fit$loglik <- new_lik
   }
   if (!converged)
     warning("Algorithm did not meet convergence criterion")
-  return(list(fit      = fit,
-              progress = progress[1:iter,],
-              loglik   = current_lik))
+  return(list(fit = fit,progress = progress[1:iter,]))
 }
 
 #' @rdname fit_glmpca_pois
