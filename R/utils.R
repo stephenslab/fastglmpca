@@ -49,22 +49,3 @@ orthonormalize <- function (U, V) {
   }
 }
 
-add_dimnames_to_fit <- function (fit, Y) {
-  rownames(fit$U) <- rownames(Y)
-  rownames(fit$V) <- colnames(Y)
-  colnames(fit$U) <- paste("k",1:K,sep = "_")
-  colnames(fit$V) <- paste("k",1:K,sep = "_")
-  rownames(fit$D) <- paste("k",1:K,sep = "_")
-  colnames(fit$D) <- paste("k",1:K,sep = "_")
-  if (length(fit$X) > 0) {
-    rownames(fit$X) <- rownames(Y)
-    rownames(fit$B) <- colnames(Y)
-    colnames(fit$B) <- colnames(fit$X)
-  }
-  if (length(fit$Z) > 0) {
-    rownames(fit$Z) <- colnames(Y)
-    rownames(fit$W) <- rownames(Y)
-    colnames(fit$W) <- colnames(fit$Z)
-  }
-  return(fit)
-}

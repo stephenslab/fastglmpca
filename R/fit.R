@@ -227,7 +227,12 @@ fit_glmpca_pois <- function(
   fit$U <- fit$U[,1:K]
   fit$V <- fit$V[,1:K]
   fit <- orthonormalize_fit(fit)
-  fit <- add_dimnames_to_fit(fit,Y)
+  dimnames(fit$U) <- colnames(fit0$U)
+  dimnames(fit$V) <- colnames(fit0$V)
+  dimnames(fit$X) <- dimnames(fit0$X)
+  dimnames(fit$B) <- dimnames(fit0$B)
+  dimnames(fit$Z) <- dimnames(fit0$Z)
+  dimnames(fit$W) <- dimnames(fit0$W)
   class(fit) <- c("glmpca_pois_fit","list")
   return(fit)
 }
