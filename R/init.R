@@ -195,24 +195,15 @@ init_glmpca_pois <- function(
               fixed_b_cols = fixed_b_cols,
               fixed_w_cols = fixed_w_cols,
               loglik = loglik,
-              progress = data.frame(iter = 0,loglik = loglik,time = 0))
+              progress = data.frame(iter        = 0,
+                                    loglik      = loglik,
+                                    time        = 0,
+                                    max_deriv_f = as.numeric(NA),
+                                    max_deriv_l = as.numeric(NA),
+                                    max_diff_f  = as.numeric(NA),
+                                    max_diff_l  = as.numeric(NA)))
   fit <- orthonormalize_fit(fit)
+  fit <- add_dimnames_to_fit(fit,Y)
   class(fit) <- c("glmpca_pois_fit","list")
-  rownames(fit$U) <- rownames(Y)
-  rownames(fit$V) <- colnames(Y)
-  colnames(fit$U) <- paste("k",1:K,sep = "_")
-  colnames(fit$V) <- paste("k",1:K,sep = "_")
-  rownames(fit$D) <- paste("k",1:K,sep = "_")
-  colnames(fit$D) <- paste("k",1:K,sep = "_")
-  if (length(fit$X) > 0) {
-    rownames(fit$X) <- rownames(Y)
-    rownames(fit$B) <- colnames(Y)
-    colnames(fit$B) <- colnames(fit$X)
-  }
-  if (length(fit$Z) > 0) {
-    rownames(fit$Z) <- colnames(Y)
-    rownames(fit$W) <- rownames(Y)
-    colnames(fit$W) <- colnames(fit$Z)
-  }
   return(fit)
 }

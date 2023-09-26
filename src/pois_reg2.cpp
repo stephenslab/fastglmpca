@@ -37,11 +37,8 @@ inline arma::vec solve_pois_reg_faster_cpp (
   current_nonlinear_lik = sum(exp_eta);
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
     double lik_improvement = 0.0;
-    
     for (int idx = 0; idx < num_indices; idx++) {
-      
       j = update_indices[idx];
       
       // Now, take derivatives
@@ -53,14 +50,12 @@ inline arma::vec solve_pois_reg_faster_cpp (
       newton_dir = first_deriv / second_deriv;
       
       if (line_search) {
-        
         t = 1.0;
         step_accepted = false;
         newton_dec = alpha * first_deriv * newton_dir;
         b_j_og = b(j);
         
         while(!step_accepted) {
-          
           b(j) = b_j_og - t * newton_dir;
           eta_proposed = eta + (b(j) - b_j_og) * X.col(j);
           exp_eta_proposed = exp(eta_proposed);
@@ -75,39 +70,25 @@ inline arma::vec solve_pois_reg_faster_cpp (
             exp_eta = exp_eta_proposed;
             
           } else {
-            
             t = beta * t;
-            
             if (abs((t * newton_dir) / b_j_og) < 1e-16) {
-              
               b(j) = b_j_og;
               step_accepted = true;
-              
             }
-            
           }
-          
         }
-        
       } else {
         
         // take a full Newton step
         b(j) = b(j) - newton_dir;
-        
       }
-      
     }
     
     if (lik_improvement < 1e-8) {
-      
       break;
-      
     }
-    
   }
-  
   return(b);
-  
 }
 
 inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
@@ -143,11 +124,8 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
   current_nonlinear_lik = sum(exp_eta);
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    
     double lik_improvement = 0.0;
-    
     for (int idx = 0; idx < num_indices; idx++) {
-      
       j = update_indices[idx];
       
       // Now, take derivatives
@@ -157,7 +135,6 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
       second_deriv = sum(exp_deriv_term % X.col(j));
       
       newton_dir = first_deriv / second_deriv;
-      
       if (line_search) {
         
         t = 1.0;
@@ -179,53 +156,37 @@ inline arma::vec solve_pois_reg_faster_calc_lik_cpp (
             current_nonlinear_lik = f_proposed + b(j) * m(idx);
             eta = eta_proposed;
             exp_eta = exp_eta_proposed;
-            
           } else {
             
             t = beta * t;
-            
             if (abs((t * newton_dir) / b_j_og) < 1e-16) {
-              
               b(j) = b_j_og;
               step_accepted = true;
-              
             }
-            
           }
-          
         }
-        
       } else {
         
-        // take a full Newton step
+        // Take a full Newton step.
         b(j) = b(j) - newton_dir;
-        
       }
-      
     }
     
     // if likelihood didn't improve much after cycling through all params
     // move on
     if (lik_improvement < 1e-8) {
-      
       break;
-      
     }
-    
   }
   
   double end_linear_lik = 0.0;
-  
   for (int idx = 0; idx < num_indices; idx++) {
-    
     j = update_indices[idx];
     end_linear_lik = end_linear_lik + b(j) * m(idx);
-    
   }
   
   *end_lik = current_nonlinear_lik - end_linear_lik;
   return(b);
-  
 }
 
 struct LoadingsUpdater : public Worker {

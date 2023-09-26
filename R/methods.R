@@ -20,7 +20,7 @@
 #' 
 fitted.glmpca_pois_fit <- function (object, ...) {
   verify.fit(object)
-  exp(tcrossprod(object$U %*% object$D, object$V))
+  return(exp(tcrossprod(object$U %*% object$D,object$V)))
 }
 
 #' @rdname summary.glmpca_pois_fit

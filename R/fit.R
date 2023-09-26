@@ -199,26 +199,36 @@ fit_glmpca_pois <- function(
     fit$fixed_f <- c(fit$fixed_f,K + nx + seq(1,nz))
 
   # Perform the updates.
-  fit <- fit_glmpca_pois_main_loop(fit,Y,min_iter,max_iter,tol,verbose,control)
+  out <- fit_glmpca_pois_main_loop(fit,Y,min_iter,max_iter,tol,verbose,control)
+  fit <- out$fit
   
-  # POSTPROCESSIING.
-  fit$progress$time <- fit$progress$time[1:t]
-  fit$progress$iter <- fit$progress$iter[1:t]
-  fit$progress$loglik <- fit$progress$loglik[1:t]
-    
-  if (control$calc_deriv) {
-    fit$progress$max_FF_deriv <- fit$progress$max_FF_deriv[1:t]
-    fit$progress$max_LL_deriv <- fit$progress$max_LL_deriv[1:t]
+  # Prepare the final output.
+  out$progress$iter <- max(fit0$progress$iter) + out$progress$iter 
+  fit <- list(U = t(fit$LL),
+              V = t(fit$FF),
+              fixed_b_cols = fit0$fixed_b_cols,
+              fixed_w_cols = fit0$fixed_w_cols,
+              loglik       = out$loglik,
+              progress     = rbind(fit0$progress,out$progress))
+  if (nx > 0) {
+    fit$X <- fit$U[,K + seq(1,nx)]
+    fit$B <- fit$V[,K + seq(1,nx)]
+  } else {
+    fit$X <- numeric(0)
+    fit$B <- numeric(0)
   }
-  if (control$calc_max_diff) {
-    fit$progress$max_diff_FF <- fit$progress$max_diff_FF[1:t]
-    fit$progress$max_diff_LL <- fit$progress$max_diff_LL[1:t] 
+  if (nz > 0) {
+    fit$Z <- fit$V[,K + nx + seq(1,nz)]
+    fit$W <- fit$U[,K + nx + seq(1,nz)]
+  } else {
+    fit$Z <- numeric(0)
+    fit$W <- numeric(0)
   }
-  
-  colnames(fit$LL) <- rownames(Y)
-  colnames(fit$FF) <- colnames(Y)
-  
-  fit <- postprocess_fit(fit,nx,nz,K)
+  fit$U <- fit$U[,1:K]
+  fit$V <- fit$V[,1:K]
+  fit <- orthonormalize_fit(fit)
+  fit <- add_dimnames_to_fit(fit,Y)
+  class(fit) <- c("glmpca_pois_fit","list")
   return(fit)
 }
 
@@ -248,13 +258,13 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   } 
 
   # Set up the data structure for recording the algorithm's progress.
-  progress <- data.frame(iter         = 1:max_iter,
-                         loglik       = rep(0,max_iter),
-                         time         = rep(0,max_iter),
-                         max_FF_deriv = rep(as.numeric(NA),max_iter),
-                         max_LL_deriv = rep(as.numeric(NA),max_iter),
-                         max_diff_FF  = rep(as.numeric(NA),max_iter),
-                         max_diff_LL  = rep(as.numeric(NA),max_iter))
+  progress <- data.frame(iter        = 1:max_iter,
+                         loglik      = rep(0,max_iter),
+                         time        = rep(0,max_iter),
+                         max_deriv_f = rep(as.numeric(NA),max_iter),
+                         max_deriv_l = rep(as.numeric(NA),max_iter),
+                         max_diff_f  = rep(as.numeric(NA),max_iter),
+                         max_diff_l  = rep(as.numeric(NA),max_iter))
 
   # Set up other data structures used in the calculations below.
   if (control$calc_deriv) {
@@ -273,10 +283,11 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
   Y_T <- Matrix::t(Y)
   
   converged <- FALSE
-  iter <- 1
+  iter <- 0
   if (verbose)
     cat(sprintf("Fitting GLM-PCA model to a %d x %d count matrix.\n",n,m))
-  while (!converged && iter <= max_iter) {
+  while (!converged && iter < max_iter) {
+    iter <- iter + 1
     start_time <- proc.time()
     if (control$calc_max_diff) {
       start_iter_LL <- fit$LL
@@ -287,54 +298,48 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     fit <- update_glmpca_pois(Y,Y_T,fit,update_indices_l,
                               update_indices_f,control)
 
-    browser()
-    
     # Update the "progress" data frame.
-    new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
-    end_iter_time <- proc.time()
-    time_since_start <-
-      as.numeric(difftime(end_iter_time,start_time,units = "secs"))
-    current_lik <- new_lik
+    new_lik                 <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
+    end_iter_time           <- proc.time()
     progress[iter,"loglik"] <- current_lik
-    progress[iter,"time"] <- time_since_start
-    if (calc_max_diff) {
-      progress[iter,"max_diff_LL"] <- max(abs(fit$LL - start_iter_LL))
-      progress[iter,"max_diff_FF"] <- max(abs(fit$FF - start_iter_FF))
+    progress[iter,"time"]   <- (end_iter_time - start_time)["elapsed"]
+    if (control$calc_max_diff) {
+      progress[iter,"max_diff_l"] <- max(abs(fit$LL - start_iter_LL))
+      progress[iter,"max_diff_f"] <- max(abs(fit$FF - start_iter_FF))
     }
-    if(inherits(Y,"sparseMatrix") && calc_deriv) {
-      progress[iter,"max_FF_deriv"] <-
-        max(abs((deriv_product(fit$LL, fit$FF) - fit$LL %*% Y) * FF_mask))
-      progress[iter,"max_LL_deriv"] <-
-        max(abs((deriv_product(fit$FF, fit$LL) -
-                 Matrix::tcrossprod(fit$FF, Y)) * LL_mask))
-    } else if (calc_deriv) {
-      progress[iter,"max_FF_deriv"] <-
-        max(abs(crossprod(exp(crossprod(fit$LL, fit$FF)) - Y, t(fit$LL)) * FF_mask))
-      progress[iter,"max_LL_deriv"] <-
-        max(abs(crossprod(exp(crossprod(fit$FF, fit$LL)) - t(Y), t(fit$FF)) * LL_mask))
+    if (control$calc_deriv) {
+      if(inherits(Y,"sparseMatrix")) {
+        progress[iter,"max_deriv_f"] <-
+          max(abs((deriv_product(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
+        progress[iter,"max_deriv_l"] <-
+          max(abs((deriv_product(fit$FF,fit$LL) -
+                   Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
+      } else {
+        progress[iter,"max_deriv_f"] <-
+          max(abs(crossprod(exp(crossprod(fit$LL,fit$FF)) - Y,
+                            t(fit$LL)) * FF_mask))
+        progress[iter,"max_deriv_l"] <-
+          max(abs(crossprod(exp(crossprod(fit$FF,fit$LL)) - t(Y),
+                            t(fit$FF)) * LL_mask))
+      }
     }
-
+    
     # Check whether the stopping criterion is met.
-    # TO DO: Add check for decreasing log-likelihood.
-    if (new_lik >= current_lik && iter >= min_iter) {
-      rel_improvement <- new_lik - current_lik
-      if (rel_improvement < tol) {
-        converged <- TRUE
-        if (verbose)
-          cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",iter,new_lik))
-      } 
-    }
-    iter <- iter + 1
-  }
-  
-  if (verbose)
-    cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",
-                iter,current_lik))
-  if (t > max_iter && !converged) {
     if (verbose)
-      cat(sprintf("Iteration %d: Log-Likelihood = %+0.8e\n",t - 1,new_lik))
-    warning("Algorithm reached maximum iterations without convergence")
+      cat(sprintf("Iteration %d: log-Likelihood = %+0.8e\n",iter,new_lik))
+    if (new_lik < current_lik)
+      warning("Detected decrease in the log-likelihood")
+    if (new_lik >= current_lik && iter >= min_iter) {
+      if (new_lik - current_lik < tol)
+        converged <- TRUE
+    }
+    current_lik <- new_lik
   }
+  if (!converged)
+    warning("Algorithm did not meet convergence criterion")
+  return(list(fit      = fit,
+              progress = progress[1:iter,],
+              loglik   = current_lik))
 }
 
 #' @rdname fit_glmpca_pois

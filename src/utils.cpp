@@ -24,13 +24,9 @@ double big_exp_crossprod(
     
     #pragma omp parallel for reduction (+:sum)
     for (int j = 0; j < p; j++) {
-      
-      sum = sum + exp(arma::dot(L.col(i), F.col(j)));
-      
+      sum = sum + exp(arma::dot(L.col(i), F.col(j)));      
     }
-    
   }
-  
   return(sum);
   
 }
@@ -53,7 +49,6 @@ double big_elementwise_mult_crossprod(
   
   #pragma omp parallel for reduction (+:sum)
   for (int r = 0; r < num_nonzero_y; r++) {
-    
     sum = sum + nonzero_y[r] * arma::dot(L.col(nonzero_y_i_idx[r]), F.col(nonzero_y_j_idx[r]));
     
   }
@@ -82,26 +77,17 @@ arma::mat deriv_product(
   
   #pragma omp parallel for shared(prod) private(exp_arg)
   for (int k = 0; k < n; k++) {
-    
     for (int i = 0; i < K; i++) {
-      
       for (int j = 0; j < p; j++) {
-        
         exp_arg = 0;
-        
         for (int m = 0; m < K; m++) {
-          
           exp_arg += L(m, k) * F(m, j);
-          
         }
         
         #pragma omp atomic
         prod(i, j) += L(i, k) * exp(exp_arg);
-        
       }
-      
     }
-    
   }
   
   return(prod);

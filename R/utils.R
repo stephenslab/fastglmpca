@@ -49,106 +49,22 @@ orthonormalize <- function (U, V) {
   }
 }
 
-# remove element from list by name
-safe_remove_elem <- function(l, name) {
-  
-  if (name %in% names(l)) {
-    
-    l <- l[names(l) != name]
-    
+add_dimnames_to_fit <- function (fit, Y) {
+  rownames(fit$U) <- rownames(Y)
+  rownames(fit$V) <- colnames(Y)
+  colnames(fit$U) <- paste("k",1:K,sep = "_")
+  colnames(fit$V) <- paste("k",1:K,sep = "_")
+  rownames(fit$D) <- paste("k",1:K,sep = "_")
+  colnames(fit$D) <- paste("k",1:K,sep = "_")
+  if (length(fit$X) > 0) {
+    rownames(fit$X) <- rownames(Y)
+    rownames(fit$B) <- colnames(Y)
+    colnames(fit$B) <- colnames(fit$X)
   }
-  
-  return(l)
-  
-}
-
-postprocess_fit <- function(fit, n_x, n_z, K) {
-  
-  names(fit)[names(fit) == "LL"] <- "U"
-  fit$U <- t(fit$U)
-  
-  names(fit)[names(fit) == "FF"] <- "V"
-  fit$V <- t(fit$V)
-  
-  if (n_x > 0) {
-    
-    fit$X <- as.matrix(fit$U[,(K + 1):(K + n_x)])
-    fit$B <- as.matrix(fit$V[,(K + 1):(K + n_x)])
-    
-    rownames(fit$X) <- rownames(fit$U)
-    rownames(fit$B) <- rownames(fit$B)
-    
-    colnames(fit$X) <- colnames(fit$U[(K + 1):(K + n_x)])
-    colnames(fit$B) <- colnames(fit$V[(K + 1):(K + n_x)])
-    
-  } else {
-    
-    fit$X <- numeric(0)
-    fit$B <- numeric(0)
-    
+  if (length(fit$Z) > 0) {
+    rownames(fit$Z) <- colnames(Y)
+    rownames(fit$W) <- rownames(Y)
+    colnames(fit$W) <- colnames(fit$Z)
   }
-  
-  if (n_z > 0) {
-    
-    fit$Z <- as.matrix(fit$V[,(K + n_x + 1):(K + n_x + n_z)])
-    fit$W <- as.matrix(fit$U[,(K + n_x + 1):(K + n_x + n_z)])
-    
-    rownames(fit$Z) <- rownames(fit$V)
-    rownames(fit$W) <- rownames(fit$U)
-    
-    colnames(fit$Z) <- colnames(fit$V[(K + n_x + 1):(K + n_x + n_z)])
-    colnames(fit$W) <- colnames(fit$U[(K + n_x + 1):(K + n_x + n_z)])
-    
-  } else {
-    
-    fit$Z <- numeric(0)
-    fit$W <- numeric(0)
-    
-  }
-  
-  if (n_x + n_z > 0) {
-    
-    fit$U <- as.matrix(fit$U[,1:K])
-    fit$V <- as.matrix(fit$V[,1:K])
-    
-  }
-  
-  if ("max_FF_deriv" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_FF_deriv"] <- "max_deriv_V"
-    
-  }
-  
-  if ("max_LL_deriv" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_LL_deriv"] <- "max_deriv_U"
-    
-  }
-  
-  if ("max_diff_FF" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_diff_FF"] <- "max_diff_V"
-    
-  }
-  
-  if ("max_diff_LL" %in% names(fit$progress)) {
-    
-    names(fit$progress)[names(fit$progress) == "max_diff_LL"] <- "max_diff_U"
-    
-  }
-  
-  class(fit) <- c("glmpca_pois_fit", "list")
-  
-  fit <- orthonormalize_fit(fit)
-  
-  rownames(fit$D) <- colnames(fit$U)
-  colnames(fit$D) <- colnames(fit$V)
-  
-  fit <- safe_remove_elem(fit, "fixed_loadings")
-  fit <- safe_remove_elem(fit, "fixed_factors")
-  
-  fit$progress <- as.data.frame(fit$progress)
-  
   return(fit)
-  
 }
