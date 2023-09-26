@@ -183,8 +183,8 @@ fit_glmpca_pois <- function(
                         keep.null = TRUE)
 
   # Set up the internal "fit" object.
-  fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
-              FF = t(cbind(fit0$V,fit0$B,fit0$Z)),
+  fit <- list(LL = t(cbind(fit0$U %*% sqrt(fit0$D),fit0$X,fit0$W)),
+              FF = t(cbind(fit0$V %*% sqrt(fit0$D),fit0$B,fit0$Z)),
               fixed_l = numeric(0),
               fixed_f = numeric(0),
               loglik = fit0$loglik)
@@ -284,13 +284,11 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
       FF_mask <- t(FF_mask)
   }
   
-  # Some other housekeeping.
-  Y_T <- Matrix::t(Y)
-  
   converged <- FALSE
   iter <- 0
+  Y_T <- Matrix::t(Y)
   if (verbose)
-    cat(sprintf("Fitting GLM-PCA model to a %d x %d count matrix.\n",n,m))
+    cat(sprintf("Fitting GLM-PCA model to %d x %d count matrix.\n",n,m))
   while (!converged & iter < max_iter) {
     iter <- iter + 1
     start_time <- proc.time()
