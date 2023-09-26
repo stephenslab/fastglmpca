@@ -186,7 +186,8 @@ fit_glmpca_pois <- function(
   fit <- list(LL = t(cbind(fit0$U %*% fit0$D,fit0$X,fit0$W)),
               FF = t(cbind(fit0$V,fit0$B,fit0$Z)),
               fixed_l = numeric(0),
-              fixed_f = numeric(0))
+              fixed_f = numeric(0),
+              loglik = fit0$loglik)
 
   # Determine which rows of LL, FF are "clamped".
   nx <- ifelse(length(fit0$X) > 0,ncol(fit0$X),0)
