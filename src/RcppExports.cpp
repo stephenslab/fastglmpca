@@ -11,23 +11,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// update_loadings_faster_parallel
-void update_loadings_faster_parallel(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta);
-RcppExport SEXP _fastglmpca_update_loadings_faster_parallel(SEXP F_TSEXP, SEXP LSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type F_T(F_TSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type M(MSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type update_indices(update_indicesSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type num_iter(num_iterSEXP);
-    Rcpp::traits::input_parameter< bool >::type line_search(line_searchSEXP);
-    Rcpp::traits::input_parameter< double >::type alpha(alphaSEXP);
-    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
-    update_loadings_faster_parallel(F_T, L, M, update_indices, num_iter, line_search, alpha, beta);
-    return R_NilValue;
-END_RCPP
-}
 // update_factors_faster_parallel
 void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta);
 RcppExport SEXP _fastglmpca_update_factors_faster_parallel(SEXP L_TSEXP, SEXP FFSEXP, SEXP MSEXP, SEXP update_indicesSEXP, SEXP num_iterSEXP, SEXP line_searchSEXP, SEXP alphaSEXP, SEXP betaSEXP) {
@@ -89,7 +72,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_fastglmpca_update_loadings_faster_parallel", (DL_FUNC) &_fastglmpca_update_loadings_faster_parallel, 8},
     {"_fastglmpca_update_factors_faster_parallel", (DL_FUNC) &_fastglmpca_update_factors_faster_parallel, 8},
     {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
     {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},

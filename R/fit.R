@@ -368,19 +368,18 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
       fit$LL[k,] <- diag(out$d) %*% t(out$v) %*% fit$LL[k,]
     }
 
-    # TO DO: Check that this gives the same result as
-    # update_factors_faster_parallel.
-    LLnew <- matrix(fit$LL,K,n)
-    i     <- update_indices_l - 1
-    update_loadings_faster_parallel(
-      F_T = t(fit$FF),
-      L = LLnew,
-      M = as.matrix(MatrixExtra::tcrossprod(fit$FF[update_indices_l,],Y)),
-      update_indices = i,
-      num_iter = control$num_ccd_iter,
-      line_search = control$line_search,
-      alpha = control$alpha,
-      beta = control$beta)
+    # Update the LL matrix.
+    LLnew  <- matrix(fit$LL,K,n)
+    i      <- update_indices_l - 1
+    update_factors_faster_parallel(
+        L_T = t(fit$FF),
+        FF = LLnew,
+        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[update_indices_l,],Y)),
+        update_indices = i,
+        num_iter = control$num_ccd_iter,
+        line_search = control$line_search,
+        alpha = control$alpha,
+        beta = control$beta)
     fit$LL <- LLnew
   }
 
@@ -393,8 +392,9 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
       fit$FF[k,] <- diag(out$d) %*% t(out$v) %*% fit$FF[k,]
     }
 
+    # Update the FF matrix.
     FFnew <- matrix(fit$FF,K,m)
-    i <- update_indices_f - 1
+    i     <- update_indices_f - 1
     update_factors_faster_parallel(
       L_T = t(fit$LL),
       FF = FFnew,

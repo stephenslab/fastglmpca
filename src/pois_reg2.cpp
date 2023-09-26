@@ -276,13 +276,6 @@ struct FactorsUpdater : public Worker {
 
 // [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
 // [[Rcpp::export]]
-void update_loadings_faster_parallel(const arma::mat& F_T, arma::mat& L, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta) {
-  LoadingsUpdater updater(F_T, M, L, update_indices, num_iter, line_search, alpha, beta);
-  parallelFor(0, L.n_cols, updater);
-}
-
-// [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
-// [[Rcpp::export]]
 void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, const arma::mat& M, const std::vector<int> update_indices, unsigned int num_iter, bool line_search, double alpha, double beta) {
   FactorsUpdater updater(L_T, M, FF, update_indices, num_iter, line_search, alpha, beta);
   parallelFor(0, FF.n_cols, updater);
