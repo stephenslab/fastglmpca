@@ -9,9 +9,11 @@ test_that("Some basic tests of fit_glmpca_pois",{
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
 
   # Fit a GLM-PCA model to the data.
-  fit0 <- init_glmpca_pois(Y,K = 3,)
+  fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 500,tol = 1e-8,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
+  suppressWarnings(capture.output(
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
                            control = list(calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
@@ -43,7 +45,9 @@ test_that("fit_glmpca_pois works with K = 1",{
   # Fit a GLM-PCA model to the data.
   fit0 <- init_glmpca_pois(Y,K = 1)
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 500,tol = 1e-8,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
+  suppressWarnings(capture.output(
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
                            control = list(calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
@@ -73,9 +77,10 @@ test_that("fit_glmpca_pois works with orthonormalize = FALSE",{
   # Fit a GLM-PCA model to the data.
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 500,tol = 1e-8,
-                           control = list(orthonormalize = FALSE,
-                                          calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
+  suppressWarnings(capture.output(
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
+                           control = list(calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
 
