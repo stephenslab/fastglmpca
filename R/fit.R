@@ -368,14 +368,13 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
   m <- ncol(Y)
   K <- nrow(fit$FF)
   k <- sort(intersect(update_indices_l,update_indices_f))
-
   if (length(update_indices_l) > 0) {
       
     # If requested, orthogonalize rows of FF that are not fixed.
     if (length(k) > 1 & control$orthonormalize) {
-      out        <- svd(t(fit$FF[k,]))
+      out        <- svd(t(fit$FF[k,,drop = FALSE]))
       fit$FF[k,] <- t(out$u)
-      fit$LL[k,] <- diag(out$d) %*% t(out$v) %*% fit$LL[k,]
+      fit$LL[k,] <- diag(out$d) %*% t(out$v) %*% fit$LL[k,,drop = FALSE]
     }
 
     # Update the LL matrix.
@@ -384,7 +383,8 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
     update_factors_faster_parallel(
         L_T = t(fit$FF),
         FF = LLnew,
-        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[update_indices_l,],Y)),
+        M = as.matrix(MatrixExtra::tcrossprod(fit$FF[update_indices_l,,
+                                                     drop = FALSE],Y)),
         update_indices = i,
         num_iter = control$num_ccd_iter,
         line_search = control$line_search,
@@ -397,9 +397,9 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
 
     # If requested, orthogonalize rows of LL that are not fixed.
     if (length(k) > 1 & control$orthonormalize) {
-      out        <- svd(t(fit$LL[k,]))
+      out        <- svd(t(fit$LL[k,,drop = FALSE]))
       fit$LL[k,] <- t(out$u)
-      fit$FF[k,] <- diag(out$d) %*% t(out$v) %*% fit$FF[k,]
+      fit$FF[k,] <- diag(out$d) %*% t(out$v) %*% fit$FF[k,,drop = FALSE]
     }
 
     # Update the FF matrix.
@@ -408,7 +408,8 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
     update_factors_faster_parallel(
       L_T = t(fit$LL),
       FF = FFnew,
-      M = as.matrix(MatrixExtra::tcrossprod(fit$LL[update_indices_f,],Y_T)),
+      M = as.matrix(MatrixExtra::tcrossprod(fit$LL[update_indices_f,,
+                                                   drop = FALSE],Y_T)),
       update_indices = i,
       num_iter = control$num_ccd_iter,
       line_search = control$line_search,
