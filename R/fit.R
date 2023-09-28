@@ -212,28 +212,32 @@ fit_glmpca_pois <- function(
               loglik       = fit$loglik,
               progress     = rbind(fit0$progress,out$progress))
   if (nx > 0) {
-    fit$X <- fit$U[,K + seq(1,nx)]
-    fit$B <- fit$V[,K + seq(1,nx)]
+    fit$X <- fit$U[,K + seq(1,nx),drop = FALSE]
+    fit$B <- fit$V[,K + seq(1,nx),drop = FALSE]
   } else {
     fit$X <- numeric(0)
     fit$B <- numeric(0)
   }
   if (nz > 0) {
-    fit$Z <- fit$V[,K + nx + seq(1,nz)]
-    fit$W <- fit$U[,K + nx + seq(1,nz)]
+    fit$Z <- fit$V[,K + nx + seq(1,nz),drop = FALSE]
+    fit$W <- fit$U[,K + nx + seq(1,nz),drop = FALSE]
   } else {
     fit$Z <- numeric(0)
     fit$W <- numeric(0)
   }
-  fit$U <- fit$U[,1:K]
-  fit$V <- fit$V[,1:K]
+  fit$U <- fit$U[,1:K,drop = FALSE]
+  fit$V <- fit$V[,1:K,drop = FALSE]
   fit <- orthonormalize_fit(fit)
   dimnames(fit$U) <- dimnames(fit0$U)
   dimnames(fit$V) <- dimnames(fit0$V)
-  dimnames(fit$X) <- dimnames(fit0$X)
-  dimnames(fit$B) <- dimnames(fit0$B)
-  dimnames(fit$Z) <- dimnames(fit0$Z)
-  dimnames(fit$W) <- dimnames(fit0$W)
+  if (length(fit$X) > 0) {
+    dimnames(fit$X) <- dimnames(fit0$X)
+    dimnames(fit$B) <- dimnames(fit0$B)
+  }
+  if (length(fit$Z) > 0) {
+    dimnames(fit$Z) <- dimnames(fit0$Z)
+    dimnames(fit$W) <- dimnames(fit0$W)
+  }
   class(fit) <- c("glmpca_pois_fit","list")
   return(fit)
 }
@@ -329,7 +333,7 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     
     # Check whether the stopping criterion is met.
     if (verbose)
-      cat(sprintf("Iteration %d: log-Likelihood = %+0.8e\n",iter,new_lik))
+      cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",iter,new_lik))
     if (new_lik < fit$loglik)
       warning("Detected decrease in the log-likelihood")
     if (new_lik >= fit$loglik & iter >= min_iter) {

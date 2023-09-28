@@ -39,14 +39,14 @@ fitted.glmpca_pois_fit <- function (object, ...) {
 #' @param \dots Additional arguments passed to the generic
 #'   \code{summary} or \code{print.summary} method.
 #'
-#' @return A vector of statistics summarizing the model fit.
+#' @return \code{summary} returns a vector of basic statistics
+#'   summarizing the model fit.
 #' 
 #' @method summary glmpca_pois_fit
 #'
 #' @export
 #' 
 summary.glmpca_pois_fit <- function (object, ...) {
-  verify.fit(object)
   numiter <- length(object$progress$iter)
   out <- c(n       = nrow(object$U),
            m       = nrow(object$V),

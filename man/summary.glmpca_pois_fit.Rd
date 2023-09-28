@@ -20,9 +20,10 @@ typically the result of calling \code{\link{fit_glmpca_pois}}.}
 usually the result of a call to \code{summary.glmpca_fit}.}
 }
 \value{
-A vector of statistics summarizing the model fit.
+\code{summary} returns a vector of basic statistics
+  summarizing the model fit.
 }
 \description{
-\code{summary} method for the
-  \dQuote{glmpcan_fit} class.
+\code{summary} method for objects of class
+  \dQuote{glmpcan_fit_pois}.
 }
