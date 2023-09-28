@@ -24,6 +24,7 @@ pdat <- rbind(data.frame(method = "fpiter",
                          iter   = fit2$progress$iter,
                          loglik = fit2$progress$loglik))
 bestloglik <- max(fit1$loglik,fit2$loglik)
+pdat <- subset(pdat,iter > 4)
 pdat <- transform(pdat,loglik = bestloglik - loglik + 1)
 p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
   geom_line(size = 0.75) +
