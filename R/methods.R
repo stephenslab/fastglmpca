@@ -27,8 +27,8 @@ fitted.glmpca_pois_fit <- function (object, ...) {
 #'
 #' @title Summarize GLM-PCA Model Fit
 #'
-#' @description \code{summary} method for the
-#'   \dQuote{glmpcan_fit} class.
+#' @description \code{summary} method for objects of class
+#'   \dQuote{glmpcan_fit_pois}.
 #'
 #' @param object An object of class \dQuote{glmpca_fit},
 #'   typically the result of calling \code{\link{fit_glmpca_pois}}.
@@ -49,13 +49,12 @@ summary.glmpca_pois_fit <- function (object, ...) {
   verify.fit(object)
   numiter <- length(object$progress$iter)
   out <- c(n       = nrow(object$U),
-           p       = nrow(object$V),
+           m       = nrow(object$V),
+           nx      = ifelse(length(object$X) > 0,ncol(object$X),0),
+           nz      = ifelse(length(object$Z) > 0,ncol(object$Z),0),
            K       = ncol(object$U),
-           numiter = numiter,
-           loglik  = object$progress$loglik[numiter],
-           fixed_loadings = length(object$fixed_loadings),
-           fixed_factors = length(object$fixed_factors)
-           )
+           numiter = max(object$progress$iter),
+           loglik  = object$loglik)
   class(out) <- c("summary.glmpca_pois_fit","list")
   return(out)
 }
@@ -67,14 +66,11 @@ summary.glmpca_pois_fit <- function (object, ...) {
 #' @export
 #'
 print.summary.glmpca_pois_fit <- function (x, ...) {
-  cat("Model overview:\n")
-  cat(sprintf("  Number of data rows, n: %d\n",x["n"]))
-  cat(sprintf("  Number of data cols, p: %d\n",x["p"]))
-  cat(sprintf("  Rank: %d\n",x["K"]))
-  cat(sprintf("    Fixed loadings: %d\n",x["fixed_loadings"]))
-  cat(sprintf("    Fixed factors: %d\n",x["fixed_factors"]))
-  cat(sprintf("Evaluation of model fit (%d updates performed):\n",
-              x["numiter"]))
-  cat(sprintf("  log-likelihood: %+0.12e\n",x["loglik"]))
+  cat(sprintf("GLM-PCA model fit to %d x %d count matrix:\n",x["n"],x["m"]))
+  cat(sprintf("rank (K): %d\n",x["K"]))
+  cat(sprintf("number of row covariates: %d\n",x["nx"]))
+  cat(sprintf("number of column covariates: %d\n",x["nz"]))
+  cat(sprintf("updates performed: %d\n",x["numiter"]))
+  cat(sprintf("log-likelihood: %+0.8e\n",x["loglik"]))
   return(invisible(x))
 }

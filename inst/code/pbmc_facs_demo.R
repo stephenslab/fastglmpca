@@ -19,6 +19,8 @@ fit0_init <- init_glmpca_pois(Y,X = X,Z = Z,
                               V = matrix(rnorm(3*m),m,3))
 fit0_rank1 <- init_glmpca_pois(Y,X = X,Z = Z,K = 1)
 fit1 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 4,
-                       control = list(calc_max_diff = TRUE,calc_deriv = TRUE))
+                        control = list(calc_max_diff = TRUE,calc_deriv = TRUE))
 fit2 <- fit_glmpca_pois(Y,fit0 = fit1,max_iter = 4,
                         control = list(calc_max_diff = TRUE,calc_deriv = TRUE))
+summary(fit2)
+
