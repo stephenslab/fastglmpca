@@ -108,6 +108,12 @@ init_glmpca_pois <- function(
     K <- ncol(U)
   } else {
 
+    if (K >= min(m, n)) {
+      
+      stop("Input \"K\" should be less than full data rank.")
+      
+    }
+    
     # Initialize U and V.
     U <- matrix(rnorm(n*K,sd = 0.1),n,K)
     V <- matrix(rnorm(m*K,sd = 0.1),m,K)
@@ -115,6 +121,7 @@ init_glmpca_pois <- function(
 
   # Check and prepare input arguments X and B.
   if (!missing(X) && length(X) > 0) {
+    verify.matrix(X)
     nx <- ncol(X)
     if (nrow(X) != nrow(Y))
       stop("Inputs \"X\" and \"Y\" should have same number of rows")
@@ -138,6 +145,7 @@ init_glmpca_pois <- function(
   
   # Check and prepare input arguments Z and W.
   if (!missing(Z) && length(Z) > 0) {
+    verify.matrix(Z)
     nz <- ncol(Z)
     if (nrow(Z) != ncol(Y))
       stop("Input \"Z\" should have as many rows as columns of \"Y\"")
