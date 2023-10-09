@@ -107,12 +107,9 @@ init_glmpca_pois <- function(
       stop("Inputs \"U\" and \"V\" should have same number of columns")
     K <- ncol(U)
   } else {
-
-    if (K >= min(m, n)) {
-      
-      stop("Input \"K\" should be less than full data rank.")
-      
-    }
+    if (K >= min(m,n))
+      stop("Input \"K\" should be less than the number of rows and columns ",
+           "of Y.")
     
     # Initialize U and V.
     U <- matrix(rnorm(n*K,sd = 0.1),n,K)

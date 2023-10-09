@@ -129,47 +129,30 @@ test_that("Fit works with no row intercept or column size factor", {
   # Check that orthogonality constraints are satisfied.
   expect_equivalent(crossprod(fit_quick$U),diag(3),scale = 1,tolerance = 1e-8)
   expect_equivalent(crossprod(fit_quick$V),diag(3),scale = 1,tolerance = 1e-8)
-  
 })
 
-test_that("Final fit is the same with sparse and dense Y", {
-  
+test_that("Final fit is the same with sparse and dense Y",{
   set.seed(1)
   n <- 100
   m <- 200
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
-  
   Y_sp <- as(Y, "sparseMatrix")
   
+  # Fit a GLM-PCA model to the data with dense Y.
   set.seed(1)
-  # Initialize a GLM-PCA model to the data with dense Y
-  fit0 <- init_glmpca_pois(
-    Y,
-    K = 3
-  )
-  
+  fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
     fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
   
+  # Fit a GLM-PCA model to the data with sparse Y.
   set.seed(1)
-  # Initialize a GLM-PCA model to the data with sparse Y
-  fit0_sp <- init_glmpca_pois(
-    Y_sp,
-    K = 3
-  )  
-  
+  fit0_sp <- init_glmpca_pois(Y_sp,K = 3)  
   suppressWarnings(capture.output(
     fit_quick_sp <- fit_glmpca_pois(Y_sp,fit0 = fit0_sp,max_iter = 20)))
   
-  expect_equal(fit_quick$X,fit_quick_sp$X)
-  expect_equal(fit_quick$B,fit_quick_sp$B)
-  expect_equal(fit_quick$Z,fit_quick_sp$Z)
-  expect_equal(fit_quick$W,fit_quick_sp$W)
-  expect_equal(fit_quick$U,fit_quick_sp$U)
-  expect_equal(fit_quick$V,fit_quick_sp$V)
-  expect_equal(fit_quick$D,fit_quick_sp$D)
-  expect_equal(fit_quick$loglik, fit_quick_sp$loglik)
-  
+  fit_quick$progress[,"time"]    <- 0
+  fit_quick_sp$progress[,"time"] <- 0
+  expect_equal(fit_quick,fit_quick_sp)
 })
 
 test_that("Test fit works with input covariates",{
@@ -179,25 +162,21 @@ test_that("Test fit works with input covariates",{
   n <- 100
   m <- 200
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
-  X <- matrix(data = rnorm(n * 2), nrow = n, ncol = 2)
-  Z <- matrix(data = rnorm(m * 2), nrow = m, ncol = 2)
+  X <- matrix(data = rnorm(2*n),n,2)
+  Z <- matrix(data = rnorm(2*m),m,2)
   
-  # Fit a GLM-PCA model to the data.
+  # Fit a GLM-PCA model to the data and check the outputs.
   fit0 <- init_glmpca_pois(Y,K = 3, X = X, Z = Z, fixed_b_cols = c(1))
-  
   suppressWarnings(capture.output(
     fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
   
   expect_nondecreasing(fit_quick$progress$loglik)
-  
   expect_equal(fit0$X,fit_quick$X)
   expect_equal(fit0$Z,fit_quick$Z)
+  expect_equal(fit0$B[,fit0$fixed_b_cols],fit_quick$B[,fit0$fixed_b_cols])
+  expect_equal(fit0$W[,fit0$fixed_w_cols],fit_quick$W[,fit0$fixed_w_cols])
   
-  expect_equal(fit0$B[, fit0$fixed_b_cols],fit_quick$B[, fit0$fixed_b_cols])
-  expect_equal(fit0$W[, fit0$fixed_w_cols],fit_quick$W[, fit0$fixed_w_cols])
-  
-  # Check that orthogonality constraints are satisfied.
+  # Check that the orthogonality constraints are satisfied.
   expect_equivalent(crossprod(fit_quick$U),diag(3),scale = 1,tolerance = 1e-8)
   expect_equivalent(crossprod(fit_quick$V),diag(3),scale = 1,tolerance = 1e-8)
-  
 })

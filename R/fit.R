@@ -3,30 +3,29 @@
 #' @description Fit a Poisson GLM-PCA model by maximum-likelihood.
 #'   
 #' @details In generalized principal component analysis (GLM-PCA)
-#' based on a Poisson likelihood, the counts
-#' \eqn{y_{ij}} stored in an \eqn{n \times m} matrix \eqn{Y} are modeled as
-#' \deqn{y_{ij} \sim Pois(\lambda_{ij}),} in which 
-#' the logarithm of each rate parameter \eqn{\lambda_{ij}}
-#' is defined as a linear combination of rank-K matrices to be
-#' estimated from the data:
-#' \deqn{\log \lambda_{ij} = (UDV')_{ij},}
-#' where \eqn{U} and \eqn{V} are orthogonal matrices of dimension
-#' \eqn{n \times K} and \eqn{m \times K}, respectively, and \eqn{D} is a
-#' diagonal \eqn{K \times K} matrix in which the entries along its diagonal
-#' are positive and decreasing.  \eqn{K} is a tuning parameter
-#' specifying the rank of the matrix factorization. This is the same
-#' as the low-rank matrix decomposition underlying PCA (that is, the
-#' singular value decomposition), but because we are not using a
-#' linear (Gaussian) model, this is called \dQuote{generalized PCA} or
+#' based on a Poisson likelihood, the counts \eqn{y_{ij}} stored in an
+#' \eqn{n \times m}{n x m} matrix \eqn{Y} are modeled as \deqn{y_{ij}
+#' \sim Pois(\lambda_{ij}),} in which the logarithm of each rate
+#' parameter \eqn{\lambda_{ij}} is defined as a linear combination of
+#' rank-K matrices to be estimated from the data: \deqn{\log
+#' \lambda_{ij} = (UDV')_{ij},} where \eqn{U} and \eqn{V} are
+#' orthogonal matrices of dimension \eqn{n \times K}{n x K} and \eqn{m
+#' \times K}{m x K}, respectively, and \eqn{D} is a diagonal \eqn{K
+#' \times K}{K x K} matrix in which the entries along its diagonal are
+#' positive and decreasing. \eqn{K} is a tuning parameter specifying
+#' the rank of the matrix factorization. This is the same as the
+#' low-rank matrix decomposition underlying PCA (that is, the singular
+#' value decomposition), but because we are not using a linear
+#' (Gaussian) model, this is called \dQuote{generalized PCA} or
 #' \dQuote{GLM PCA}.
 #'
 #' To allow for additional components that may be fixed,
 #' \code{fit_glmpca_pois} can also fit the more general model
-#' \deqn{\log \lambda_{ij} = (UDV' + XB' + WZ')_{ij},}
-#' in which \eqn{X}, \eqn{Z} are fixed matrices of dimension \eqn{n \times
-#' n_{x}} and \eqn{m \times n_{z}}, respectively, and \eqn{B}, \eqn{W} are
-#' matrices of dimension \eqn{m \times n_{x}} and \eqn{n \times n_{z}}
-#' to be estimated from the data.
+#' \deqn{\log \lambda_{ij} = (UDV' + XB' + WZ')_{ij},} in which
+#' \eqn{X}, \eqn{Z} are fixed matrices of dimension \eqn{n \times
+#' n_x}{n x n_x} and \eqn{m \times n_z}{m x n_z}, respectively, and
+#' \eqn{B}, \eqn{W} are matrices of dimension \eqn{m \times n_x}{m x
+#' n_x} and \eqn{n \times n_z}{n x n_z} to be estimated from the data.
 #' 
 #' \code{fit_glmpca_pois} computes maximum-likelihood estimates (MLEs)
 #' of \eqn{U}, \eqn{V}, \eqn{D}, \eqn{B} and \eqn{W} satistifying the
@@ -170,21 +169,13 @@ fit_glmpca_pois <- function(
     stop("Input argument \"fit0\" should be an object of class ",
          "\"glmpca_fit_pois\", such as an output of init_glmpca_pois")
   verify.fit(fit0)
+  if (n != nrow(fit0$U))
+    stop("Input \"Y\" should have same number of rows as fit0$U. ",
+         "Did fit0 come from a different Y?")
+  if (m != nrow(fit0$V))
+    stop("Input \"Y\" should have same number of rows as fit0$V. ",
+         "Did fit0 come from a different Y?")
   K <- ncol(fit0$U)
-  
-  if(n != nrow(fit0$U)) {
-    
-    stop("Input \"Y\" should have same number of rows as initial",
-         " value of U. Did you initialize your fit on a different",
-         " value of \"Y\"?")
-  }
-  
-  if(m != nrow(fit0$V)) {
-    
-    stop("Input \"Y\" should have same number of columns as initial",
-         " value of V has rows. Did you initialize your fit on a different",
-         " value of \"Y\"?")
-  }
   
   # Check input arguments "tol", "min_iter" and "max_iter".
   if (!(is.scalar(tol) & all(tol > 0)))

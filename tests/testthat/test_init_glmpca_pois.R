@@ -21,58 +21,36 @@ test_that("Initial fits should satisfy orthogonality constraints",{
   expect_equivalent(crossprod(fit$V),1,scale = 1,tolerance = 1e-8)
 })
 
-test_that("Initial fit works with no row intercept or column size factor", {
-            
+test_that("Initial fit works with no row intercept or column size factor",{
   set.seed(1)
   n <- 100
   m <- 200
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
   
   # Initialize a GLM-PCA model to the data.
-  fit0 <- init_glmpca_pois(
-    Y,
-    K = 3, 
-    col_size_factor = FALSE, 
-    row_intercept = FALSE
-  )        
+  fit0 <- init_glmpca_pois(Y,K = 3, col_size_factor = FALSE,
+                           row_intercept = FALSE)        
   
   expect_equal(fit0$X,numeric(0))
   expect_equal(fit0$B,numeric(0))
   expect_equal(fit0$Z,numeric(0))
   expect_equal(fit0$W,numeric(0))
-            
 })
 
-test_that("Initial fit is the same with sparse and dense Y", {
-  
+test_that("Initial fit is the same with sparse and dense Y",{
   set.seed(1)
   n <- 100
   m <- 200
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
-  
   Y_sp <- as(Y, "sparseMatrix")
   
+  # Initialize a GLM-PCA model to the data with dense Y.
   set.seed(1)
-  # Initialize a GLM-PCA model to the data with dense Y
-  fit0 <- init_glmpca_pois(
-    Y,
-    K = 3
-  )     
+  fit0 <- init_glmpca_pois(Y,K = 3)
   
   set.seed(1)
-  # Initialize a GLM-PCA model to the data with sparse Y
-  fit0_sp <- init_glmpca_pois(
-    Y_sp,
-    K = 3
-  )  
+  # Initialize a GLM-PCA model to the data with sparse Y.
+  fit0_sp <- init_glmpca_pois(Y_sp,K = 3)
   
-  expect_equal(fit0$X,fit0_sp$X)
-  expect_equal(fit0$B,fit0_sp$B)
-  expect_equal(fit0$Z,fit0_sp$Z)
-  expect_equal(fit0$W,fit0_sp$W)
-  expect_equal(fit0$U,fit0_sp$U)
-  expect_equal(fit0$V,fit0_sp$V)
-  expect_equal(fit0$D,fit0_sp$D)
-  expect_equal(fit0$loglik, fit0_sp$loglik)
-  
+  expect_equal(fit0,fit0_sp)
 })
