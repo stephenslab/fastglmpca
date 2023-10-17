@@ -1,0 +1,12 @@
+to do
+=====
+
++ Create introductory vignette.
+
++ Create pkgdown site.
+
++ Set up CI (e.g., CircleCI).
+
++ Switch from OpenMP to TBB.
+
++ Update README.
