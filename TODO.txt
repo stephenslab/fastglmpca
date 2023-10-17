@@ -1,6 +1,8 @@
 to do
 =====
 
++ Make repository public.
+
 + Create introductory vignette.
 
 + Create pkgdown site.
