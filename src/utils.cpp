@@ -57,10 +57,7 @@ double big_elementwise_mult_crossprod(
 // compute L %*% exp(t(L) %*% F)
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat deriv_product(
-    const arma::mat& L,
-    const arma::mat& F
-) {
+arma::mat deriv_product(const arma::mat& L, const arma::mat& F) {
 
   const int n = L.n_cols;
   const int K = L.n_rows;

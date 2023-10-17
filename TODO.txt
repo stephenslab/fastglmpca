@@ -1,15 +1,11 @@
 to do
 =====
 
-+ Make the GitHub repository public.
-
 + Add continuous integration (e.g., Appveyor, CircleCI).
 
 + Create introductory vignette.
 
 + Create pkgdown site.
-
-+ Set up CI (e.g., CircleCI).
 
 + Switch from OpenMP to TBB.
 
