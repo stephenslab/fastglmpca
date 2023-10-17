@@ -1,5 +1,6 @@
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
+
 using namespace arma;
 using namespace Rcpp;
 
@@ -18,14 +19,10 @@ double big_exp_crossprod(
 
   // First, get this code to work without parallelism
   // Then, I can see if that would help
-  for (int i = 0; i < n; i++) {
-
-    for (int j = 0; j < p; j++) {
-      sum = sum + exp(arma::dot(L.col(i), F.col(j)));
-    }
-  }
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < p; j++)
+      sum = sum + exp(dot(L.col(i), F.col(j)));
   return(sum);
-
 }
 
 // L is K x n
@@ -38,18 +35,11 @@ double big_elementwise_mult_crossprod(
     const arma::vec& nonzero_y,
     const std::vector<int> nonzero_y_i_idx,
     const std::vector<int> nonzero_y_j_idx,
-    const int num_nonzero_y
-) {
-
-  double sum = 0.0;
-
-  for (int r = 0; r < num_nonzero_y; r++) {
-    sum = sum + nonzero_y[r] * arma::dot(L.col(nonzero_y_i_idx[r]), F.col(nonzero_y_j_idx[r]));
-
-  }
-
+    const int num_nonzero_y) {
+  double sum = 0;
+  for (int r = 0; r < num_nonzero_y; r++)
+    sum = sum + nonzero_y[r] * dot(L.col(nonzero_y_i_idx[r]), F.col(nonzero_y_j_idx[r]));
   return(sum);
-
 }
 
 // L is K x n
@@ -62,7 +52,7 @@ arma::mat deriv_product(const arma::mat& L, const arma::mat& F) {
   const int n = L.n_cols;
   const int K = L.n_rows;
   const int p = F.n_cols;
-  arma::mat prod;
+  mat prod;
   prod.zeros(K, p);
   double exp_arg;
 

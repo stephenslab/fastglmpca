@@ -1,6 +1,7 @@
 #include <RcppArmadillo.h>
 #include <RcppParallel.h>
 #include <Rcpp.h>
+
 using namespace arma;
 using namespace Rcpp;
 using namespace RcppParallel;
@@ -23,11 +24,11 @@ inline arma::vec solve_pois_reg_faster_cpp (
   double second_deriv;
   double newton_dir;
   double newton_dec;
-  arma::vec eta = X * b;
-  arma::vec eta_proposed;
-  arma::vec exp_deriv_term;
-  arma::vec exp_eta_proposed;
-  arma::vec exp_eta = exp(eta);
+  vec eta = X * b;
+  vec eta_proposed;
+  vec exp_deriv_term;
+  vec exp_eta_proposed;
+  vec exp_eta = exp(eta);
   double t;
   bool step_accepted;
   double f_proposed;
@@ -93,18 +94,19 @@ inline arma::vec solve_pois_reg_faster_cpp (
 }
 
 struct FactorsUpdater : public Worker {
-  const arma::mat& L_T;
-  const arma::mat& M;
-  arma::mat& FF;
+  const mat& L_T;
+  const mat& M;
+  mat& FF;
   const std::vector<int> update_indices;
   const unsigned int num_iter;
   const bool line_search;
   const double alpha;
   const double beta;
   
-  FactorsUpdater(const arma::mat& L_T, const arma::mat& M, arma::mat& FF,
-                 const std::vector<int> update_indices, unsigned int num_iter,
-                 bool line_search, double alpha, double beta) 
+  FactorsUpdater(const mat& L_T, const mat& M, mat& FF,
+                 const std::vector<int> update_indices, 
+		 unsigned int num_iter, bool line_search, 
+		 double alpha, double beta) 
     : L_T(L_T), M(M), FF(FF), update_indices(update_indices), 
       num_iter(num_iter), line_search(line_search), alpha(alpha), 
       beta(beta) { }
