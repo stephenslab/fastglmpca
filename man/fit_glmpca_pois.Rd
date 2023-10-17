@@ -10,7 +10,7 @@ fit_glmpca_pois(
   Y,
   K,
   fit0 = init_glmpca_pois(Y, K),
-  tol = 0.0001,
+  tol = 1e-04,
   min_iter = 1,
   max_iter = 100,
   verbose = TRUE,
@@ -134,7 +134,7 @@ rank-K matrices to be estimated from the data: \deqn{\log
 orthogonal matrices of dimension \eqn{n \times K}{n x K} and \eqn{m
 \times K}{m x K}, respectively, and \eqn{D} is a diagonal \eqn{K
 \times K}{K x K} matrix in which the entries along its diagonal are
-positive and decreasing.  \eqn{K} is a tuning parameter specifying
+positive and decreasing. \eqn{K} is a tuning parameter specifying
 the rank of the matrix factorization. This is the same as the
 low-rank matrix decomposition underlying PCA (that is, the singular
 value decomposition), but because we are not using a linear
