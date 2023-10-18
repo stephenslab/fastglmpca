@@ -1,6 +1,13 @@
 ^TODO\.txt$
 ^LICENSE$
 ^\.github$
+^_pkgdown\.yml$
+^appveyor\.yml$
+^docs$
 ^\.circleci$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^inst/code$
+^inst/analysis$
+^inst/experiments$
+^inst/scratch$
