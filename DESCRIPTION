@@ -1,7 +1,7 @@
 Encoding: UTF-8
 Type: Package
 Package: fastglmpca
-Version: 0.1-59
+Version: 0.1-60
 Date: 2023-10-17
 Title: Fast Algorithms for Generalized Principal Component Analysis 
 Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
@@ -28,7 +28,13 @@ LinkingTo:
     Rcpp,
     RcppArmadillo,
     RcppParallel
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
 LazyData: true
+LazyDataCompression: xz
 NeedsCompilation: yes
+VignetteBuilder: knitr
 RoxygenNote: 7.2.3
 

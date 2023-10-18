@@ -18,7 +18,7 @@ jobs:
           name: Install package dependencies
           command: |
             mkdir -p ~/R/Library
-            Rscript -e 'install.packages(c("devtools","testthat","MatrixExtra","distr","Rcpp","RcppParallel","RcppArmadillo"))'
+            Rscript -e 'install.packages(c("devtools","testthat","MatrixExtra","distr","Rcpp","RcppParallel","RcppArmadillo","testthat","knitr","rmarkdown"))'
       - run:
           name: Session information and installed package versions
           command: |
