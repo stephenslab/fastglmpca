@@ -1,5 +1,6 @@
 ^TODO\.txt$
 ^LICENSE$
 ^\.github$
+^\.circleci$
 ^.*\.Rproj$
 ^\.Rproj\.user$

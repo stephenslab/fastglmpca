@@ -123,21 +123,12 @@
 #' 
 #' @examples 
 #' set.seed(1)
-#' 
 #' n <- 1000
 #' p <- 500
-#' K <- 1
-#' 
-#' data <- generate_glmpca_data_pois(n, p, K)
-#' # initialize fit
-#' fit0 <- init_glmpca_pois(
-#'   Y = data$Y, 
-#'   K = K,
-#'   fit_col_size_factor = TRUE, 
-#'   fit_row_intercept = TRUE
-#' )
-#' 
-#' fit <- fit_glmpca_pois(Y = data$Y, fit0 = fit0)
+#' K <- 3
+#' dat  <- generate_glmpca_data_pois(n,p,K)
+#' fit0 <- init_glmpca_pois(dat$Y,K)
+#' fit  <- fit_glmpca_pois(dat$Y,fit0 = fit0)
 #'
 fit_glmpca_pois <- function(
     Y, 
