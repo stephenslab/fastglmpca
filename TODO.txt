@@ -1,8 +1,6 @@
 to do
 =====
 
-+ Add continuous integration (e.g., Appveyor, CircleCI).
-
 + Create introductory vignette.
 
 + Update pkgdown site after creating introductory vignette.
