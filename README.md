@@ -11,5 +11,5 @@ remotes::install_local("fastglmpca")
 assuming your R working directory contains a copy of the `fastglmpca`
 repository.
 
-If you have issues downloading or running the package, please post a github issue
-or email ericweine15@gmail.com
+If you have issues downloading or running the package, please post a
+github issue or email ericweine15@gmail.com.
