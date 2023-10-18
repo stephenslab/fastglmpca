@@ -3,8 +3,6 @@ to do
 
 + Add continuous integration (e.g., Appveyor, CircleCI).
 
-+ Create pkgdown site.
-
 + Create introductory vignette.
 
 + Update pkgdown site after creating introductory vignette.
