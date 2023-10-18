@@ -1,0 +1,9 @@
+navbar:
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Functions"
+      href: reference/index.html
+  right:
+    - text: "Source"
+      href: https://github.com/stephenslab/fastglmpca
