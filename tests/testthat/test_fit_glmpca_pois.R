@@ -136,7 +136,7 @@ test_that("Final fit is the same with sparse and dense Y",{
   n <- 100
   m <- 200
   Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
-  Y_sp <- as(Y, "sparseMatrix")
+  Y_sp <- as(Y,"sparseMatrix")
   
   # Fit a GLM-PCA model to the data with dense Y.
   set.seed(1)
@@ -153,6 +153,31 @@ test_that("Final fit is the same with sparse and dense Y",{
   fit_quick$progress[,"time"]    <- 0
   fit_quick_sp$progress[,"time"] <- 0
   expect_equal(fit_quick,fit_quick_sp)
+})
+
+test_that("Final fit is the same with single thread or multiple threads",{
+  set.seed(1)
+  n <- 100
+  m <- 200
+  Y <- generate_glmpca_data_pois(n,m,K = 3)$Y
+
+  # Fit a GLM-PCA model to the data using 1 thread.
+  set.seed(1)
+  set_fastglmpca_threads(1)
+  fit0 <- init_glmpca_pois(Y,K = 3)
+  suppressWarnings(capture.output(
+    fit1 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
+
+  # Fit a GLM-PCA model to the data using 2 threads.
+  set.seed(1)
+  set_fastglmpca_threads(2)
+  fit0 <- init_glmpca_pois(Y,K = 3)
+  suppressWarnings(capture.output(
+    fit2 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
+
+  fit1$progress[,"time"] <- 0
+  fit2$progress[,"time"] <- 0
+  expect_equal(fit1,fit2)
 })
 
 test_that("Test fit works with input covariates",{

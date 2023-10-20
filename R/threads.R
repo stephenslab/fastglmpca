@@ -14,10 +14,13 @@
 #' @export
 #' 
 set_fastglmpca_threads <- function (n) {
-  if (missing(n) | is.na(n)) {
+  if (missing(n)) {
     setThreadOptions()
     n <- defaultNumThreads()
-  } else
+  } else if (is.na(n)) {
+    setThreadOptions()
+    n <- defaultNumThreads()
+  }
     setThreadOptions(numThreads = n)
   message(sprintf("Using %d RcppParallel threads.",n))
   return(n)
