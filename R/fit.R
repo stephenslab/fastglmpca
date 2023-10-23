@@ -110,12 +110,15 @@
 #'   generalization of principal components analysis to the exponential
 #'   family. In \emph{Advances in Neural Information Processing Systems} 14.
 #'
-#' @return An object capturing the final state of the model fit. It
-#'   contains the final estimates of \eqn{U}, \eqn{D} and \eqn{V}, and
-#'   the other parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}), as well
-#'   as the log-likelihood achieved (\code{loglik}) and a data frame
-#'   \code{progress} storing information about the algorithm's progress
-#'   after each update.
+#' @return An object capturing the state of the model fit. It contains
+#'   estimates of \eqn{U}, \eqn{V} and \eqn{D} (stored as matrices
+#'   \code{U}, \code{V} and a vector of diagonal entries \code{d},
+#'   analogous to the \code{\link{svd}} return value); the other
+#'   parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}); the log-likelihood
+#'   achieved (\code{loglik}); information about which columns of
+#'   \eqn{B} and \eqn{W} are fixed (\code{fixed_b_cols},
+#'   \code{fixed_w_cols}); and a data frame \code{progress} storing
+#'   information about the algorithm's progress after each update.
 #'
 #' @importFrom utils modifyList
 #' 
@@ -179,8 +182,13 @@ fit_glmpca_pois <- function(
                         keep.null = TRUE)
 
   # Set up the internal "fit" object.
-  fit <- list(LL = t(cbind(fit0$U %*% sqrt(fit0$D),fit0$X,fit0$W)),
-              FF = t(cbind(fit0$V %*% sqrt(fit0$D),fit0$B,fit0$Z)),
+  D <- sqrt(fit0$d)
+  if (K == 1)
+    D <- matrix(D)
+  else   
+    D <- diag(D)
+  fit <- list(LL = t(cbind(fit0$U %*% D,fit0$X,fit0$W)),
+              FF = t(cbind(fit0$V %*% D,fit0$B,fit0$Z)),
               fixed_l = numeric(0),
               fixed_f = numeric(0),
               loglik = fit0$loglik)
@@ -226,6 +234,7 @@ fit_glmpca_pois <- function(
   fit <- orthonormalize_fit(fit)
   dimnames(fit$U) <- dimnames(fit0$U)
   dimnames(fit$V) <- dimnames(fit0$V)
+  names(fit$d)    <- paste("k",1:K,sep = "_")
   if (length(fit$X) > 0) {
     dimnames(fit$X) <- dimnames(fit0$X)
     dimnames(fit$B) <- dimnames(fit0$B)

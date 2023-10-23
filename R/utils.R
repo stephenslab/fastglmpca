@@ -14,17 +14,16 @@ orthonormalize_fit <- function (fit) {
   out <- orthonormalize(fit$U,fit$V)
   fit$U <- out$U
   fit$V <- out$V
-  fit$D <- out$D
+  fit$d <- out$d
   return(fit)
 }
 
 # Given factorization Y = tcrossprod(U,V), return 
-# Y = tcrossprod(U1*D,V1) satisfying the following
+# Y = tcrossprod(U1*diag(d),V1) satisfying the following
 # constraints:
 #
 #   crossprod(U1) = I
 #   crossprod(V1) = I
-#   D = diag(d)
 #   d = sort(d,decreasing = TRUE)
 #   d > 0
 #
@@ -38,14 +37,14 @@ orthonormalize <- function (U, V) {
     d  <- du*dv
     U  <- U/du
     V  <- V/dv
-    return(list(U = matrix(U),V = matrix(V),D = matrix(d)))
+    return(list(U = matrix(U),V = matrix(V),d = d))
   } else {
     qr1 <- qr(U)
     qr2 <- qr(V)
     out <- svd(tcrossprod(qr.R(qr1),qr.R(qr2)))
     U   <- qr.Q(qr1) %*% out$u
     V   <- qr.Q(qr2) %*% out$v
-    return(list(U = U,V = V,D = diag(out$d)))
+    return(list(U = U,V = V,d = out$d))
   }
 }
 

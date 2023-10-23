@@ -28,10 +28,9 @@ test_that("Some basic tests of fit_glmpca_pois",{
   expect_equal(fit0$W,fit$W)
   
   # Check that orthogonality constraints are satisfied.
-  d <- diag(fit$D)
   expect_equivalent(crossprod(fit$U),diag(3),scale = 1,tolerance = 1e-8)
   expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(d,sort(d,decreasing = TRUE))
+  expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
 })
 
 test_that("fit_glmpca_pois works with K = 1",{
@@ -94,10 +93,9 @@ test_that("fit_glmpca_pois works with orthonormalize = FALSE",{
   expect_equal(fit0$W,fit$W)
 
   # Check that orthogonality constraints are satisfied.
-  d <- diag(fit$D)
   expect_equivalent(crossprod(fit$U),diag(3),scale = 1,tolerance = 1e-8)
   expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(d,sort(d,decreasing = TRUE))
+  expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
 })
 
 test_that("Fit works with no row intercept or column size factor", {

@@ -113,12 +113,15 @@ and \code{row_intercept = TRUE} is intended to replicate the
 default behavior of \code{glmpca}.}
 }
 \value{
-An object capturing the final state of the model fit. It
-  contains the final estimates of \eqn{U}, \eqn{D} and \eqn{V}, and
-  the other parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}), as well
-  as the log-likelihood achieved (\code{loglik}) and a data frame
-  \code{progress} storing information about the algorithm's progress
-  after each update.
+An object capturing the state of the model fit. It contains
+  estimates of \eqn{U}, \eqn{V} and \eqn{D} (stored as matrices
+  \code{U}, \code{V} and a vector of diagonal entries \code{d},
+  analogous to the \code{\link{svd}} return value); the other
+  parameters (\eqn{X}, \eqn{B}, \eqn{Z}, \eqn{W}); the log-likelihood
+  achieved (\code{loglik}); information about which columns of
+  \eqn{B} and \eqn{W} are fixed (\code{fixed_b_cols},
+  \code{fixed_w_cols}); and a data frame \code{progress} storing
+  information about the algorithm's progress after each update.
 }
 \description{
 Fit a Poisson GLM-PCA model by maximum-likelihood.

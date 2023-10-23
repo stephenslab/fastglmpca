@@ -212,8 +212,7 @@ init_glmpca_pois <- function(
   rownames(fit$V) <- colnames(Y)
   colnames(fit$U) <- paste("k",1:K,sep = "_")
   colnames(fit$V) <- paste("k",1:K,sep = "_")
-  rownames(fit$D) <- paste("k",1:K,sep = "_")
-  colnames(fit$D) <- paste("k",1:K,sep = "_")
+  names(fit$d)    <- paste("k",1:K,sep = "_")
   if (length(fit$X) > 0) {
     rownames(fit$X) <- rownames(Y)
     rownames(fit$B) <- colnames(Y)
