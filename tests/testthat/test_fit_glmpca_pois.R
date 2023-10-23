@@ -14,8 +14,8 @@ test_that("Some basic tests of fit_glmpca_pois",{
     fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20)))
   suppressWarnings(capture.output(
     fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
-                           control = list(calc_deriv = TRUE,
-                                          calc_max_diff = TRUE))))
+                           control = list(calc_deriv = FALSE,
+                                          calc_max_diff = FALSE))))
   capture.output(print(summary(fit)))
 
   # All the updates should monotonically increase the likelihood.
@@ -28,10 +28,9 @@ test_that("Some basic tests of fit_glmpca_pois",{
   expect_equal(fit0$W,fit$W)
   
   # Check that orthogonality constraints are satisfied.
-  d <- diag(fit$D)
-  expect_equivalent(crossprod(fit$U),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(d,sort(d,decreasing = TRUE))
+  expect_equivalent(crossprod(fit$u),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$v),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
 })
 
 test_that("fit_glmpca_pois works with K = 1",{
@@ -62,8 +61,8 @@ test_that("fit_glmpca_pois works with K = 1",{
   expect_equal(fit0$W,fit$W)
 
   # Check that orthogonality constraints are satisfied.
-  expect_equivalent(crossprod(fit$U),1,scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit$V),1,scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$u),1,scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$v),1,scale = 1,tolerance = 1e-8)
 })
 
 test_that("fit_glmpca_pois works with orthonormalize = FALSE",{
@@ -94,10 +93,9 @@ test_that("fit_glmpca_pois works with orthonormalize = FALSE",{
   expect_equal(fit0$W,fit$W)
 
   # Check that orthogonality constraints are satisfied.
-  d <- diag(fit$D)
-  expect_equivalent(crossprod(fit$U),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(d,sort(d,decreasing = TRUE))
+  expect_equivalent(crossprod(fit$u),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$v),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
 })
 
 test_that("Fit works with no row intercept or column size factor", {
@@ -127,8 +125,8 @@ test_that("Fit works with no row intercept or column size factor", {
   expect_equal(fit0$W,fit_quick$W)
   
   # Check that orthogonality constraints are satisfied.
-  expect_equivalent(crossprod(fit_quick$U),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit_quick$V),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit_quick$u),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit_quick$v),diag(3),scale = 1,tolerance = 1e-8)
 })
 
 test_that("Final fit is the same with sparse and dense Y",{
@@ -202,6 +200,6 @@ test_that("Test fit works with input covariates",{
   expect_equal(fit0$W[,fit0$fixed_w_cols],fit_quick$W[,fit0$fixed_w_cols])
   
   # Check that the orthogonality constraints are satisfied.
-  expect_equivalent(crossprod(fit_quick$U),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit_quick$V),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit_quick$u),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit_quick$v),diag(3),scale = 1,tolerance = 1e-8)
 })

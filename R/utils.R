@@ -38,7 +38,7 @@ orthonormalize <- function (U, V) {
     d  <- du*dv
     U  <- U/du
     V  <- V/dv
-    return(list(U = matrix(U),V = matrix(V),D = matrix(d)))
+    return(list(U = matrix(U),V = matrix(V),d = d))
   } else {
     qr1 <- qr(U)
     qr2 <- qr(V)

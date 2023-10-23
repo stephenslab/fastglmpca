@@ -10,15 +10,14 @@ test_that("Initial fits should satisfy orthogonality constraints",{
 
   # Initialize a GLM-PCA fit with K = 3.
   fit <- init_glmpca_pois(Y,X = X,Z = Z,K = 3)
-  d   <- diag(fit$D)
-  expect_equivalent(crossprod(fit$U),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
-  expect_equivalent(d,sort(d,decreasing = TRUE))
+  expect_equivalent(crossprod(fit$u),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$v),diag(3),scale = 1,tolerance = 1e-8)
+  expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
   
   # Initialize a GLM-PCA fit with K = 1.
   fit <- init_glmpca_pois(Y,X = X,Z = Z,K = 1)
-  expect_equivalent(crossprod(fit$U),1,scale = 1,tolerance = 1e-8)
-  expect_equivalent(crossprod(fit$V),1,scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$u),1,scale = 1,tolerance = 1e-8)
+  expect_equivalent(crossprod(fit$v),1,scale = 1,tolerance = 1e-8)
 })
 
 test_that("Initial fit works with no row intercept or column size factor",{
