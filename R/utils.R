@@ -12,9 +12,9 @@ create_col_size_factor <- function (Y)
 # Orthonormalizes a GLM-PCA fit object.
 orthonormalize_fit <- function (fit) {
   out <- orthonormalize(fit$U,fit$V)
-  fit$U <- out$U
-  fit$V <- out$V
-  fit$D <- out$D
+  fit$u <- out$U
+  fit$v <- out$V
+  fit$d <- out$d
   return(fit)
 }
 
@@ -45,7 +45,7 @@ orthonormalize <- function (U, V) {
     out <- svd(tcrossprod(qr.R(qr1),qr.R(qr2)))
     U   <- qr.Q(qr1) %*% out$u
     V   <- qr.Q(qr2) %*% out$v
-    return(list(U = U,V = V,D = diag(out$d)))
+    return(list(U = U,V = V,d = out$d))
   }
 }
 
