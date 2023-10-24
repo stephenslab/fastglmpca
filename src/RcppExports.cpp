@@ -58,15 +58,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// deriv_product
-arma::mat deriv_product(const arma::mat& L, const arma::mat& F);
-RcppExport SEXP _fastglmpca_deriv_product(SEXP LSEXP, SEXP FSEXP) {
+// deriv_prod
+arma::mat deriv_prod(const arma::mat& L, const arma::mat& F);
+RcppExport SEXP _fastglmpca_deriv_prod(SEXP LSEXP, SEXP FSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type F(FSEXP);
-    rcpp_result_gen = Rcpp::wrap(deriv_product(L, F));
+    rcpp_result_gen = Rcpp::wrap(deriv_prod(L, F));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -75,7 +75,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_fastglmpca_update_factors_faster_parallel", (DL_FUNC) &_fastglmpca_update_factors_faster_parallel, 8},
     {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
     {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},
-    {"_fastglmpca_deriv_product", (DL_FUNC) &_fastglmpca_deriv_product, 2},
+    {"_fastglmpca_deriv_prod", (DL_FUNC) &_fastglmpca_deriv_prod, 2},
     {NULL, NULL, 0}
 };
 

@@ -13,7 +13,7 @@ big_elementwise_mult_crossprod <- function(L, F, nonzero_y, nonzero_y_i_idx, non
     .Call('_fastglmpca_big_elementwise_mult_crossprod', PACKAGE = 'fastglmpca', L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y)
 }
 
-deriv_product <- function(L, F) {
-    .Call('_fastglmpca_deriv_product', PACKAGE = 'fastglmpca', L, F)
+deriv_prod <- function(L, F) {
+    .Call('_fastglmpca_deriv_prod', PACKAGE = 'fastglmpca', L, F)
 }
 

@@ -43,21 +43,15 @@ double big_elementwise_mult_crossprod(
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat deriv_prod (const arma::mat& L, const arma::mat& F) {
-  const int n = L.n_cols;
-  const int m = F.n_cols;
-  const int K = L.n_rows;
-  double t;
+  const unsigned int n = L.n_cols;
+  const unsigned int m = F.n_cols;
+  const unsigned int K = L.n_rows;
+  unsigned int i, k, j;
   mat out;
   out.zeros(K,m);
-  for (int i = 0; i < n; i++) {
-    for (int k = 0; k < K; k++) {
-      for (int j = 0; j < m; j++) {
-        t = 0;
-        for (int m = 0; m < K; m++)
-          t += L(m,i) * F(m,j);
-        out(k,j) += L(k,i) * exp(t);
-      }
-    }
-  }
+  for (i = 0; i < n; i++)
+    for (j = 0; j < m; j++)
+      for (k = 0; k < K; k++)
+        out[k,j] += L[k,i] * exp(dot(L.col(i),F.col(j)));
   return(out);
 }
