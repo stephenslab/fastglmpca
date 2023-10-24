@@ -8,6 +8,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^inst/code$
+^inst/datasets$
 ^inst/analysis$
 ^inst/experiments$
 ^inst/scratch$
