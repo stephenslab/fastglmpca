@@ -29,16 +29,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // big_exp_crossprod
-double big_exp_crossprod(const arma::mat& L, const arma::mat& F, const int n, const int p);
-RcppExport SEXP _fastglmpca_big_exp_crossprod(SEXP LSEXP, SEXP FSEXP, SEXP nSEXP, SEXP pSEXP) {
+double big_exp_crossprod(const arma::mat& L, const arma::mat& F, const int n, const int m);
+RcppExport SEXP _fastglmpca_big_exp_crossprod(SEXP LSEXP, SEXP FSEXP, SEXP nSEXP, SEXP mSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type F(FSEXP);
     Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const int >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_exp_crossprod(L, F, n, p));
+    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
+    rcpp_result_gen = Rcpp::wrap(big_exp_crossprod(L, F, n, m));
     return rcpp_result_gen;
 END_RCPP
 }

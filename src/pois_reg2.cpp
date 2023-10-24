@@ -6,7 +6,7 @@ using namespace arma;
 using namespace Rcpp;
 using namespace RcppParallel;
 
-inline arma::vec solve_pois_reg_faster_cpp (
+arma::vec solve_pois_reg_faster_cpp (
     const arma::mat X, 
     const arma::vec m, 
     arma::vec b, 
@@ -30,66 +30,61 @@ inline arma::vec solve_pois_reg_faster_cpp (
   vec exp_eta_proposed;
   vec exp_eta = exp(eta);
   double t;
-  bool step_accepted;
   double f_proposed;
-  int j;
+  unsigned int i, j;
   double b_j_og;
   
   int num_indices = update_indices.size();
   current_nonlinear_lik = sum(exp_eta);
   
   for (int update_num = 1; update_num <= num_iter; update_num++) {
-    double lik_improvement = 0.0;
-    for (int idx = 0; idx < num_indices; idx++) {
-      j = update_indices[idx];
+    double lik_improvement = 0;
+    for (i = 0; i < num_indices; i++) {
+      j = update_indices[i];
       
-      // Now, take derivatives
-      current_lik = current_nonlinear_lik - b(j) * m(idx);
+      // Now, take derivatives.
+      current_lik    = current_nonlinear_lik - b[j] * m[i];
       exp_deriv_term = exp_eta % X.col(j);
-      first_deriv = sum(exp_deriv_term) - m(idx);
-      second_deriv = sum(exp_deriv_term % X.col(j));
-      
-      newton_dir = first_deriv / second_deriv;
+      first_deriv    = sum(exp_deriv_term) - m[i];
+      second_deriv   = dot(exp_deriv_term,X.col(j));
+      newton_dir     = first_deriv / second_deriv;
       
       if (line_search) {
-        t = 1.0;
-        step_accepted = false;
-        newton_dec = alpha * first_deriv * newton_dir;
-        b_j_og = b(j);
-        
-        while(!step_accepted) {
-          b(j) = b_j_og - t * newton_dir;
-          eta_proposed = eta + (b(j) - b_j_og) * X.col(j);
+        t             = 1;
+        newton_dec    = alpha * first_deriv * newton_dir;
+        b_j_og        = b[j];
+        while (true) {
+          b[j]             = b_j_og - t * newton_dir;
+          eta_proposed     = eta + (b[j] - b_j_og) * X.col(j);
           exp_eta_proposed = exp(eta_proposed);
-          f_proposed = sum(exp_eta_proposed) - b(j) * m(idx);
-          
-          if (f_proposed <= current_lik - t * newton_dec) {
-            
-            step_accepted = true;
+          f_proposed       = sum(exp_eta_proposed) - b[j] * m[i];
+          if (f_proposed <= current_lik - t*newton_dec) {
             lik_improvement = lik_improvement + (current_lik - f_proposed);
-            current_nonlinear_lik = f_proposed + b(j) * m(idx);
-            eta = eta_proposed;
-            exp_eta = exp_eta_proposed;
-            
+            current_nonlinear_lik = f_proposed + b[j] * m[i];
+            eta                   = eta_proposed;
+            exp_eta               = exp_eta_proposed;
+	    break;
           } else {
-            t = beta * t;
-            if (abs((t * newton_dir) / b_j_og) < 1e-16) {
-              b(j) = b_j_og;
-              step_accepted = true;
-            }
+            t *= beta;
+
+	    // Terminate backtracking line search because we have
+	    // arrived at the smallest allowable step size.
+	    if (t < 1e-4) {
+	      t = 0;
+	      break;
+	    }
           }
         }
-      } else {
+      } else
         
         // take a full Newton step
-        b(j) = b(j) - newton_dir;
-      }
+        b[j] -= newton_dir;
     }
     
-    if (lik_improvement < 1e-8) {
+    if (lik_improvement < 1e-8)
       break;
-    }
   }
+
   return(b);
 }
 
@@ -103,10 +98,10 @@ struct FactorsUpdater : public Worker {
   const double alpha;
   const double beta;
   
-  FactorsUpdater(const mat& L_T, const mat& M, mat& FF,
-                 const std::vector<int> update_indices, 
-		 unsigned int num_iter, bool line_search, 
-		 double alpha, double beta) 
+  FactorsUpdater (const mat& L_T, const mat& M, mat& FF,
+                  const std::vector<int> update_indices, 
+		  unsigned int num_iter, bool line_search, 
+		  double alpha, double beta) 
     : L_T(L_T), M(M), FF(FF), update_indices(update_indices), 
       num_iter(num_iter), line_search(line_search), alpha(alpha), 
       beta(beta) { }
@@ -121,15 +116,12 @@ struct FactorsUpdater : public Worker {
 
 // [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
 // [[Rcpp::export]]
-void update_factors_faster_parallel(const arma::mat& L_T, 
-				    arma::mat& FF, 
+void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, 
 				    const arma::mat& M, 
 				    const std::vector<int> update_indices, 
-				    unsigned int num_iter, 
-				    bool line_search, 
-				    double alpha, 
-				    double beta) {
-  FactorsUpdater updater(L_T,M,FF,update_indices,num_iter,line_search,
-			 alpha,beta);
+				    unsigned int num_iter, bool line_search, 
+				    double alpha, double beta) {
+  FactorsUpdater updater(L_T,M,FF,update_indices,num_iter,line_search,alpha,
+			 beta);
   parallelFor(0,FF.n_cols,updater);
 }

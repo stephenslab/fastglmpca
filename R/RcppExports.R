@@ -5,8 +5,8 @@ update_factors_faster_parallel <- function(L_T, FF, M, update_indices, num_iter,
     invisible(.Call('_fastglmpca_update_factors_faster_parallel', PACKAGE = 'fastglmpca', L_T, FF, M, update_indices, num_iter, line_search, alpha, beta))
 }
 
-big_exp_crossprod <- function(L, F, n, p) {
-    .Call('_fastglmpca_big_exp_crossprod', PACKAGE = 'fastglmpca', L, F, n, p)
+big_exp_crossprod <- function(L, F, n, m) {
+    .Call('_fastglmpca_big_exp_crossprod', PACKAGE = 'fastglmpca', L, F, n, m)
 }
 
 big_elementwise_mult_crossprod <- function(L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y) {

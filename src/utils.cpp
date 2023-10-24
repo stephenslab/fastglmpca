@@ -8,19 +8,14 @@ using namespace Rcpp;
 // F is K x p
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-double big_exp_crossprod(
-  const arma::mat& L,
-  const arma::mat& F,
-  const int n,
-  const int p
-) {
-
-  double sum = 0.0;
+double big_exp_crossprod (const arma::mat& L, const arma::mat& F,
+			  const int n, const int m) {
+  double sum = 0;
 
   // First, get this code to work without parallelism
   // Then, I can see if that would help
   for (int i = 0; i < n; i++)
-    for (int j = 0; j < p; j++)
+    for (int j = 0; j < m; j++)
       sum = sum + exp(dot(L.col(i), F.col(j)));
   return(sum);
 }
@@ -43,32 +38,26 @@ double big_elementwise_mult_crossprod(
 }
 
 // L is K x n
-// F is K x p
+// F is K x m
 // compute L %*% exp(t(L) %*% F)
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
-arma::mat deriv_product(const arma::mat& L, const arma::mat& F) {
-
+arma::mat deriv_prod (const arma::mat& L, const arma::mat& F) {
   const int n = L.n_cols;
+  const int m = F.n_cols;
   const int K = L.n_rows;
-  const int p = F.n_cols;
-  mat prod;
-  prod.zeros(K, p);
-  double exp_arg;
-
-  for (int k = 0; k < n; k++) {
-    for (int i = 0; i < K; i++) {
-      for (int j = 0; j < p; j++) {
-        exp_arg = 0;
-        for (int m = 0; m < K; m++) {
-          exp_arg += L(m, k) * F(m, j);
-        }
-
-        prod(i, j) += L(i, k) * exp(exp_arg);
+  double t;
+  mat out;
+  out.zeros(K,m);
+  for (int i = 0; i < n; i++) {
+    for (int k = 0; k < K; k++) {
+      for (int j = 0; j < m; j++) {
+        t = 0;
+        for (int m = 0; m < K; m++)
+          t += L(m,i) * F(m,j);
+        out(k,j) += L(k,i) * exp(t);
       }
     }
   }
-
-  return(prod);
-
+  return(out);
 }

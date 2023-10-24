@@ -322,9 +322,9 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
     if (control$calc_deriv) {
       if(inherits(Y,"sparseMatrix")) {
         progress[iter,"max_deriv_f"] <-
-          max(abs((deriv_product(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
+          max(abs((deriv_prod(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
         progress[iter,"max_deriv_l"] <-
-          max(abs((deriv_product(fit$FF,fit$LL) -
+          max(abs((deriv_prod(fit$FF,fit$LL) -
                    Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
       } else {
         progress[iter,"max_deriv_f"] <-
