@@ -76,7 +76,7 @@ arma::vec solve_pois_reg_faster_cpp (
         }
       } else
         
-        // take a full Newton step
+        // Take a full Newton step.
         b[j] -= newton_dir;
     }
     
@@ -113,7 +113,8 @@ struct FactorsUpdater : public Worker {
   }
 };
 
-// [[Rcpp::depends(RcppArmadillo, RcppParallel)]]
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppParallel)]]
 // [[Rcpp::export]]
 void update_factors_faster_parallel(const arma::mat& L_T, arma::mat& FF, 
 				    const arma::mat& M, 

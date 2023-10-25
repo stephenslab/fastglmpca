@@ -28,33 +28,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// big_exp_crossprod
-double big_exp_crossprod(const arma::mat& L, const arma::mat& F, const int n, const int m);
-RcppExport SEXP _fastglmpca_big_exp_crossprod(SEXP LSEXP, SEXP FSEXP, SEXP nSEXP, SEXP mSEXP) {
+// lik_glmpca_pois_log_sp
+double lik_glmpca_pois_log_sp(const arma::sp_mat& Y, const arma::mat& L, const arma::mat& F, double loglik_const);
+RcppExport SEXP _fastglmpca_lik_glmpca_pois_log_sp(SEXP YSEXP, SEXP LSEXP, SEXP FSEXP, SEXP loglik_constSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type Y(YSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type L(LSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type F(FSEXP);
-    Rcpp::traits::input_parameter< const int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< const int >::type m(mSEXP);
-    rcpp_result_gen = Rcpp::wrap(big_exp_crossprod(L, F, n, m));
-    return rcpp_result_gen;
-END_RCPP
-}
-// big_elementwise_mult_crossprod
-double big_elementwise_mult_crossprod(const arma::mat& L, const arma::mat& F, const arma::vec& nonzero_y, const std::vector<int> nonzero_y_i_idx, const std::vector<int> nonzero_y_j_idx, const int num_nonzero_y);
-RcppExport SEXP _fastglmpca_big_elementwise_mult_crossprod(SEXP LSEXP, SEXP FSEXP, SEXP nonzero_ySEXP, SEXP nonzero_y_i_idxSEXP, SEXP nonzero_y_j_idxSEXP, SEXP num_nonzero_ySEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type L(LSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type F(FSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type nonzero_y(nonzero_ySEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type nonzero_y_i_idx(nonzero_y_i_idxSEXP);
-    Rcpp::traits::input_parameter< const std::vector<int> >::type nonzero_y_j_idx(nonzero_y_j_idxSEXP);
-    Rcpp::traits::input_parameter< const int >::type num_nonzero_y(num_nonzero_ySEXP);
-    rcpp_result_gen = Rcpp::wrap(big_elementwise_mult_crossprod(L, F, nonzero_y, nonzero_y_i_idx, nonzero_y_j_idx, num_nonzero_y));
+    Rcpp::traits::input_parameter< double >::type loglik_const(loglik_constSEXP);
+    rcpp_result_gen = Rcpp::wrap(lik_glmpca_pois_log_sp(Y, L, F, loglik_const));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -73,8 +57,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_fastglmpca_update_factors_faster_parallel", (DL_FUNC) &_fastglmpca_update_factors_faster_parallel, 8},
-    {"_fastglmpca_big_exp_crossprod", (DL_FUNC) &_fastglmpca_big_exp_crossprod, 4},
-    {"_fastglmpca_big_elementwise_mult_crossprod", (DL_FUNC) &_fastglmpca_big_elementwise_mult_crossprod, 6},
+    {"_fastglmpca_lik_glmpca_pois_log_sp", (DL_FUNC) &_fastglmpca_lik_glmpca_pois_log_sp, 4},
     {"_fastglmpca_deriv_prod", (DL_FUNC) &_fastglmpca_deriv_prod, 2},
     {NULL, NULL, 0}
 };

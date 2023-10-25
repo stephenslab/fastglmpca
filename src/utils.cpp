@@ -5,40 +5,48 @@ using namespace arma;
 using namespace Rcpp;
 using namespace RcppParallel;
 
+// Y is n x m
 // L is K x n
-// F is K x p
-// [[Rcpp::depends(RcppArmadillo)]]
+// F is K x m
+//
+// This function returns
+//
+//  H = crossprod(LL,FF)
+//  sum(Y*H - exp(H)) - loglik_const
+//
+// but the computation is done in a memory-efficient way.
+//
 // [[Rcpp::export]]
-double big_exp_crossprod (const arma::mat& L, const arma::mat& F,
-			  const int n, const int m) {
-  double sum = 0;
-  for (int i = 0; i < n; i++)
-    for (int j = 0; j < m; j++)
-      sum = sum + exp(dot(L.col(i),F.col(j)));
-  return(sum);
-}
+double lik_glmpca_pois_log_sp (const arma::sp_mat& Y,
+			       const arma::mat& L, 
+			       const arma::mat& F, 
+			       double loglik_const) {
+  unsigned int n = Y.n_rows;
+  unsigned int m = Y.n_cols;
+  unsigned int j;
+  vec y(n);
+  vec lf(n);
+  vec logliks(m,fill::zeros);
 
-// L is K x n
-// F is K x p
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::export]]
-double big_elementwise_mult_crossprod(
-    const arma::mat& L,
-    const arma::mat& F,
-    const arma::vec& nonzero_y,
-    const std::vector<int> nonzero_y_i_idx,
-    const std::vector<int> nonzero_y_j_idx,
-    const int num_nonzero_y) {
-  double sum = 0;
-  for (int r = 0; r < num_nonzero_y; r++)
-    sum = sum + nonzero_y[r] * dot(L.col(nonzero_y_i_idx[r]),
-				   F.col(nonzero_y_j_idx[r]));
-  return(sum);
+  // Repeat for each column of Y.
+  for (j = 0; j < m; j++) {
+    y  = Y.col(j);
+    lf = L.t() * F.col(j);
+    logliks.at(j) = sum(y % lf) - sum(exp(lf));
+  }
+
+  return sum(logliks) - loglik_const;
 }
 
 // L is K x n
 // F is K x m
-// compute L %*% exp(t(L) %*% F)
+//
+// This function returns 
+//
+//   L %*% exp(t(L) %*% F)
+// 
+// but the computation is done in a memory-efficient way.
+//
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
 arma::mat deriv_prod (const arma::mat& L, const arma::mat& F) {
@@ -46,11 +54,10 @@ arma::mat deriv_prod (const arma::mat& L, const arma::mat& F) {
   const unsigned int m = F.n_cols;
   const unsigned int K = L.n_rows;
   unsigned int i, k, j;
-  mat out;
-  out.zeros(K,m);
+  mat out(K,m,fill::zeros);
   for (i = 0; i < n; i++)
     for (j = 0; j < m; j++)
       for (k = 0; k < K; k++)
-        out[k,j] += L[k,i] * exp(dot(L.col(i),F.col(j)));
+        out.at(k,j) += L.at(k,i) * exp(dot(L.col(i),F.col(j)));
   return(out);
 }
