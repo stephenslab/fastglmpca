@@ -5,6 +5,35 @@ using namespace arma;
 using namespace Rcpp;
 using namespace RcppParallel;
 
+double compute_loglik_glmpca_pois (const sp_mat& Y, const mat& L, 
+				   const mat& F, unsigned int j) {
+  unsigned int n = Y.n_rows;
+  vec y(n);
+  vec lf(n);
+  y  = Y.col(j);
+  lf = L.t() * F.col(j);
+  return dot(y,lf) - sum(exp(lf));
+}
+
+struct lik_glmpca_pois_log_sp_worker : public RcppParallel::Worker {
+  const sp_mat& Y;
+  const mat& L;
+  const mat& F;
+  vec& logliks;
+
+  // This is used to create a lik_glmpca_pois_log_sp_worker object.
+  lik_glmpca_pois_log_sp_worker (const sp_mat& Y, const mat& L, 
+				 const mat& F, vec& logliks) :
+    Y(Y), L(L), F(F), logliks(logliks) { };
+
+  // This performs the log-likelihood computations for a given range
+  // of columns of Y.
+  void operator() (std::size_t begin, std::size_t end) {
+    for (unsigned int j = begin; j < end; j++)
+      logliks(j) = compute_loglik_glmpca_pois(Y,L,F,j);
+  }
+};
+
 // Y is n x m
 // L is K x n
 // F is K x m
@@ -21,20 +50,10 @@ double lik_glmpca_pois_log_sp (const arma::sp_mat& Y,
 			       const arma::mat& L, 
 			       const arma::mat& F, 
 			       double loglik_const) {
-  unsigned int n = Y.n_rows;
   unsigned int m = Y.n_cols;
-  unsigned int j;
-  vec y(n);
-  vec lf(n);
-  vec logliks(m,fill::zeros);
-
-  // Repeat for each column of Y.
-  for (j = 0; j < m; j++) {
-    y  = Y.col(j);
-    lf = L.t() * F.col(j);
-    logliks.at(j) = sum(y % lf) - sum(exp(lf));
-  }
-
+  vec logliks(m);
+  lik_glmpca_pois_log_sp_worker worker(Y,L,F,logliks);
+  parallelFor(0,m,worker);
   return sum(logliks) - loglik_const;
 }
 

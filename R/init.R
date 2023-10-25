@@ -194,7 +194,7 @@ init_glmpca_pois <- function(
       lik_glmpca_pois_log_sp(Y,LL,FF,sum(mapSparse(Y,lfactorial)))
   else
     loglik <- lik_glmpca_pois_log(Y,LL,FF,sum(lfactorial(Y)))
-
+  
   # Prepare the final output.
   fit <- list(U = U,V = V,X = X,B = B,Z = Z,W = W,
               fixed_b_cols = fixed_b_cols,
