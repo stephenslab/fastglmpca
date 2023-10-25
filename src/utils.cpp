@@ -1,8 +1,10 @@
-#include <RcppArmadillo.h>
 #include <Rcpp.h>
+#include <RcppArmadillo.h>
+#include <RcppParallel.h>
 
 using namespace arma;
 using namespace Rcpp;
+using namespace RcppParallel;
 
 // L is K x n
 // F is K x p
@@ -11,12 +13,9 @@ using namespace Rcpp;
 double big_exp_crossprod (const arma::mat& L, const arma::mat& F,
 			  const int n, const int m) {
   double sum = 0;
-
-  // First, get this code to work without parallelism
-  // Then, I can see if that would help
   for (int i = 0; i < n; i++)
     for (int j = 0; j < m; j++)
-      sum = sum + exp(dot(L.col(i), F.col(j)));
+      sum = sum + exp(dot(L.col(i),F.col(j)));
   return(sum);
 }
 
@@ -33,7 +32,8 @@ double big_elementwise_mult_crossprod(
     const int num_nonzero_y) {
   double sum = 0;
   for (int r = 0; r < num_nonzero_y; r++)
-    sum = sum + nonzero_y[r] * dot(L.col(nonzero_y_i_idx[r]), F.col(nonzero_y_j_idx[r]));
+    sum = sum + nonzero_y[r] * dot(L.col(nonzero_y_i_idx[r]),
+				   F.col(nonzero_y_j_idx[r]));
   return(sum);
 }
 

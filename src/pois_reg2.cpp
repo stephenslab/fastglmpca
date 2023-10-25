@@ -1,6 +1,6 @@
+#include <Rcpp.h>
 #include <RcppArmadillo.h>
 #include <RcppParallel.h>
-#include <Rcpp.h>
 
 using namespace arma;
 using namespace Rcpp;
