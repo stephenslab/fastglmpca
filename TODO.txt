@@ -1,8 +1,6 @@
 to do
 =====
 
-+ Create introductory vignette.
-
 + Update pkgdown site (after creating introductory vignette).
 
 + Update README.

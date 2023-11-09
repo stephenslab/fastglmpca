@@ -105,7 +105,7 @@ optimization algorithm to fit the model (i.e., estimate the model
 parameters). This is accomplished by a call to `fit_glmpca_pois()`:
 
 ```{r fit-glmpca-1, results="hide"}
-fit <- fit_glmpca_pois(counts,fit0 = fit0,max_iter = 1000)
+fit <- fit_glmpca_pois(counts,fit0 = fit0)
 ```
 
 The return value of `fit_glmpca_pois()` resembles the output of
@@ -121,9 +121,9 @@ reconstruction of the counts matrix:
 
 ```{r fitted-counts}
 fitted_counts <- with(fit,
-  exp(tcrossprod(U %*% D,V) +
+  exp(tcrossprod(U %*% diag(d),V) +
       tcrossprod(X,B) +
-	  tcrossprod(W,Z)))
+      tcrossprod(W,Z)))
 ```
 
 Let's compare (a random subset of) the reconstructed ("fitted") counts
@@ -164,7 +164,7 @@ ggplot(pdat,aes(x = pc1,y = pc2,color = celltype)) +
   theme_cowplot(font_size = 10)
 ```
 
-The 2-d embedding clearly separates the CD34+ and CD14+ cells from the
+The 2-d embedding separates well the CD34+ and CD14+ cells from the
 others, and somewhat distinguishes the other cell types (B cells, T
 cells, NK cells).
 

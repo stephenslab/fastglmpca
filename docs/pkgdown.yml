@@ -1,6 +1,7 @@
 pandoc: 2.17.1.1
 pkgdown: 2.0.7
 pkgdown_sha: ~
-articles: {}
-last_built: 2023-10-17T22:06Z
+articles:
+  intro_fastglmpca: intro_fastglmpca.html
+last_built: 2023-11-09T22:18Z
 
