@@ -147,57 +147,7 @@ optimization algorithm to fit the model (i.e., estimate the model
 parameters). This is accomplished by a call to
 <code><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois()</a></code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span>
-<span class="co"># Fitting GLM-PCA model to 3000 x 3774 count matrix.</span>
-<span class="co"># Iteration 1: log-likelihood = -1.711043300428e+06</span>
-<span class="co"># Iteration 2: log-likelihood = -1.655520543275e+06</span>
-<span class="co"># Iteration 3: log-likelihood = -1.637299100228e+06</span>
-<span class="co"># Iteration 4: log-likelihood = -1.632691919939e+06</span>
-<span class="co"># Iteration 5: log-likelihood = -1.631263012461e+06</span>
-<span class="co"># Iteration 6: log-likelihood = -1.630296338940e+06</span>
-<span class="co"># Iteration 7: log-likelihood = -1.629191130849e+06</span>
-<span class="co"># Iteration 8: log-likelihood = -1.628361849451e+06</span>
-<span class="co"># Iteration 9: log-likelihood = -1.628071373816e+06</span>
-<span class="co"># Iteration 10: log-likelihood = -1.627996163968e+06</span>
-<span class="co"># Iteration 11: log-likelihood = -1.627973217624e+06</span>
-<span class="co"># Iteration 12: log-likelihood = -1.627963810416e+06</span>
-<span class="co"># Iteration 13: log-likelihood = -1.627958945502e+06</span>
-<span class="co"># Iteration 14: log-likelihood = -1.627956045300e+06</span>
-<span class="co"># Iteration 15: log-likelihood = -1.627954167183e+06</span>
-<span class="co"># Iteration 16: log-likelihood = -1.627952888750e+06</span>
-<span class="co"># Iteration 17: log-likelihood = -1.627951990546e+06</span>
-<span class="co"># Iteration 18: log-likelihood = -1.627951346139e+06</span>
-<span class="co"># Iteration 19: log-likelihood = -1.627950877195e+06</span>
-<span class="co"># Iteration 20: log-likelihood = -1.627950532564e+06</span>
-<span class="co"># Iteration 21: log-likelihood = -1.627950277537e+06</span>
-<span class="co"># Iteration 22: log-likelihood = -1.627950087888e+06</span>
-<span class="co"># Iteration 23: log-likelihood = -1.627949946356e+06</span>
-<span class="co"># Iteration 24: log-likelihood = -1.627949840460e+06</span>
-<span class="co"># Iteration 25: log-likelihood = -1.627949761075e+06</span>
-<span class="co"># Iteration 26: log-likelihood = -1.627949701477e+06</span>
-<span class="co"># Iteration 27: log-likelihood = -1.627949656687e+06</span>
-<span class="co"># Iteration 28: log-likelihood = -1.627949622994e+06</span>
-<span class="co"># Iteration 29: log-likelihood = -1.627949597633e+06</span>
-<span class="co"># Iteration 30: log-likelihood = -1.627949578533e+06</span>
-<span class="co"># Iteration 31: log-likelihood = -1.627949564142e+06</span>
-<span class="co"># Iteration 32: log-likelihood = -1.627949553296e+06</span>
-<span class="co"># Iteration 33: log-likelihood = -1.627949545118e+06</span>
-<span class="co"># Iteration 34: log-likelihood = -1.627949538949e+06</span>
-<span class="co"># Iteration 35: log-likelihood = -1.627949534296e+06</span>
-<span class="co"># Iteration 36: log-likelihood = -1.627949530783e+06</span>
-<span class="co"># Iteration 37: log-likelihood = -1.627949528131e+06</span>
-<span class="co"># Iteration 38: log-likelihood = -1.627949526129e+06</span>
-<span class="co"># Iteration 39: log-likelihood = -1.627949524618e+06</span>
-<span class="co"># Iteration 40: log-likelihood = -1.627949523476e+06</span>
-<span class="co"># Iteration 41: log-likelihood = -1.627949522614e+06</span>
-<span class="co"># Iteration 42: log-likelihood = -1.627949521963e+06</span>
-<span class="co"># Iteration 43: log-likelihood = -1.627949521471e+06</span>
-<span class="co"># Iteration 44: log-likelihood = -1.627949521100e+06</span>
-<span class="co"># Iteration 45: log-likelihood = -1.627949520819e+06</span>
-<span class="co"># Iteration 46: log-likelihood = -1.627949520607e+06</span>
-<span class="co"># Iteration 47: log-likelihood = -1.627949520447e+06</span>
-<span class="co"># Iteration 48: log-likelihood = -1.627949520326e+06</span>
-<span class="co"># Iteration 49: log-likelihood = -1.627949520235e+06</span></code></pre></div>
+<code class="sourceCode R"><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span></code></pre></div>
 <p>The return value of <code><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois()</a></code> resembles the
 output of <code><a href="https://rdrr.io/r/base/svd.html" class="external-link">svd()</a></code> and similar functions, with a few other
 outputs giving additional information about the model:</p>
