@@ -3,9 +3,7 @@ to do
 
 + Create introductory vignette.
 
-+ Update pkgdown site after creating introductory vignette.
-
-+ Address Issue #2.
++ Update pkgdown site (after creating introductory vignette).
 
 + Update README.
 

@@ -1,0 +1,178 @@
+---
+title: Analysis of single-cell RNA-seq data using fastglmpca
+author: Eric Weine and Peter Carbonetto
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: no
+    highlight: textmate
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{Analysis of single-cell RNA-seq data using fastglmpca}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The aim of this vignette is to introduce the basic steps involved in
+fitting GLM-PCA model to single-cell RNA-seq data using
+**fastglmpca**. (See [Townes *et al* 2019][townes-2019] or
+[Collins *et al* 2001][collins-2001] for a detailed description of the
+GLM-PCA model.)
+
+```{r knitr-opts, include=FALSE}
+knitr::opts_chunk$set(comment = "#",collapse = TRUE,results = "hold",
+                      fig.align = "center",dpi = 120)
+```
+
+To begin, load the packages that are needed.
+
+```{r load-pkgs, message=FALSE, warning=FALSE}
+library(Matrix)
+library(fastglmpca)
+library(ggplot2)
+library(cowplot)
+```
+
+Set the seed so that the results can be reproduced.
+
+```{r set-seed}
+set.seed(1)
+```
+
+The example data set
+--------------------
+
+We will illustrate fastglmpca using a single-cell RNA-seq data set
+from [Zheng *et al* (2017)][zheng-2017]. These data are reference
+transcriptome profiles from 10 bead-enriched subpopulations of
+peripheral blood mononuclear cells (PBMCs). The original data set is
+much larger; for this introduction, we have taken a subset of
+roughly 3,700 cells.
+
+The data we will analyze are unique molecular identifier (UMI)
+counts. These data are stored as an $n \times m$ sparse matrix, where
+$n$ is the number of genes and $m$ is the number of cells:
+
+```{r load-data}
+data(pbmc_facs)
+dim(pbmc_facs$counts)
+```
+
+The UMI counts are "sparse"---that is, most of the counts are
+zero. Indeed, over 95% of the UMI counts are zero:
+
+```{r nonzero-rate}
+mean(pbmc_facs$counts > 0)
+```
+
+For the purposes of this vignette only, we randomly subset the data
+further to reduce the running time:
+
+```{r subset-genes-1}
+counts <- pbmc_facs$counts
+n      <- nrow(counts)
+rows   <- sample(n,3000)
+counts <- counts[rows,]
+```
+
+Now we have a 3,000 x 3,774 counts matrix:
+
+```{r subset-genes-2}
+dim(counts)
+```
+
+Initializating and fitting the GLM-PCA model
+--------------------------------------------
+
+Since no preprocessing of UMI counts is needed (e.g., a
+log-transformation), the first step is to initialize the model fit
+using `init_glmpca_pois()`. This function has many input arguments and
+options, but here we will keep all settings at the defaults, and we
+set K, the rank of the matrix factorization, to 2:
+
+```{r init-glmpca}
+fit0 <- init_glmpca_pois(counts,K = 2)
+```
+
+By default, `init_glmpca_pois()` adds gene- (or row-) specific
+intercept, and a fixed cell- (or column-) specific size-factor. This
+is intended to mimic the defaults in [glmpca][glmpca-pkg].
+`init_glmpca_pois()` has many other options which we do not demonstrate
+here.
+
+Once we have initialized the model, we are ready to run the
+optimization algorithm to fit the model (i.e., estimate the model
+parameters). This is accomplished by a call to `fit_glmpca_pois()`:
+
+```{r fit-glmpca-1, results="hide"}
+fit <- fit_glmpca_pois(counts,fit0 = fit0,max_iter = 1000)
+```
+
+The return value of `fit_glmpca_pois()` resembles the output of
+`svd()` and similar functions, with a few other outputs giving
+additional information about the model:
+
+```{r fit-glmpca-2}
+names(fit)
+```
+
+In particular, the outputs that are capital letters the low-rank
+reconstruction of the counts matrix:
+
+```{r fitted-counts}
+fitted_counts <- with(fit,
+  exp(tcrossprod(U %*% D,V) +
+      tcrossprod(X,B) +
+	  tcrossprod(W,Z)))
+```
+
+Let's compare (a random subset of) the reconstructed ("fitted") counts
+versus the observed counts:
+
+```{r fitted-vs-observed, fig.height=3, fig.width=3}
+i <- sample(prod(dim(counts)),2e4)
+pdat <- data.frame(obs    = as.matrix(counts)[i],
+                   fitted = fitted_counts[i])
+ggplot(pdat,aes(x = obs,y = fitted)) +
+  geom_point() +
+  geom_abline(intercept = 0,slope = 1,color = "magenta",linetype = "dotted") +
+  labs(x = "observed count",y = "fitted count") +
+  theme_cowplot(font_size = 12)
+```
+
+Most users will be interested in `fit$U` and `fit$V`, the orthogonaal
+matrices containing the latent representation of the data. As a basic
+example, we can extract the loadings for each cell in the first and
+second directions of variation as follows:
+
+```{r}
+pc_df <- data.frame(
+  celltype = pbmc_facs$samples$celltype,
+  PC1 = fit$V[,1],
+  PC2 = fit$V[,2]
+)
+```
+
+Then, we can visualize these loadings, coloring each point by cell type. 
+
+```{r plot-V, fig.height=3, fig.width=5}
+ggplot(pc_df,aes(x = PC1,y = PC2,color = celltype)) +
+  geom_point(size = 1.25) +
+  theme_cowplot(font_size = 10)
+```
+
+Session info
+------------
+
+This is the version of R and the packages that were used to generate
+these results.
+
+```{r session-info}
+sessionInfo()
+```
+
+[zheng-2017]: https://doi.org/10.1038/ncomms14049
+[townes-2019]: https://doi.org/10.1186/s13059-019-1861-6
+[collins-2001]: https://proceedings.neurips.cc/paper_files/paper/2001/file/f410588e48dc83f2822a880a68f78923-Paper.pdf
+[glmpca-pkg]:https://cran.r-project.org/web/packages/glmpca/index.html
+[seurat-pkg]:https://cran.r-project.org/web/packages/Seurat/index.html
