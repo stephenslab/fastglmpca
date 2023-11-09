@@ -140,26 +140,33 @@ ggplot(pdat,aes(x = obs,y = fitted)) +
   theme_cowplot(font_size = 12)
 ```
 
-Most users will be interested in `fit$U` and `fit$V`, the orthogonaal
-matrices containing the latent representation of the data. As a basic
-example, we can extract the loadings for each cell in the first and
-second directions of variation as follows:
+The U and V outputs in particular are interesting because they give
+low-dimensional (in this case, 2-d) embeddings of the genes and cells,
+respectively. Let's compare this 2-d embedding of the cells the
+provided cell-type labels:
 
-```{r}
-pc_df <- data.frame(
-  celltype = pbmc_facs$samples$celltype,
-  PC1 = fit$V[,1],
-  PC2 = fit$V[,2]
-)
-```
-
-Then, we can visualize these loadings, coloring each point by cell type. 
-
-```{r plot-V, fig.height=3, fig.width=5}
-ggplot(pc_df,aes(x = PC1,y = PC2,color = celltype)) +
-  geom_point(size = 1.25) +
+```{r plot-v, fig.height=3, fig.width=4.5}
+celltype_colors <- c("forestgreen","dodgerblue","darkmagenta",
+                     "gray","hotpink","red")
+celltype <- as.character(pbmc_facs$samples$celltype)
+celltype[celltype == "CD4+/CD25 T Reg" |
+         celltype == "CD4+ T Helper2" |
+         celltype == "CD8+/CD45RA+ Naive Cytotoxic" |
+		 celltype == "CD4+/CD45RA+/CD25- Naive T" |
+		 celltype == "CD4+/CD45RO+ Memory"] <- "T cell"
+celltype <- factor(celltype)
+pdat <- data.frame(celltype = celltype,
+                   pc1 = fit$V[,1],
+				   pc2 = fit$V[,2])
+ggplot(pdat,aes(x = pc1,y = pc2,color = celltype)) +
+  geom_point() +
+  scale_color_manual(values = celltype_colors) +
   theme_cowplot(font_size = 10)
 ```
+
+The 2-d embedding clearly separates the CD34+ and CD14+ cells from the
+others, and somewhat distinguishes the other cell types (B cells, T
+cells, NK cells).
 
 Session info
 ------------
