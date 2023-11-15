@@ -11,12 +11,14 @@ test_that("Some basic tests of fit_glmpca_pois",{
   # Fit a GLM-PCA model to the data.
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
-                           control = list(calc_deriv = TRUE,
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,
+                           control = list(maxiter = 500,tol = 1e-8,
+                                          calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
 
@@ -46,12 +48,14 @@ test_that("fit_glmpca_pois works with K = 1",{
   # Fit a GLM-PCA model to the data.
   fit0 <- init_glmpca_pois(Y,K = 1)
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
-                           control = list(calc_deriv = TRUE,
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,
+                           control = list(maxiter = 500,tol = 1e-8,
+                                          calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
 
@@ -80,12 +84,14 @@ test_that("fit_glmpca_pois works with orthonormalize = FALSE",{
   # Fit a GLM-PCA model to the data.
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   suppressWarnings(capture.output(
-    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,max_iter = 500,tol = 1e-8,
-                           control = list(calc_deriv = TRUE,
+    fit <- fit_glmpca_pois(Y,fit0 = fit_quick,
+                           control = list(maxiter = 500,tol = 1e-8,
+                                          calc_deriv = TRUE,
                                           calc_max_diff = TRUE))))
   capture.output(print(summary(fit)))
 
@@ -120,8 +126,9 @@ test_that("Fit works with no row intercept or column size factor", {
   )
   
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   
   expect_nondecreasing(fit_quick$progress$loglik)
@@ -148,16 +155,18 @@ test_that("Final fit is the same with sparse and dense Y",{
   set.seed(1)
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   
   # Fit a GLM-PCA model to the data with sparse Y.
   set.seed(1)
   fit0_sp <- init_glmpca_pois(Y_sp,K = 3)  
   suppressWarnings(capture.output(
-    fit_quick_sp <- fit_glmpca_pois(Y_sp,fit0 = fit0_sp,max_iter = 20,
-                                    control = list(calc_deriv = TRUE,
+    fit_quick_sp <- fit_glmpca_pois(Y_sp,fit0 = fit0_sp,
+                                    control = list(maxiter = 20,
+                                                   calc_deriv = TRUE,
                                                    calc_max_diff = TRUE))))
   
   fit_quick$progress[,"time"]    <- 0
@@ -176,8 +185,9 @@ test_that("Final fit is the same with single thread or multiple threads",{
   set_fastglmpca_threads(1)
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit1 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                            control = list(calc_deriv = TRUE,
+    fit1 <- fit_glmpca_pois(Y,fit0 = fit0,
+                            control = list(maxiter = 20,
+                                           calc_deriv = TRUE,
                                            calc_max_diff = TRUE))))
 
   # Fit a GLM-PCA model to the data using 2 threads.
@@ -185,8 +195,9 @@ test_that("Final fit is the same with single thread or multiple threads",{
   set_fastglmpca_threads(2)
   fit0 <- init_glmpca_pois(Y,K = 3)
   suppressWarnings(capture.output(
-    fit2 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                            control = list(calc_deriv = TRUE,
+    fit2 <- fit_glmpca_pois(Y,fit0 = fit0,
+                            control = list(maxiter = 20,
+                                           calc_deriv = TRUE,
                                            calc_max_diff = TRUE))))
   fit1$progress[,"time"] <- 0
   fit2$progress[,"time"] <- 0
@@ -206,8 +217,9 @@ test_that("Test fit works with input covariates",{
   # Fit a GLM-PCA model to the data and check the outputs.
   fit0 <- init_glmpca_pois(Y,K = 3, X = X, Z = Z, fixed_b_cols = c(1))
   suppressWarnings(capture.output(
-    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 20,
-                                 control = list(calc_deriv = TRUE,
+    fit_quick <- fit_glmpca_pois(Y,fit0 = fit0,
+                                 control = list(maxiter = 20,
+                                                calc_deriv = TRUE,
                                                 calc_max_diff = TRUE))))
   
   expect_nondecreasing(fit_quick$progress$loglik)

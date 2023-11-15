@@ -25,6 +25,7 @@ jobs:
           install.packages(c("remotes","rcmdcheck","testthat","devtools"))
           install.packages(c("MatrixExtra","distr","Rcpp","RcppParallel"))
           install.packages(c("RcppArmadillo","testthat","knitr","rmarkdown"))
+          install.packages(c("daarem"))
         shell: Rscript {0}
 
       - name: Check

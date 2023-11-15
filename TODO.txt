@@ -1,6 +1,9 @@
 to do
 =====
 
-+ Add tests comparing use_daarem = TRUE and use_daarem = FALSE.
++ Add tests comparing use_daarem = TRUE and use_daarem = FALSE:
+
+    - Also check that loglik, tail(progress$loglik,n = 1) and manual
+      computation with lik_glmpca_pois_log give the same result.
 
 + Update README.

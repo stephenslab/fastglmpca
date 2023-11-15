@@ -115,7 +115,7 @@
 #'   the optimization algorithm; see \dQuote{Details}.
 #' 
 #' @references
-#' Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
+#'   Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
 #'   R. A. (2019). Feature selection and dimension reduction for
 #'   single-cell RNA-Seq based on a multinomial model. \emph{Genome Biology}
 #'   \bold{20}, 295. \url{https://doi.org/10.1186/s13059-019-1861-6}
@@ -411,7 +411,7 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
 par2fit <- function (vars, LL, FF, update_indices_l, update_indices_f) {
   n <- ncol(LL)
   m <- ncol(FF)
-  i <- seq(1,n*length(update_indices_l))
+  i <- seq(1,n * length(update_indices_l))
   fit <- list(LL = LL,FF = FF)
   fit$LL[update_indices_l,] <- vars[i]
   fit$FF[update_indices_f,] <- vars[-i]

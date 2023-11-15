@@ -25,7 +25,7 @@ environment:
 # This is the minimal set of R packages needed to run "R CMD check" on
 # the package.
 build_script:
-  - R -e install.packages(c('devtools','testthat','MatrixExtra','distr','Rcpp','RcppParallel','RcppArmadillo','knitr','rmarkdown'),head(.libPaths(),1),'http://cran.wustl.edu')
+  - R -e install.packages(c('devtools','testthat','MatrixExtra','distr','daarem','Rcpp','RcppParallel','RcppArmadillo','knitr','rmarkdown'),head(.libPaths(),1),'http://cran.wustl.edu')
 
 test_script:
   - travis-tool.sh run_tests
