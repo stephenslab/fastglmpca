@@ -369,6 +369,8 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
 
   # Set up the internal "fit" object.
   fit <- par2fit(vars,LL,FF,update_indices_l,update_indices_f)
+
+  # Keep track of the current estimates.
   fit0 <- fit
   
   # Perform a single update of LL and FF.
