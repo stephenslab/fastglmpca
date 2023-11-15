@@ -9,7 +9,7 @@ fit0 <- fit_glmpca_pois(Y,K = 3,max_iter = 4,
                         control = list(orthonormalize = TRUE,daarem = FALSE))
 t0 <- proc.time()
 fit1 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 40,
-                        control = list(orthonormalize = FALSE,daarem = FALSE))
+                        control = list(orthonormalize = TRUE,daarem = FALSE))
 t1 <- proc.time()
 print(t1 - t0)
 t0 <- proc.time()
