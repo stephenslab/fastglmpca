@@ -305,10 +305,12 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
     updater <- fpiter
     control_settings <- c("tol","maxiter","trace")
   }
-  control_daarem <- control[intersect(names(control),control_settings)]
+  control_settings <- intersect(control_settings,names(control))
+  control_daarem <- control[control_settings]
   res <- updater(# These are the inputs needed to run fpiter or daarem.
                  par = fit2par(list(LL = LL,FF = FF),
-                               update_indices_l,update_indices_f),
+                               update_indices_l,
+                               update_indices_f),
                  fixptfn = fpiter_update,
                  objfn   = fpiter_objective,
                  control = control_daarem,
@@ -316,7 +318,8 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  # These arguments are passed along to
                  # fpiter_objective and fpiter_update.
                  control_glmpca_pois = control,
-                 LL = LL,FF = FF,LL_mask = LL_mask,FF_mask = FF_mask,
+                 LL = LL,FF = FF,
+                 LL_mask = LL_mask,FF_mask = FF_mask,
                  Y = Y,Y_T = Y_T,
                  update_indices_l = update_indices_l,
                  update_indices_f = update_indices_f,
@@ -349,18 +352,18 @@ fit_glmpca_pois_control_default <- function()
        orthonormalize = FALSE)
 
 # This implements "objfn" in fpiter or daarem.
-fpiter_objective <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
+fpiter_objective <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
                               update_indices_l, update_indices_f,
                               loglik_func, loglik_const,
                               control_glmpca_pois, verbose) {
-  fit <- par2fit(vars,LL,FF,update_indices_l,update_indices_f)
+  fit <- par2fit(par,LL,FF,update_indices_l,update_indices_f)
   return(loglik_func(Y,fit$LL,fit$FF,loglik_const))
 }
 
 # This implements "fixptfn" in fpiter or daarem.
 #
 # @importFrom Matrix tcrossprod
-fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
+fpiter_update <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
                            update_indices_l, update_indices_f,
                            loglik_func, loglik_const,
                            control_glmpca_pois, verbose) {
@@ -368,7 +371,7 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
-  fit <- par2fit(vars,LL,FF,update_indices_l,update_indices_f)
+  fit <- par2fit(par,LL,FF,update_indices_l,update_indices_f)
 
   # Keep track of the current estimates.
   fit0 <- fit
@@ -410,13 +413,12 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
 
 # Extract the model fit from the value of "par" provided by fpiter or
 # daarem.
-par2fit <- function (vars, LL, FF, update_indices_l, update_indices_f) {
+par2fit <- function (paar, LL, FF, update_indices_l, update_indices_f) {
   n <- ncol(LL)
-  m <- ncol(FF)
   i <- seq(1,n * length(update_indices_l))
   fit <- list(LL = LL,FF = FF)
-  fit$LL[update_indices_l,] <- vars[i]
-  fit$FF[update_indices_f,] <- vars[-i]
+  fit$LL[update_indices_l,] <- par[i]
+  fit$FF[update_indices_f,] <- par[-i]
   return(fit)
 }
 

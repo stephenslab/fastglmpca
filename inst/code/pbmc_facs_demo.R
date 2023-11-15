@@ -3,11 +3,11 @@ library(ggplot2)
 library(cowplot)
 set.seed(1)
 data(pbmc_facs)
-Y <- pbmc_facs$counts
-n <- nrow(Y)
-m <- ncol(Y)
-X <- matrix(rnorm(2*n),n,2)
-Z <- matrix(rnorm(m),m,1)
+Y <- as.matrix(pbmc_facs$counts)
+# n <- nrow(Y)
+# m <- ncol(Y)
+# X <- matrix(rnorm(2*n),n,2)
+# Z <- matrix(rnorm(m),m,1)
 set.seed(1)
 fit0 <- init_glmpca_pois(Y,K = 3)
 # fit0_init <- init_glmpca_pois(Y,X = X,Z = Z,
@@ -25,7 +25,7 @@ fit1 <- fit_glmpca_pois(Y,fit0 = fit0,
                                        maxiter = 40,
                                        calc_max_diff = TRUE,
                                        calc_deriv = TRUE,
-                                       orthonormalize = TRUE))
+                                       orthonormalize = FALSE))
 fit2 <- fit_glmpca_pois(Y,fit0 = fit0,
                         control = list(use_daarem = TRUE,
                                        maxiter = 40,
@@ -45,4 +45,3 @@ ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
   scale_color_manual(values = c("darkblue","darkorange"))+
   scale_y_continuous(trans = "log10") +
   theme_cowplot(font_size = 12)
-       
