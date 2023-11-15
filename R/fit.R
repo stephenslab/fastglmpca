@@ -306,54 +306,27 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
     updater <- fpiter
     control_settings <- c("tol","maxiter","trace")
   }
-  # fpiter(par, fixptfn, objfn=NULL, control=list( ), ...)
-  
   control_daarem <- control[intersect(names(control),control_settings)]
-  res <- updater(par = fit2vars(list(LL = LL,FF = FF),
+  res <- updater(# These are the inputs needed to run fpiter or daarem.
+                 par = fit2vars(list(LL = LL,FF = FF),
                                 update_indices_l,update_indices_f),
                  fixptfn = fpiter_update,
                  objfn = fpiter_objective,
                  control = control_daarem,
+
+                 # These arguments are passed along to
+                 # fpiter_objective and fpiter_update.
                  control_glmpca_pois = control,
-                 LL = LL,FF = FF,Y = Y,Y_T = Y_T,
+                 LL = LL,FF = FF,LL_mask = LL_mask,FF_mask = FF_mask,
+                 Y = Y,Y_T = Y_T,
                  update_indices_l = update_indices_l,
                  update_indices_f = update_indices_f,
                  loglik_func = loglik_func,
                  loglik_const = loglik_const,
                  verbose = verbose)
+  res$progress <- progress
   return(res)
-
-  ##   # Update the "progress" data frame.
-  ##   new_lik                 <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
-  ##   end_iter_time           <- proc.time()
-  ##   progress[iter,"loglik"] <- new_lik
-  ##   progress[iter,"time"]   <- (end_iter_time - start_time)["elapsed"]
-  ##   if (control$calc_max_diff) {
-  ##     progress[iter,"max_diff_l"] <- max(abs(fit$LL - start_iter_LL))
-  ##     progress[iter,"max_diff_f"] <- max(abs(fit$FF - start_iter_FF))
-  ##   }
-  ##   if (control$calc_deriv) {
-  ##     if(inherits(Y,"sparseMatrix")) {
-  ##       progress[iter,"max_deriv_f"] <-
-  ##         max(abs((deriv_prod(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
-  ##       progress[iter,"max_deriv_l"] <-
-  ##         max(abs((deriv_prod(fit$FF,fit$LL) -
-  ##                  Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
-  ##     } else {
-  ##       progress[iter,"max_deriv_f"] <-
-  ##         max(abs(crossprod(exp(crossprod(fit$LL,fit$FF)) - Y,
-  ##                           t(fit$LL)) * FF_mask))
-  ##       progress[iter,"max_deriv_l"] <-
-  ##         max(abs(crossprod(exp(crossprod(fit$FF,fit$LL)) - t(Y),
-  ##                           t(fit$FF)) * LL_mask))
-  ##     }
-  ##   }
     
-  ##   # Check whether the stopping criterion is met.
-  ##   if (verbose)
-  ##     cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",iter,new_lik))
-  ## if (!converged)
-  ##   warning("Algorithm did not meet convergence criterion")
   # return(list(fit = fit,progress = progress[1:iter,]))
 }
 
@@ -376,40 +349,60 @@ fit_glmpca_pois_control_default <- function()
        orthonormalize = FALSE)
 
 # This implements "objfn" in fpiter or daarem.
-fpiter_objective <- function (vars, LL, FF, Y, Y_T, update_indices_l,
-                              update_indices_f, loglik_func, loglik_const,
+fpiter_objective <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
+                              update_indices_l, update_indices_f,
+                              loglik_func, loglik_const,
                               control_glmpca_pois, verbose) {
   fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
   return(loglik_func(Y,fit$LL,fit$FF,loglik_const))
 }
 
 # This implements "fixptfn" in fpiter or daarem.
-fpiter_update <- function (vars, LL, FF, Y, Y_T, update_indices_l,
-                           update_indices_f, loglik_func, loglik_const,
+#
+# @importFrom Matrix tcrossprod
+fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
+                           update_indices_l, update_indices_f,
+                           loglik_func, loglik_const,
                            control_glmpca_pois, verbose) {
   main_loop_iter <<- main_loop_iter + 1
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
   fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
-  if (control_glmpca_pois$calc_max_diff) {
-    start_iter_LL <- fit$LL
-    start_iter_FF <- fit$FF
-  }
+  fit0 <- fit
   
   # Perform a single update of LL and FF.
   fit <- update_glmpca_pois(fit$LL,fit$FF,Y,Y_T,update_indices_l,
                             update_indices_f,control_glmpca_pois)
 
   # Update the "progress" data frame.
-  # new_lik <- loglik_func(Y,fit1$LL,fit1$FF,loglik_const)
-  # end_iter_time           <- proc.time()
-  # progress[iter,"loglik"] <<- new_lik
-
-  # if (verbose)
-  #   cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",iter,new_lik))
-  
+  new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
+  progress[main_loop_iter,"loglik"] <<- new_lik
+  if (control_glmpca_pois$calc_max_diff) {
+    progress[main_loop_iter,"max_diff_l"] <<- max(abs(fit$LL - fit0$LL))
+    progress[main_loop_iter,"max_diff_f"] <<- max(abs(fit$FF - fit0$FF))
+  }
+  if (control_glmpca_pois$calc_deriv) {
+    if (inherits(Y,"sparseMatrix")) {
+      progress[main_loop_iter,"max_deriv_f"] <<-
+        max(abs((deriv_prod(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
+      progress[main_loop_iter,"max_deriv_l"] <<-
+        max(abs((deriv_prod(fit$FF,fit$LL) -
+                 Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
+    } else {
+      progress[main_loop_iter,"max_deriv_f"] <<-
+        max(abs(crossprod(exp(crossprod(fit$LL,fit$FF)) - Y,
+                          t(fit$LL)) * FF_mask))
+      progress[main_loop_iter,"max_deriv_l"] <<-
+        max(abs(crossprod(exp(crossprod(fit$FF,fit$LL)) - t(Y),
+                          t(fit$FF)) * LL_mask))
+    }
+  }
   stop_time <- proc.time()
+  progress[main_loop_iter,"time"] <<- (stop_time - start_time)["elapsed"]
+  if (verbose)
+    cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",
+                main_loop_iter,new_lik))
   return(fit2vars(fit,update_indices_l,update_indices_f))
 }
 
