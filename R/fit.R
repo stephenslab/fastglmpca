@@ -209,15 +209,14 @@ fit_glmpca_pois <- function(
 
   # Perform the updates.
   res <- fit_glmpca_pois_main_loop(LL,FF,Y,fixed_l,fixed_f,verbose,control)
-  return(res)
-  
+
   # Prepare the final output.
   res$progress$iter <- max(fit0$progress$iter) + res$progress$iter 
-  fit <- list(U = t(res$LL),
-              V = t(res$FF),
+  fit <- list(U            = t(res$fit$LL),
+              V            = t(res$fit$FF),
               fixed_b_cols = fit0$fixed_b_cols,
               fixed_w_cols = fit0$fixed_w_cols,
-              loglik       = fit$loglik,
+              loglik       = res$loglik,
               progress     = rbind(fit0$progress,res$progress))
   if (nx > 0) {
     fit$X <- fit$U[,K + seq(1,nx),drop = FALSE]
@@ -308,8 +307,8 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   }
   control_daarem <- control[intersect(names(control),control_settings)]
   res <- updater(# These are the inputs needed to run fpiter or daarem.
-                 par = fit2vars(list(LL = LL,FF = FF),
-                                update_indices_l,update_indices_f),
+                 par = fit2par(list(LL = LL,FF = FF),
+                               update_indices_l,update_indices_f),
                  fixptfn = fpiter_update,
                  objfn = fpiter_objective,
                  control = control_daarem,
@@ -324,10 +323,11 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  loglik_func = loglik_func,
                  loglik_const = loglik_const,
                  verbose = verbose)
-  res$progress <- progress
-  return(res)
-    
-  # return(list(fit = fit,progress = progress[1:iter,]))
+  
+  # Prepare the output.
+  return(list(fit = par2fit(res$par,LL,FF,update_indices_l,update_indices_f),
+              progress = progress[1:main_loop_iter,],
+              loglik = res$value.objfn))
 }
 
 #' @rdname fit_glmpca_pois
@@ -353,7 +353,7 @@ fpiter_objective <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
                               update_indices_l, update_indices_f,
                               loglik_func, loglik_const,
                               control_glmpca_pois, verbose) {
-  fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
+  fit <- par2fit(vars,LL,FF,update_indices_l,update_indices_f)
   return(loglik_func(Y,fit$LL,fit$FF,loglik_const))
 }
 
@@ -368,7 +368,7 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
-  fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
+  fit <- par2fit(vars,LL,FF,update_indices_l,update_indices_f)
   fit0 <- fit
   
   # Perform a single update of LL and FF.
@@ -403,12 +403,12 @@ fpiter_update <- function (vars, LL, FF, LL_mask, FF_mask, Y, Y_T,
   if (verbose)
     cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",
                 main_loop_iter,new_lik))
-  return(fit2vars(fit,update_indices_l,update_indices_f))
+  return(fit2par(fit,update_indices_l,update_indices_f))
 }
 
 # Extract the model fit from the value of "par" provided by fpiter or
 # daarem.
-vars2fit <- function (vars, LL, FF, update_indices_l, update_indices_f) {
+par2fit <- function (vars, LL, FF, update_indices_l, update_indices_f) {
   n <- ncol(LL)
   m <- ncol(FF)
   i <- seq(1,n*length(update_indices_l))
@@ -419,7 +419,7 @@ vars2fit <- function (vars, LL, FF, update_indices_l, update_indices_f) {
 }
 
 # Convert the model fit to a "par" value accepted by fpiter or daarem.
-fit2vars <- function (fit, update_indices_l, update_indices_f)
+fit2par <- function (fit, update_indices_l, update_indices_f)
   c(fit$LL[update_indices_l,],fit$FF[update_indices_f,])
 
 # This implements a single update of LL and FF.
