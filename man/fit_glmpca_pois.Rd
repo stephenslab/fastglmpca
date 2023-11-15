@@ -10,9 +10,6 @@ fit_glmpca_pois(
   Y,
   K,
   fit0 = init_glmpca_pois(Y, K),
-  tol = 0.0001,
-  min_iter = 1,
-  max_iter = 100,
   verbose = TRUE,
   control = list()
 )
@@ -47,14 +44,6 @@ factorization. This should only be provided if the initial fit
 \dQuote{glmpca_fit_pois}, such as an output from
 \code{init_glmpca_pois} or a previous call to
 \code{fit_glmpca_pois}.}
-
-\item{tol}{The optimization stops when the change in the
-log-likelihood between two successive iterations is less than this
-amount.}
-
-\item{min_iter}{Minimum number of updates to be performed.}
-
-\item{max_iter}{Maximum number of updates to be performed.}
 
 \item{verbose}{If \code{verbose = TRUE}, information about the
 algorithm's progress is printed after each update.}
@@ -162,23 +151,39 @@ using a fast cyclic co-ordinate descent (CCD) algorithm.
 
 The \code{control} argument is a list in which any of the following
 named components will override the default optimization algorithm
-settings (as they are defined by \code{fit_glmpca_pois_control_default}):
+settings (as they are defined by
+\code{fit_glmpca_pois_control_default}). Additional control
+arguments not listed here can be used to control the behaviour of
+\code{\link[daarem]{fpiter}} or \code{\link[daarem]{daarem}}; see
+the help accompanying these functions for details.
 
 \describe{
 
+\item{\code{use_daarem}}{If \code{use_daarem = TRUE}, the updates
+  are accelerated using DAAREM; see \code{\link[daarem]{daarem}} for
+  details.}
+
+\item{\code{tol}}{This is the value of the \dQuote{tol} control
+  argument for \code{\link[daarem]{fpiter}} or
+  \code{\link[daarem]{daarem}}.}
+
+\item{\code{maxiter}}{This is the value of the \dQuote{maxiter}
+  control argument for \code{\link[daarem]{fpiter}} or
+  \code{\link[daarem]{daarem}}.}
+
 \item{\code{num_ccd_iter}}{Number of co-ordinate descent
- updates to be made to parameters at each iteration of 
- the algorithm.}
+  updates to be made to parameters at each iteration of 
+  the algorithm.}
 
 \item{\code{line_search}}{If \code{line_search = TRUE}, a
   backtracking line search is performed at each iteration of CCD to
   guarantee improvement in the objective (the log-likelihood).}
 
-\item{\code{alpha}}{alpha parameter for backtracking line search.
+\item{\code{ls_alpha}}{alpha parameter for backtracking line search.
   (Should be a number between 0 and 0.5, typically a number near
   zero.)}
 
-\item{\code{beta}}{beta parameter for backtracking line search
+\item{\code{ls_beta}}{beta parameter for backtracking line search
   controlling the rate at which the step size is decreased.
   (Should be a number between 0 and 0.5.)}
   
@@ -197,6 +202,9 @@ settings (as they are defined by \code{fit_glmpca_pois_control_default}):
   update step. This generally improves the speed of convergence
   while incurring minimal overhead.}
 }
+
+You may use function \code{\link{set_fastglmpca_threads}} to adjust
+the number of threads used in performing the updates.
 }
 \examples{
 set.seed(1)

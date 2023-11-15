@@ -37,23 +37,39 @@
 #' 
 #' The \code{control} argument is a list in which any of the following
 #' named components will override the default optimization algorithm
-#' settings (as they are defined by \code{fit_glmpca_pois_control_default}):
+#' settings (as they are defined by
+#' \code{fit_glmpca_pois_control_default}). Additional control
+#' arguments not listed here can be used to control the behaviour of
+#' \code{\link[daarem]{fpiter}} or \code{\link[daarem]{daarem}}; see
+#' the help accompanying these functions for details.
 #' 
 #' \describe{
 #'
+#' \item{\code{use_daarem}}{If \code{use_daarem = TRUE}, the updates
+#'   are accelerated using DAAREM; see \code{\link[daarem]{daarem}} for
+#'   details.}
+#' 
+#' \item{\code{tol}}{This is the value of the \dQuote{tol} control
+#'   argument for \code{\link[daarem]{fpiter}} or
+#'   \code{\link[daarem]{daarem}}.}
+#'
+#' \item{\code{maxiter}}{This is the value of the \dQuote{maxiter}
+#'   control argument for \code{\link[daarem]{fpiter}} or
+#'   \code{\link[daarem]{daarem}}.}
+#'
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent
-#'  updates to be made to parameters at each iteration of 
-#'  the algorithm.}
+#'   updates to be made to parameters at each iteration of 
+#'   the algorithm.}
 #'
 #' \item{\code{line_search}}{If \code{line_search = TRUE}, a
 #'   backtracking line search is performed at each iteration of CCD to
 #'   guarantee improvement in the objective (the log-likelihood).}
 #'
-#' \item{\code{alpha}}{alpha parameter for backtracking line search.
+#' \item{\code{ls_alpha}}{alpha parameter for backtracking line search.
 #'   (Should be a number between 0 and 0.5, typically a number near
 #'   zero.)}
 #'
-#' \item{\code{beta}}{beta parameter for backtracking line search
+#' \item{\code{ls_beta}}{beta parameter for backtracking line search
 #'   controlling the rate at which the step size is decreased.
 #'   (Should be a number between 0 and 0.5.)}
 #'   
@@ -73,6 +89,9 @@
 #'   while incurring minimal overhead.}
 #' }
 #'
+#' You may use function \code{\link{set_fastglmpca_threads}} to adjust
+#' the number of threads used in performing the updates.
+#' 
 #' @param Y The n x m matrix of counts; all entries of \code{Y} should
 #'   be non-negative. It can be a sparse matrix (class
 #'   \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).
@@ -86,14 +105,6 @@
 #'   \code{init_glmpca_pois} or a previous call to
 #'   \code{fit_glmpca_pois}.
 #'   
-#' @param tol The optimization stops when the change in the
-#'   log-likelihood between two successive iterations is less than this
-#'   amount.
-#'   
-#' @param min_iter Minimum number of updates to be performed.
-#' 
-#' @param max_iter Maximum number of updates to be performed.
-#' 
 #' @param verbose If \code{verbose = TRUE}, information about the
 #'   algorithm's progress is printed after each update.
 #'   
@@ -137,9 +148,6 @@ fit_glmpca_pois <- function(
     Y, 
     K, 
     fit0 = init_glmpca_pois(Y,K), 
-    tol = 1e-4,
-    min_iter = 1,
-    max_iter = 100,
     verbose = TRUE,
     control = list()) {
 
@@ -171,15 +179,9 @@ fit_glmpca_pois <- function(
          "Did fit0 come from a different Y?")
   K <- ncol(fit0$U)
   
-  # Check input arguments "tol", "min_iter" and "max_iter".
-  if (!(is.scalar(tol) & all(tol > 0)))
-    stop("Input argument \"tol\" should be a positive number")
-  if (any(min_iter > max_iter))
-    stop("\"min_iter\" should be less than or equal to \"max_iter\"")
-  
   # Check and process input argument "control".
-  control <- modifyList(fit_glmpca_pois_control_default(),control, 
-                        keep.null = TRUE)
+  control <- modifyList(fit_glmpca_pois_control_default(),
+                        control,keep.null = TRUE)
 
   # Set up the internal "fit" object.
   D <- sqrt(fit0$d)
@@ -357,14 +359,17 @@ fit_glmpca_pois_main_loop <- function (fit, Y, min_iter, max_iter, tol,
 #' @export
 #' 
 fit_glmpca_pois_control_default <- function()
-  list(alpha = 0.01,
-       beta = 0.5,
+  list(use_daarem = TRUE,
+       maxiter = 100,
+       tol = 1e-4,
        line_search = TRUE,
+       ls_alpha = 0.01,
+       ls_beta = 0.5,
        num_ccd_iter = 3,
        ccd_iter_tol = 0,
        calc_deriv = FALSE,
        calc_max_diff = FALSE,
-       orthonormalize = TRUE)
+       orthonormalize = FALSE)
 
 # This implements a single update of L and F in the GLM-PCA model.
 update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
@@ -393,8 +398,8 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
         update_indices = i,
         num_iter = control$num_ccd_iter,
         line_search = control$line_search,
-        alpha = control$alpha,
-        beta = control$beta)
+        alpha = control$ls_alpha,
+        beta = control$ls_beta)
     fit$LL <- LLnew
   }
 
@@ -418,8 +423,8 @@ update_glmpca_pois <- function (Y, Y_T, fit, update_indices_l,
       update_indices = i,
       num_iter = control$num_ccd_iter,
       line_search = control$line_search,
-      alpha = control$alpha,
-      beta = control$beta)
+      alpha = control$ls_alpha,
+      beta = control$ls_beta)
     fit$FF <- FFnew
   }
 

@@ -1,7 +1,6 @@
 to do
 =====
 
-+ Update pkgdown site (after creating introductory vignette).
++ Add tests comparing use_daarem = TRUE and use_daarem = FALSE.
 
 + Update README.
-
