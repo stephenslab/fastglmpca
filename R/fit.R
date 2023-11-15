@@ -310,7 +310,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  par = fit2par(list(LL = LL,FF = FF),
                                update_indices_l,update_indices_f),
                  fixptfn = fpiter_update,
-                 objfn = fpiter_objective,
+                 objfn   = fpiter_objective,
                  control = control_daarem,
 
                  # These arguments are passed along to
