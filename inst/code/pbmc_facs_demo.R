@@ -21,10 +21,11 @@ fit0_rank1 <- init_glmpca_pois(Y,X = X,Z = Z,K = 1)
 fit1 <- fit_glmpca_pois(Y_sparse,fit0 = fit0,
                         control = list(use_daarem = FALSE,
                                        maxiter = 10,
+                                       trace = TRUE,
                                        calc_max_diff = TRUE,
                                        calc_deriv = TRUE))
-stop()
-fit2 <- fit_glmpca_pois(Y,fit0 = fit0,max_iter = 10,
-                        control = list(calc_max_diff = TRUE,
+fit2 <- fit_glmpca_pois(Y_sparse,fit0 = fit0,
+                        control = list(use_daarem = TRUE,
+                                       maxiter = 10,
+                                       calc_max_diff = TRUE,
                                        calc_deriv = TRUE))
-print(range(fit1$progress$loglik - fit2$progress$loglik))

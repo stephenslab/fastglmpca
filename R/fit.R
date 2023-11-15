@@ -57,6 +57,9 @@
 #'   control argument for \code{\link[daarem]{fpiter}} or
 #'   \code{\link[daarem]{daarem}}.}
 #'
+#' \item{\code{convtype}}{This is the value of the dQuote{convtype}
+#'   control argument for \code{\link[daarem]{daarem}}.}
+#'
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent
 #'   updates to be made to parameters at each iteration of 
 #'   the algorithm.}
@@ -290,29 +293,29 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   if (!inherits(Y,"sparseMatrix")) 
     FF_mask <- t(FF_mask)
 
-  browser()
-
   # Perform the updates using fpiter or daarem.
-  iter <<- 0
+  main_loop_iter <<- 0
   Y_T <- Matrix::t(Y)
   if (verbose)
     cat(sprintf("Fitting GLM-PCA model to %d x %d count matrix.\n",n,m))
   if (control$use_daarem) {
-    res <- daarem(fit2par(fit,update_indices_l,update_indices_f),
-                  fpiter_update,fpiter_objective,control,LL = LL,FF = FF,
-                  Y = Y,Y_T = Y_T,update_indices_l = update_indices_l,
-                  update_indices_f = update_indices_f,
-                  loglik_func = loglik_func,loglik_const = loglik_const,
-                  control2 = control,verbose = verbose)
+    updater <- daarem
+    control_settings <- c("maxiter","order","tol","mon.tol","cycl.mon.tol",
+                          "alpha","kappa","resid.tol","convtype")
   } else {
-    res <- fpiter(fit2par(fit,update_indices_l,update_indices_f),
-                  fpiter_update,fpiter_objective,control,LL = LL,FF = FF,
-                  Y = Y,Y_T = Y_T,update_indices_l = update_indices_l,
-                  update_indices_f = update_indices_f,
-                  loglik_func = loglik_func,loglik_const = loglik_const,
-                  control2 = control,verbose = verbose)
- }
- return(res)
+    updater <- fpiter
+    control_settings <- c("tol","maxiter","trace")
+  }
+  control_daarem <- control[intersect(names(control),control_settings)]
+  res <- updater(fit2vars(list(LL=LL,FF=FF),update_indices_l,update_indices_f),
+                 fpiter_update,fpiter_objective,control_daarem,
+                 LL = LL,FF = FF,Y = Y,Y_T = Y_T,
+                 update_indices_l = update_indices_l,
+                 update_indices_f = update_indices_f,
+                 loglik_func = loglik_func,loglik_const = loglik_const,
+                 control2 = control,verbose = verbose)
+  browser()
+  return(res)
 
   ##   # Update the "progress" data frame.
   ##   new_lik                 <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
@@ -356,6 +359,7 @@ fit_glmpca_pois_control_default <- function()
   list(use_daarem = TRUE,
        maxiter = 100,
        tol = 1e-4,
+       convtype = "objfn",
        line_search = TRUE,
        ls_alpha = 0.01,
        ls_beta = 0.5,
@@ -377,7 +381,7 @@ fpiter_objective <- function (vars, LL, FF, Y, Y_T, update_indices_l,
 fpiter_update <- function (vars, LL, FF, Y, Y_T, update_indices_l,
                            update_indices_f, loglik_func, loglik_const,
                            control2, verbose) {
-  iter <<- iter + 1
+  main_loop_iter <<- main_loop_iter + 1
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
@@ -388,7 +392,7 @@ fpiter_update <- function (vars, LL, FF, Y, Y_T, update_indices_l,
   }
   
   # Perform a single update of LL and FF.
-  fit <- update_glmpca_pois(LL,FF,Y,Y_T,update_indices_l,
+  fit <- update_glmpca_pois(fit$LL,fit$FF,Y,Y_T,update_indices_l,
                             update_indices_f,control2)
 
   # Update the "progress" data frame.
@@ -399,6 +403,7 @@ fpiter_update <- function (vars, LL, FF, Y, Y_T, update_indices_l,
   # if (verbose)
   #   cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",iter,new_lik))
   
+  stop_time <- proc.time()
   return(fit2vars(fit,update_indices_l,update_indices_f))
 }
 
