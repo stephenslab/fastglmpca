@@ -147,7 +147,7 @@ orthogonality constraints for \eqn{U} and \eqn{V} and the
 additional constraints on \eqn{D} that the entries are positive and
 decreasing. This is accomplished by iteratively fitting a series of
 Poisson GLMs, where each of these individual Poissons GLMs is fitted
-using a fast cyclic co-ordinate descent (CCD) algorithm.
+using a fast \dQuote{cyclic co-ordinate descent} (CCD) algorithm.
 
 The \code{control} argument is a list in which any of the following
 named components will override the default optimization algorithm
@@ -199,9 +199,9 @@ the help accompanying these functions for details.
 
 \item{\code{orthonormalize}}{If \code{orthonormalize = TRUE}, the
   matrices \eqn{U} and \eqn{V} are made to be orthogonal after each
-  update step. This generally improves the speed of convergence
-  while incurring minimal overhead.}
-}
+  update step. This improves the speed of convergence without the
+  DAAREM acceleration; however, should not be used when
+  \code{use_daarem = TRUE}.}}
 
 You may use function \code{\link{set_fastglmpca_threads}} to adjust
 the number of threads used in performing the updates.
