@@ -306,15 +306,21 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
     updater <- fpiter
     control_settings <- c("tol","maxiter","trace")
   }
+  # fpiter(par, fixptfn, objfn=NULL, control=list( ), ...)
+  
   control_daarem <- control[intersect(names(control),control_settings)]
-  res <- updater(fit2vars(list(LL=LL,FF=FF),update_indices_l,update_indices_f),
-                 fpiter_update,fpiter_objective,control_daarem,
+  res <- updater(par = fit2vars(list(LL = LL,FF = FF),
+                                update_indices_l,update_indices_f),
+                 fixptfn = fpiter_update,
+                 objfn = fpiter_objective,
+                 control = control_daarem,
+                 control_glmpca_pois = control,
                  LL = LL,FF = FF,Y = Y,Y_T = Y_T,
                  update_indices_l = update_indices_l,
                  update_indices_f = update_indices_f,
-                 loglik_func = loglik_func,loglik_const = loglik_const,
-                 control2 = control,verbose = verbose)
-  browser()
+                 loglik_func = loglik_func,
+                 loglik_const = loglik_const,
+                 verbose = verbose)
   return(res)
 
   ##   # Update the "progress" data frame.
@@ -372,7 +378,7 @@ fit_glmpca_pois_control_default <- function()
 # This implements "objfn" in fpiter or daarem.
 fpiter_objective <- function (vars, LL, FF, Y, Y_T, update_indices_l,
                               update_indices_f, loglik_func, loglik_const,
-                              control2, verbose) {
+                              control_glmpca_pois, verbose) {
   fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
   return(loglik_func(Y,fit$LL,fit$FF,loglik_const))
 }
@@ -380,20 +386,20 @@ fpiter_objective <- function (vars, LL, FF, Y, Y_T, update_indices_l,
 # This implements "fixptfn" in fpiter or daarem.
 fpiter_update <- function (vars, LL, FF, Y, Y_T, update_indices_l,
                            update_indices_f, loglik_func, loglik_const,
-                           control2, verbose) {
+                           control_glmpca_pois, verbose) {
   main_loop_iter <<- main_loop_iter + 1
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
   fit <- vars2fit(vars,LL,FF,update_indices_l,update_indices_f)
-  if (control2$calc_max_diff) {
+  if (control_glmpca_pois$calc_max_diff) {
     start_iter_LL <- fit$LL
     start_iter_FF <- fit$FF
   }
   
   # Perform a single update of LL and FF.
   fit <- update_glmpca_pois(fit$LL,fit$FF,Y,Y_T,update_indices_l,
-                            update_indices_f,control2)
+                            update_indices_f,control_glmpca_pois)
 
   # Update the "progress" data frame.
   # new_lik <- loglik_func(Y,fit1$LL,fit1$FF,loglik_const)

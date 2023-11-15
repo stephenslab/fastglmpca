@@ -171,6 +171,9 @@ the help accompanying these functions for details.
   control argument for \code{\link[daarem]{fpiter}} or
   \code{\link[daarem]{daarem}}.}
 
+\item{\code{convtype}}{This is the value of the dQuote{convtype}
+  control argument for \code{\link[daarem]{daarem}}.}
+
 \item{\code{num_ccd_iter}}{Number of co-ordinate descent
   updates to be made to parameters at each iteration of 
   the algorithm.}
