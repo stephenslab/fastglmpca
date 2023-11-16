@@ -60,6 +60,9 @@
 #' \item{\code{convtype}}{This is the value of the dQuote{convtype}
 #'   control argument for \code{\link[daarem]{daarem}}.}
 #'
+#' \item{\code{mon.tol}}{This is the value of the \dQuote{mon.tol}
+#'   control argument for \code{\link[daarem]{daarem}}.}
+#' 
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent
 #'   updates to be made to parameters at each iteration of 
 #'   the algorithm.}
@@ -341,6 +344,7 @@ fit_glmpca_pois_control_default <- function()
   list(use_daarem = TRUE,
        maxiter = 100,
        tol = 1e-4,
+       mon.tol = 0.05,
        convtype = "objfn",
        line_search = TRUE,
        ls_alpha = 0.01,

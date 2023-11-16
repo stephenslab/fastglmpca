@@ -36,7 +36,8 @@ test_that("Some basic tests of fit_glmpca_pois",{
   expect_equivalent(crossprod(fit$V),diag(3),scale = 1,tolerance = 1e-8)
   expect_equivalent(fit$d,sort(fit$d,decreasing = TRUE))
 
-  # loglik, tail(progress$loglik,n = 1) and manual
+  # loglik, tail(progress$loglik,n = 1) and manual calculation of the
+  # log-likelihood should all be the same.
   loglik <-
     lik_glmpca_pois_log(Y,
                         LL = with(fit,t(cbind(U %*% diag(sqrt(d)),X,W))),
@@ -247,6 +248,16 @@ test_that("Final fit is (roughly) the same with or without daarem",{
   fit1["progress"] <- NULL
   fit2["progress"] <- NULL
   expect_equal(fit1,fit2,scale = 1,tolerance = 0.001)
+
+  # The fixed row and column intercepts should not change.
+  expect_equal(fit0$X,fit1$X)
+  expect_equal(fit0$B,fit1$B)
+  expect_equal(fit0$Z,fit1$Z)
+  expect_equal(fit0$W,fit1$W)
+  expect_equal(fit0$X,fit2$X)
+  expect_equal(fit0$B,fit2$B)
+  expect_equal(fit0$Z,fit2$Z)
+  expect_equal(fit0$W,fit2$W)
 })
 
 test_that("Test fit works with input covariates",{

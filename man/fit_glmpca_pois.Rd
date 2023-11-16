@@ -174,6 +174,9 @@ the help accompanying these functions for details.
 \item{\code{convtype}}{This is the value of the dQuote{convtype}
   control argument for \code{\link[daarem]{daarem}}.}
 
+\item{\code{mon.tol}}{This is the value of the \dQuote{mon.tol}
+  control argument for \code{\link[daarem]{daarem}}.}
+
 \item{\code{num_ccd_iter}}{Number of co-ordinate descent
   updates to be made to parameters at each iteration of 
   the algorithm.}
