@@ -413,7 +413,7 @@ fpiter_update <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
 
 # Extract the model fit from the value of "par" provided by fpiter or
 # daarem.
-par2fit <- function (paar, LL, FF, update_indices_l, update_indices_f) {
+par2fit <- function (par, LL, FF, update_indices_l, update_indices_f) {
   n <- ncol(LL)
   i <- seq(1,n * length(update_indices_l))
   fit <- list(LL = LL,FF = FF)
