@@ -27,3 +27,27 @@ fit <- fit_glmpca_pois(counts,fit0 = fit0,
                                       use_daarem = use_daarem,
                                       orthonormalize = orthonormalize))
 save(list = "fit",file = outfile)
+
+# Create the plot comparing the two runs:
+#
+# library(ggplot2)
+# library(cowplot)
+# load("droplet_k=5_daarem=no.RData")
+# fit1 <- fit
+# load("droplet_k=5_daarem=yes.RData")
+# fit2 <- fit
+# pdat <- rbind(data.frame(method = "fpiter",
+#                          iter   = fit1$progress$iter,
+#                          loglik = fit1$progress$loglik),
+#               data.frame(method = "daarem",
+#                          iter   = fit2$progress$iter,
+#                          loglik = fit2$progress$loglik))
+# best_loglik <- max(pdat$loglik)
+# pdat <- transform(pdat,loglik = best_loglik - loglik + 1)
+# p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
+#   geom_line(size = 0.5) +
+#   scale_color_manual(values = c("darkblue","darkorange"))+
+#   scale_y_continuous(trans = "log10",
+#                      breaks = c(1,10,100,1e3,1e4,1e5,1e6,1e7)) +
+#   theme_cowplot(font_size = 10)
+# print(p)

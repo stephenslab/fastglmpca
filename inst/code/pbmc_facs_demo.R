@@ -39,3 +39,4 @@ p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
   scale_y_continuous(trans = "log10",breaks = c(1,10,100,1e3,1e4,1e5,1e6)) +
   theme_cowplot(font_size = 12)
 print(p)
+
