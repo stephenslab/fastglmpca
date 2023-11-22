@@ -51,3 +51,14 @@ save(list = "fit",file = outfile)
 #                      breaks = c(1,10,100,1e3,1e4,1e5,1e6,1e7)) +
 #   theme_cowplot(font_size = 10)
 # print(p)
+#
+# Create plots comparing the estimates:
+#
+# fit2$U[,c(3,5)] <- -fit2$U[,c(3,5)]
+# plot(fit1$U,fit2$U,pch = 20)
+# abline(a = 0,b = 1,col = "magenta",lty = "dotted")
+# 
+# fit2$V[,c(3,5)] <- -fit2$V[,c(3,5)]
+# plot(fit1$V,fit2$V,pch = 20)
+# abline(a = 0,b = 1,col = "magenta",lty = "dotted")
+# 
