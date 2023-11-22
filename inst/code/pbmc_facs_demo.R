@@ -5,38 +5,32 @@ set.seed(1)
 data(pbmc_facs)
 Y <- pbmc_facs$counts
 set.seed(1)
-fit0 <- init_glmpca_pois(Y,K = 3)
-fit0 <- fit_glmpca_pois(Y,fit0 = fit0,
+fit0 <- fit_glmpca_pois(Y,K = 3,
                         control = list(maxiter = 4,
                                        orthonormalize = TRUE,
                                        daarem = FALSE))
 fit1 <- fit_glmpca_pois(Y,fit0 = fit0,
                         control = list(use_daarem = FALSE,
                                        maxiter = 100,
-                                       calc_max_diff = TRUE,
-                                       calc_deriv = TRUE,
                                        orthonormalize = TRUE))
 fit2 <- fit_glmpca_pois(Y,fit0 = fit0,
                         control = list(use_daarem = TRUE,
                                        maxiter = 100,
-                                       calc_max_diff = TRUE,
-                                       calc_deriv = TRUE,
+                                       mon.tol = 1.05,
+                                       line_search = TRUE,
                                        orthonormalize = FALSE))
-fit3 <- fit_glmpca_pois(Y,fit0 = fit0,
-                        control = list(use_daarem = TRUE,
-                                       maxiter = 100,
-                                       calc_max_diff = TRUE,
-                                       calc_deriv = TRUE,
-                                       orthonormalize = TRUE))
+# fit3 <- fit_glmpca_pois(Y,fit0 = fit0,
+#                         control = list(use_daarem = TRUE,
+#                                        maxiter = 100,
+#                                        calc_max_diff = TRUE,
+#                                        calc_deriv = TRUE,
+#                                        orthonormalize = TRUE))
 pdat <- rbind(data.frame(method = "fpiter",
                          iter   = fit1$progress$iter,
                          loglik = fit1$progress$loglik),
-              data.frame(method = "daarem-ortho",
+              data.frame(method = "daarem",
                          iter   = fit2$progress$iter,
-                         loglik = fit2$progress$loglik),
-              data.frame(method = "daarem+ortho",
-                         iter   = fit3$progress$iter,
-                         loglik = fit3$progress$loglik))
+                         loglik = fit2$progress$loglik))
 best_loglik <- max(pdat$loglik)
 pdat <- transform(pdat,loglik = best_loglik - loglik + 100)
 p <- ggplot(pdat,aes(x = iter,y = loglik,color = method)) +
