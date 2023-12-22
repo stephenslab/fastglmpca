@@ -1,7 +1,7 @@
 #' @title Fit Poisson GLM-PCA Model to Count Data
-#' 
+#'
 #' @description Fit a Poisson GLM-PCA model by maximum-likelihood.
-#'   
+#'
 #' @details In generalized principal component analysis (GLM-PCA)
 #' based on a Poisson likelihood, the counts \eqn{y_{ij}} stored in an
 #' \eqn{n \times m}{n x m} matrix \eqn{Y} are modeled as \deqn{y_{ij}
@@ -26,7 +26,7 @@
 #' n_x}{n x n_x} and \eqn{m \times n_z}{m x n_z}, respectively, and
 #' \eqn{B}, \eqn{W} are matrices of dimension \eqn{m \times n_x}{m x
 #' n_x} and \eqn{n \times n_z}{n x n_z} to be estimated from the data.
-#' 
+#'
 #' \code{fit_glmpca_pois} computes maximum-likelihood estimates (MLEs)
 #' of \eqn{U}, \eqn{V}, \eqn{D}, \eqn{B} and \eqn{W} satistifying the
 #' orthogonality constraints for \eqn{U} and \eqn{V} and the
@@ -34,7 +34,7 @@
 #' decreasing. This is accomplished by iteratively fitting a series of
 #' Poisson GLMs, where each of these individual Poissons GLMs is fitted
 #' using a fast \dQuote{cyclic co-ordinate descent} (CCD) algorithm.
-#' 
+#'
 #' The \code{control} argument is a list in which any of the following
 #' named components will override the default optimization algorithm
 #' settings (as they are defined by
@@ -42,13 +42,13 @@
 #' arguments not listed here can be used to control the behaviour of
 #' \code{\link[daarem]{fpiter}} or \code{\link[daarem]{daarem}}; see
 #' the help accompanying these functions for details.
-#' 
+#'
 #' \describe{
 #'
 #' \item{\code{use_daarem}}{If \code{use_daarem = TRUE}, the updates
 #'   are accelerated using DAAREM; see \code{\link[daarem]{daarem}} for
 #'   details.}
-#' 
+#'
 #' \item{\code{tol}}{This is the value of the \dQuote{tol} control
 #'   argument for \code{\link[daarem]{fpiter}} or
 #'   \code{\link[daarem]{daarem}}.}
@@ -62,9 +62,9 @@
 #'
 #' \item{\code{mon.tol}}{This is the value of the \dQuote{mon.tol}
 #'   control argument for \code{\link[daarem]{daarem}}.}
-#' 
+#'
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent
-#'   updates to be made to parameters at each iteration of 
+#'   updates to be made to parameters at each iteration of
 #'   the algorithm.}
 #'
 #' \item{\code{line_search}}{If \code{line_search = TRUE}, a
@@ -78,17 +78,17 @@
 #' \item{\code{ls_beta}}{beta parameter for backtracking line search
 #'   controlling the rate at which the step size is decreased.
 #'   (Should be a number between 0 and 0.5.)}
-#'   
+#'
 #' \item{\code{calc_deriv}}{If \code{calc_deriv = TRUE}, the maximum
 #'   gradient of \eqn{U} and \eqn{V} is calculated and stored after each
 #'   update. This may be useful for assessing convergence of the
 #'   optimization, though increases overhead.}
-#'   
+#'
 #' \item{\code{calc_max_diff}}{If \code{calc_max_diff = TRUE}, the
 #'   largest change in \eqn{U} and \eqn{V} after each update is
 #'   calculated and stored. This may be useful for monitoring progress
 #'   of the optimization algorithm.}
-#' 
+#'
 #' \item{\code{orthonormalize}}{If \code{orthonormalize = TRUE}, the
 #'   matrices \eqn{U} and \eqn{V} are made to be orthogonal after each
 #'   update step. This improves the speed of convergence without the
@@ -97,26 +97,26 @@
 #'
 #' You may use function \code{\link{set_fastglmpca_threads}} to adjust
 #' the number of threads used in performing the updates.
-#' 
+#'
 #' @param Y The n x m matrix of counts; all entries of \code{Y} should
 #'   be non-negative. It can be a sparse matrix (class
 #'   \code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).
-#'   
+#'
 #' @param K Integer 1 or greater specifying the rank of the matrix
 #'   factorization. This should only be provided if the initial fit
 #'   (\code{fit0}) is not.
-#'   
+#'
 #' @param fit0 Initial model fit. It should be an object of class
 #'   \dQuote{glmpca_fit_pois}, such as an output from
 #'   \code{init_glmpca_pois} or a previous call to
 #'   \code{fit_glmpca_pois}.
-#'   
+#'
 #' @param verbose If \code{verbose = TRUE}, information about the
 #'   algorithm's progress is printed after each update.
-#'   
+#'
 #' @param control List of control parameters to modify behavior of
 #'   the optimization algorithm; see \dQuote{Details}.
-#' 
+#'
 #' @references
 #'   Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
 #'   R. A. (2019). Feature selection and dimension reduction for
@@ -138,10 +138,10 @@
 #'   information about the algorithm's progress after each update.
 #'
 #' @importFrom utils modifyList
-#' 
+#'
 #' @export
-#' 
-#' @examples 
+#'
+#' @examples
 #' set.seed(1)
 #' n <- 1000
 #' p <- 500
@@ -151,9 +151,9 @@
 #' fit  <- fit_glmpca_pois(dat$Y,fit0 = fit0)
 #'
 fit_glmpca_pois <- function(
-    Y, 
-    K, 
-    fit0 = init_glmpca_pois(Y,K), 
+    Y,
+    K,
+    fit0 = init_glmpca_pois(Y,K),
     verbose = TRUE,
     control = list()) {
 
@@ -184,7 +184,7 @@ fit_glmpca_pois <- function(
     stop("Input \"Y\" should have same number of rows as fit0$V. ",
          "Did fit0 come from a different Y?")
   K <- ncol(fit0$U)
-  
+
   # Check and process input argument "control".
   control <- modifyList(fit_glmpca_pois_control_default(),
                         control,keep.null = TRUE)
@@ -193,7 +193,7 @@ fit_glmpca_pois <- function(
   D <- sqrt(fit0$d)
   if (K == 1)
     D <- matrix(D)
-  else   
+  else
     D <- diag(D)
   LL <- t(cbind(fit0$U %*% D,fit0$X,fit0$W))
   FF <- t(cbind(fit0$V %*% D,fit0$B,fit0$Z))
@@ -214,7 +214,7 @@ fit_glmpca_pois <- function(
   res <- fit_glmpca_pois_main_loop(LL,FF,Y,fixed_l,fixed_f,verbose,control)
 
   # Prepare the final output.
-  res$progress$iter <- max(fit0$progress$iter) + res$progress$iter 
+  res$progress$iter <- max(fit0$progress$iter) + res$progress$iter
   fit <- list(U            = t(res$fit$LL),
               V            = t(res$fit$FF),
               fixed_b_cols = fit0$fixed_b_cols,
@@ -264,7 +264,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   n <- nrow(Y)
   m <- ncol(Y)
   K <- nrow(LL)
-    
+
   # Get the rows of LL and FF to update.
   update_indices_l <- sort(setdiff(1:K,fixed_l))
   update_indices_f <- sort(setdiff(1:K,fixed_f))
@@ -276,7 +276,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   } else {
     loglik_const <- sum(lfactorial(Y))
     loglik_func  <- lik_glmpca_pois_log
-  } 
+  }
 
   # Set up the data structure for recording the algorithm's progress.
   progress <<- data.frame(iter        = 1:control$maxiter,
@@ -292,7 +292,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   if (!inherits(Y,"sparseMatrix"))
     LL_mask <- t(LL_mask)
   FF_mask <- matrix(1,K,m)
-  if (!inherits(Y,"sparseMatrix")) 
+  if (!inherits(Y,"sparseMatrix"))
     FF_mask <- t(FF_mask)
 
   # Perform the updates using fpiter or daarem.
@@ -329,7 +329,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  loglik_func = loglik_func,
                  loglik_const = loglik_const,
                  verbose = verbose)
-  
+
   # Prepare the output.
   return(list(fit = par2fit(res$par,LL,FF,update_indices_l,update_indices_f),
               progress = progress[1:main_loop_iter,],
@@ -339,9 +339,9 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
 #' @rdname fit_glmpca_pois
 #'
 #' @export
-#' 
+#'
 fit_glmpca_pois_control_default <- function()
-  list(use_daarem = TRUE,
+  list(use_daarem = FALSE,
        maxiter = 100,
        tol = 1e-4,
        mon.tol = 0.05,
@@ -353,7 +353,7 @@ fit_glmpca_pois_control_default <- function()
        ccd_iter_tol = 0,
        calc_deriv = FALSE,
        calc_max_diff = FALSE,
-       orthonormalize = FALSE)
+       orthonormalize = TRUE)
 
 # This implements "objfn" in fpiter or daarem.
 fpiter_objective <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
@@ -379,7 +379,7 @@ fpiter_update <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
 
   # Keep track of the current estimates.
   fit0 <- fit
-  
+
   # Perform a single update of LL and FF.
   fit <- update_glmpca_pois(fit$LL,fit$FF,Y,Y_T,update_indices_l,
                             update_indices_f,control_glmpca_pois)
@@ -440,7 +440,7 @@ update_glmpca_pois <- function (LL, FF, Y, Y_T, update_indices_l,
   K <- nrow(FF)
   k <- sort(intersect(update_indices_l,update_indices_f))
   if (length(update_indices_l) > 0) {
-      
+
     # If requested, orthogonalize rows of FF that are not fixed.
     if (length(k) > 1 & control$orthonormalize) {
       out    <- svd(t(FF[k,,drop = FALSE]))
