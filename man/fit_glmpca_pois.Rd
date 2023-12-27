@@ -178,7 +178,7 @@ the help accompanying these functions for details.
   control argument for \code{\link[daarem]{daarem}}.}
 
 \item{\code{num_ccd_iter}}{Number of co-ordinate descent
-  updates to be made to parameters at each iteration of 
+  updates to be made to parameters at each iteration of
   the algorithm.}
 
 \item{\code{line_search}}{If \code{line_search = TRUE}, a
@@ -192,12 +192,12 @@ the help accompanying these functions for details.
 \item{\code{ls_beta}}{beta parameter for backtracking line search
   controlling the rate at which the step size is decreased.
   (Should be a number between 0 and 0.5.)}
-  
+
 \item{\code{calc_deriv}}{If \code{calc_deriv = TRUE}, the maximum
   gradient of \eqn{U} and \eqn{V} is calculated and stored after each
   update. This may be useful for assessing convergence of the
   optimization, though increases overhead.}
-  
+
 \item{\code{calc_max_diff}}{If \code{calc_max_diff = TRUE}, the
   largest change in \eqn{U} and \eqn{V} after each update is
   calculated and stored. This may be useful for monitoring progress
