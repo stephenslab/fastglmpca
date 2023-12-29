@@ -212,7 +212,7 @@ fit_glmpca_pois <- function(
 
   # Perform the updates.
   res <- fit_glmpca_pois_main_loop(LL,FF,Y,fixed_l,fixed_f,verbose,control)
-
+  
   # Prepare the final output.
   res$progress$iter <- max(fit0$progress$iter) + res$progress$iter
   fit <- list(U            = t(res$fit$LL),
@@ -329,6 +329,10 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  loglik_func = loglik_func,
                  loglik_const = loglik_const,
                  verbose = verbose)
+  if (!res$convergence)
+    warning(sprintf(paste("fit_glmpca_pois failed to meet convergence",
+                          "criterion within %d iterations"),
+                    control$maxiter))
 
   # Prepare the output.
   return(list(fit = par2fit(res$par,LL,FF,update_indices_l,update_indices_f),
