@@ -165,21 +165,29 @@ the help accompanying these functions for details.
 
 \item{\code{tol}}{This is the value of the \dQuote{tol} control
   argument for \code{\link[daarem]{fpiter}} or
-  \code{\link[daarem]{daarem}}.}
+  \code{\link[daarem]{daarem}} that determines when to stop the
+  optimization. In brief, the optimization stops when the change in
+  the estimates or in the log-likelihood between two successive
+  updates is less than \dQuote{tol}.}
 
 \item{\code{maxiter}}{This is the value of the \dQuote{maxiter}
   control argument for \code{\link[daarem]{fpiter}} or
-  \code{\link[daarem]{daarem}}.}
+  \code{\link[daarem]{daarem}}. In brief, it sets the upper limit on
+  the number of CCD updates.}
 
 \item{\code{convtype}}{This is the value of the dQuote{convtype}
-  control argument for \code{\link[daarem]{daarem}}.}
+  control argument for \code{\link[daarem]{daarem}}. It determines
+  whether the stopping criterion is based on the change in the
+  estimates or the change in the log-likelihood between two
+  successive updates.}
 
 \item{\code{mon.tol}}{This is the value of the \dQuote{mon.tol}
-  control argument for \code{\link[daarem]{daarem}}.}
+  control argument for \code{\link[daarem]{daarem}}. This setting
+  determines to what extent the monotonicity condition can be
+  violated.}
 
-\item{\code{num_ccd_iter}}{Number of co-ordinate descent
-  updates to be made to parameters at each iteration of
-  the algorithm.}
+\item{\code{num_ccd_iter}}{Number of co-ordinate descent updates to
+  be made to parameters at each iteration of the algorithm.}
 
 \item{\code{line_search}}{If \code{line_search = TRUE}, a
   backtracking line search is performed at each iteration of CCD to
