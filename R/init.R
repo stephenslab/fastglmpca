@@ -112,8 +112,8 @@ init_glmpca_pois <- function(
            "of Y.")
 
     # Initialize U and V.
-    U <- matrix(rnorm(n*K,sd = 0.1),n,K)
-    V <- matrix(rnorm(m*K,sd = 0.1),m,K)
+    U <- matrix(rnorm(n*K,sd = 1e-4),n,K)
+    V <- matrix(rnorm(m*K,sd = 1e-4),m,K)
   }
 
   # Check and prepare input arguments X and B.
