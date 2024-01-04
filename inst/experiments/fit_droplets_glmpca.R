@@ -1,6 +1,5 @@
 command_args = commandArgs(trailingOnly = TRUE)
 n_factor = as.integer(command_args[1])
-n_iter = as.integer(command_args[2])
 
 load("/project2/mstephens/pcarbo/git/fastTopics-experiments/data/droplet.RData")
 
@@ -20,8 +19,8 @@ fit <- glmpca::glmpca(
   optimizer = optimizer,
   minibatch = minibatch,
   ctl = list(
-    minIter = n_iter - 1,
-    maxIter = n_iter,
+    minIter = 1e8 - 1,
+    maxIter = 1e8,
     verbose = TRUE,
     tol = .Machine$double.eps,
     lr = 1e-4
@@ -34,5 +33,5 @@ fit <- glmpca::glmpca(
 
 readr::write_rds(
   fit,
-  glue::glue("droplets_glmpca_fit_{n_factor}_factors_{n_iter}_iter_avagrad_optimizer_minibatch_stochastic_dec_23.rds")
+  glue::glue("droplets_glmpca_fit_{n_factor}_factors_10_hrs_avagrad_optimizer_minibatch_stochastic_dec_23.rds")
 )
