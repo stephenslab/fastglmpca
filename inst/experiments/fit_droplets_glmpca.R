@@ -34,5 +34,5 @@ fit <- glmpca::glmpca(
 
 readr::write_rds(
   fit,
-  glue::glue("droplets_glmpca_fit_{n_factor}_factors_{n_iter}_iter_avagrad_optimizer_minibatch_stochastic.rds")
+  glue::glue("droplets_glmpca_fit_{n_factor}_factors_{n_iter}_iter_avagrad_optimizer_minibatch_stochastic_dec_23.rds")
 )
