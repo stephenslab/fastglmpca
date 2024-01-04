@@ -16,8 +16,8 @@ fit <- glmpca::glmpca(
   Y = Matrix::t(counts),
   L = n_factor,
   fam = "poi",
-  optimizer = optimizer,
-  minibatch = minibatch,
+  optimizer = "avagrad",
+  minibatch = "stochastic",
   ctl = list(
     minIter = 1e8 - 1,
     maxIter = 1e8,
