@@ -2,7 +2,7 @@ library(Matrix)
 library(ggplot2)
 library(cowplot)
 
-load("results.RData")
+load("~/Documents/updated_fastglmpca/fastglmpca/inst/analysis/results.RData")
 
 # Compare pbmc, K = 2, glmpca vs. fastglmpca.
 pbmc_colors <- c("forestgreen", # CD14+
@@ -24,7 +24,7 @@ samples$celltype <- as.factor(dplyr::if_else(
 ))
 rm(counts)
 res1 <- pbmc_res_list$glmpca$`2_factors`
-res2 <- pbmc_res_list$fastglmpca_fit_28_cores$`2_factors`
+res2 <- pbmc_res_list$fastglmpca_28_cores$`2_factors`
 res3 <- pbmc_res_list$scGBM$`2_factors`
 plot(res1$V,res2$V,pch = 20,cex = 0.75,
      xlab = "glmpca V",ylab = "fastglmpca V",
@@ -68,7 +68,7 @@ tissue_colors <- c("royalblue",   # basal
 #load("~/git/fastTopics-experiments/data/droplet.RData")
 load("~/Downloads/droplet.RData")
 res1 <- droplets_res_list$glmpca$`2_factors`
-res2 <- droplets_res_list$fastglmpca_fit_28_cores$`2_factors`
+res2 <- droplets_res_list$fastglmpca_28_cores$`2_factors`
 res3 <- droplets_res_list$scGBM$`2_factors`
 plot(res1$V,c(-res2$V[,2],res2$V[,1]),pch = 20,cex = 0.75,
      xlab = "glmpca V",ylab = "fastglmpca V",col = "dodgerblue")
@@ -120,9 +120,9 @@ create_dataset_df <- function(
 
     factors_str <- glue::glue("{n_factor}_factors")
 
-    fastglmpca_28cores_fit <- results[["fastglmpca_fit_28_cores"]][[factors_str]]
+    fastglmpca_28cores_fit <- results[["fastglmpca_28_cores"]][[factors_str]]
 
-    fastglmpca_1core_fit <- results[["fastglmpca_fit_1_core"]][[factors_str]]
+    fastglmpca_1core_fit <- results[["fastglmpca_1_core"]][[factors_str]]
 
     glmpca_fit <- results[["glmpca"]][[factors_str]]
 

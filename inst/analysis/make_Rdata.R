@@ -5,7 +5,7 @@ load("~/Downloads/pbmc_68k.RData")
 
 ll_const <- sum(MatrixExtra::mapSparse(counts, lfactorial))
 
-iter_run_28core <- c(2200, 1500, 1050, 850, 450, 300, 200)
+iter_run_28core <- c(2200, 1500, 1050, 850, 450, 150, 200)
 iter_run_1core <- c(85, 55, 50, 40, 25, 18, 12)
 
 factor_vec <- c(2, 3, 4, 5, 10, 15, 25)
@@ -36,10 +36,10 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
         "pbmc_fastglmpca_fit_{factors}_factors_{iter_run_1core[i]}_iter_1_core_dec_23.rds"
       )
 
-    } else if (model == "fastglmpca_28_core") {
+    } else if (model == "fastglmpca_28_cores") {
 
       mod_str <- glue::glue(
-        "pbmc_fastglmpca_fit_{factors}_factors_{iter_run_28core[i]}_iter_28_core_dec_23.rds"
+        "pbmc_fastglmpca_fit_{factors}_factors_{iter_run_28core[i]}_iter_28_cores_dec_23.rds"
       )
 
     }
@@ -74,15 +74,22 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
 
     } else {
 
-      # First, need to make sure that I'm only taking 10 hours worth of data
-      idx_10hr <- min(which(cumsum(mod$progress$time) > (60 * 60 * 10))) - 1
+      if (max(cumsum(mod$progress$time)) > 60 * 60 * 10) {
+
+        idx_10hr <- min(which(cumsum(mod$progress$time) > (60 * 60 * 10))) - 1
+
+      } else {
+
+        idx_10hr <- length(mod$progress$time)
+
+      }
 
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$progress$loglik[1:idx_10hr]
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- cumsum(mod$progress$time)[1:idx_10hr]
 
       if (factors == 2 && model == "fastglmpca_28_cores") {
 
-        pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- tmp_mod$V
+        pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- mod$V
 
       }
 
@@ -129,10 +136,10 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
         "droplets_fastglmpca_fit_{factors}_factors_{iter_run_1core[i]}_iter_1_core_dec_23.rds"
       )
 
-    } else if (model == "fastglmpca_28_core") {
+    } else if (model == "fastglmpca_28_cores") {
 
       mod_str <- glue::glue(
-        "droplets_fastglmpca_fit_{factors}_factors_{iter_run_28core[i]}_iter_28_core_dec_23.rds"
+        "droplets_fastglmpca_fit_{factors}_factors_{iter_run_28core[i]}_iter_28_cores_dec_23.rds"
       )
 
     }
@@ -168,14 +175,22 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
     } else {
 
       # First, need to make sure that I'm only taking 10 hours worth of data
-      idx_10hr <- min(which(cumsum(mod$progress$time) > (60 * 60 * 10))) - 1
+      if (max(cumsum(mod$progress$time)) > 60 * 60 * 10) {
+
+        idx_10hr <- min(which(cumsum(mod$progress$time) > (60 * 60 * 10))) - 1
+
+      } else {
+
+        idx_10hr <- length(mod$progress$time)
+
+      }
 
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$progress$loglik[1:idx_10hr]
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- cumsum(mod$progress$time)[1:idx_10hr]
 
       if (factors == 2 && model == "fastglmpca_28_cores") {
 
-        droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- tmp_mod$V
+        droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- mod$V
 
       }
 
@@ -188,5 +203,5 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
 save(
   pbmc_res_list,
   droplets_res_list,
-  file = "~/Documents/fastglmpca/inst/analysis/results.RData"
+  file = "~/Documents/updated_fastglmpca/fastglmpca/inst/analysis/results.RData"
 )

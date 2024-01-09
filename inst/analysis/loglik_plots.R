@@ -1,30 +1,30 @@
 library(dplyr)
 library(ggplot2)
 
-load("results.RData")
+load("~/Documents/updated_fastglmpca/fastglmpca/inst/analysis/results.RData")
 
 create_dataset_df <- function(
   results,
   factors
 ) {
-  
+
   lik_df <- data.frame()
-  
+
   for (n_factor in factors) {
-    
+
     factors_str <- glue::glue("{n_factor}_factors")
-    
-    fastglmpca_28cores_fit <- results[["fastglmpca_fit_28_cores"]][[factors_str]]
-    
-    fastglmpca_1core_fit <- results[["fastglmpca_fit_1_core"]][[factors_str]]
-    
+
+    fastglmpca_28cores_fit <- results[["fastglmpca_28_cores"]][[factors_str]]
+
+    fastglmpca_1core_fit <- results[["fastglmpca_1_core"]][[factors_str]]
+
     glmpca_fit <- results[["glmpca"]][[factors_str]]
-    
+
     scGBM_fit <- results[["scGBM"]][[factors_str]]
-    
+
     lik_factor_df <- data.frame(
       factors = rep(
-        n_factor, 
+        n_factor,
         length(fastglmpca_28cores_fit$time) + length(fastglmpca_1core_fit$time) +
           length(scGBM_fit$time) + length(glmpca_fit$time)
         ),
@@ -47,18 +47,18 @@ create_dataset_df <- function(
         glmpca_fit$time
       )
     )
-    
+
     best_ll <- max(lik_factor_df$loglik)
-    
+
     lik_factor_df <- lik_factor_df %>%
       dplyr::mutate(dist_from_best_ll = abs(loglik - best_ll + .1))
-    
+
     lik_df <- rbind(lik_df, lik_factor_df)
-    
+
   }
-  
+
   return(lik_df)
-  
+
 }
 
 create_plot_list <- function(
@@ -66,73 +66,49 @@ create_plot_list <- function(
   dataset,
   factors
 ) {
-  
+
   l10_list <- list()
   #std_list <- list()
-  
+
   for (n_factor in factors) {
-    
+
     factor_df <- dataset_df %>%
       dplyr::filter(factors == n_factor)
-    
+
+    factor_df$Algorithm <- factor(
+      factor_df$Algorithm,
+      levels=c(
+        "scGBM", "glmpca-avagrad-sgd", "fastglmpca-1core", "fastglmpca-28core"
+      )
+    )
+
     g_l10 <- ggplot(data = factor_df) +
-      geom_point(aes(x = time / 3600, y = dist_from_best_ll, color = Algorithm)) +
-      geom_line(aes(x = time / 3600, y = dist_from_best_ll, color = Algorithm)) + 
+      geom_line(aes(x = time / 3600, y = dist_from_best_ll, color = Algorithm)) +
       scale_y_continuous(trans = "log10") +
       xlab("Time (hours)") +
-      ylab("Dist. from Best Log-Lik") + 
+      ylab("Dist. from Best Log-Lik") +
       ggtitle(glue::glue("{dataset} {n_factor} Factor")) +
-      scale_color_brewer(palette = "Spectral")
-    
+      scale_color_manual(
+        values = c(
+          "royalblue",
+          "darkorange",
+          "forestgreen",
+          "gold"
+        )
+      ) +
+      cowplot::theme_cowplot()
+
     l10_list[[glue::glue("l10_{n_factor}")]] <- g_l10
-    
+
   }
-  
+
   return(
     c(
       l10_list
       #std_list
     )
   )
-  
-}
 
-create_plot_list_std <- function(
-    dataset_df,
-    dataset,
-    factors
-) {
-  
-  std_list <- list()
-  
-  for (n_factor in factors) {
-    
-    factor_df <- dataset_df %>%
-      dplyr::filter(factors == n_factor)
-    
-    y_upper <- max(factor_df$loglik)
-    f_df <- factor_df %>% filter(Algorithm == "fastglmpca-28core")
-    y_lower <- min(f_df$loglik)
-    
-    g_std <- ggplot(data = factor_df) +
-      geom_point(aes(x = time / 3600, y = loglik, color = Algorithm)) +
-      geom_line(aes(x = time/ 3600, y = loglik, color = Algorithm)) + 
-      xlab("Time (hours)") +
-      ylab("Log Likelihood") +
-      ylim(y_lower, y_upper) +
-      ggtitle(glue::glue("{dataset} {n_factor} Factor")) +
-      scale_color_brewer(palette = "Spectral")
-    
-    std_list[[glue::glue("std_{n_factor}")]] <- g_std
-    
-  }
-  
-  return(
-    c(
-      std_list
-    )
-  )
-  
 }
 
 droplet_df <- create_dataset_df(
@@ -148,7 +124,13 @@ droplet_plots_list <- create_plot_list(
 
 library(ggpubr)
 
-ggarrange(plotlist = droplet_plots_list, nrow = 3, ncol = 3, common.legend = TRUE)
+ggarrange(
+  plotlist = droplet_plots_list,
+  nrow = 3,
+  ncol = 3,
+  common.legend = TRUE,
+  legend = "right"
+  )
 
 pbmc_df <- create_dataset_df(
   pbmc_res_list,
@@ -163,4 +145,10 @@ pbmc_plots_list <- create_plot_list(
 
 library(ggpubr)
 
-ggarrange(plotlist = pbmc_plots_list, nrow = 3, ncol = 3, common.legend = TRUE)
+ggarrange(
+  plotlist = pbmc_plots_list,
+  nrow = 3,
+  ncol = 3,
+  common.legend = TRUE,
+  legend = "right"
+  )
