@@ -1,7 +1,7 @@
 library(dplyr)
 library(ggplot2)
 
-load("~/Documents/updated_fastglmpca/fastglmpca/inst/analysis/results.RData")
+load("~/Documents/fastglmpca/inst/analysis/results.RData")
 
 create_dataset_df <- function(
   results,
@@ -126,8 +126,8 @@ library(ggpubr)
 
 ggarrange(
   plotlist = droplet_plots_list,
-  nrow = 3,
-  ncol = 3,
+  nrow = 4,
+  ncol = 2,
   common.legend = TRUE,
   legend = "right"
   )
@@ -147,8 +147,8 @@ library(ggpubr)
 
 ggarrange(
   plotlist = pbmc_plots_list,
-  nrow = 3,
-  ncol = 3,
+  nrow = 4,
+  ncol = 2,
   common.legend = TRUE,
   legend = "right"
   )

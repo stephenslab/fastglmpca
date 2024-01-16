@@ -1,11 +1,11 @@
 
 pbmc_res_list <- list()
 
-load("~/Downloads/pbmc_68k.RData")
+load("~/Documents/data/fastglmpca/raw_data/pbmc_68k.RData")
 
 ll_const <- sum(MatrixExtra::mapSparse(counts, lfactorial))
 
-iter_run_28core <- c(2200, 1500, 1050, 850, 450, 150, 200)
+iter_run_28core <- c(2200, 1500, 1050, 850, 450, 300, 200)
 iter_run_1core <- c(85, 55, 50, 40, 25, 18, 12)
 
 factor_vec <- c(2, 3, 4, 5, 10, 15, 25)
@@ -100,7 +100,7 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
 }
 
 
-load("~/Downloads/droplet.RData")
+load("~/Documents/data/fastglmpca/raw_data/droplet.RData")
 ll_const <- sum(MatrixExtra::mapSparse(counts, lfactorial))
 
 iter_run_28core <- c(28005, 23005, 14005, 12505, 5105, 3405, 2105)
@@ -203,5 +203,5 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
 save(
   pbmc_res_list,
   droplets_res_list,
-  file = "~/Documents/updated_fastglmpca/fastglmpca/inst/analysis/results.RData"
+  file = "~/Documents/fastglmpca/inst/analysis/results.RData"
 )
