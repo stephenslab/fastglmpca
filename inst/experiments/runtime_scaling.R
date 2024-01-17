@@ -15,6 +15,10 @@ for (ncells in ncells_vec) {
   
   for (i in 1:nsims_per_exp) {
     
+    print(
+      glue::glue("Printing results for simulation {i} with {ncells} cells")
+    )
+    
     sim_data <- fastglmpca::generate_glmpca_data_pois(
       n = 2000, p = ncells, K = 5
     )
@@ -34,6 +38,12 @@ for (ncells in ncells_vec) {
       control = list(maxiter = 10)
     )
     fastglmpca_finish <- sum(fastglmpca_fit$progress$time)
+    
+    if (i == 2 && ncells == 200) {
+      
+      print(0)
+      
+    }
     
     glmpca_fit <- glmpca::glmpca(
       Y = counts,

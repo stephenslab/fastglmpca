@@ -85,6 +85,7 @@ create_plot_list <- function(
     g_l10 <- ggplot(data = factor_df) +
       geom_line(aes(x = time / 3600, y = dist_from_best_ll, color = Algorithm)) +
       scale_y_continuous(trans = "log10") +
+      scale_x_continuous(breaks = 0:10) + 
       xlab("Time (hours)") +
       ylab("Dist. from Best Log-Lik") +
       ggtitle(glue::glue("{dataset} {n_factor} Factor")) +
@@ -96,7 +97,7 @@ create_plot_list <- function(
           "gold"
         )
       ) +
-      cowplot::theme_cowplot()
+      theme(panel.border = element_blank(), axis.line = element_line())
 
     l10_list[[glue::glue("l10_{n_factor}")]] <- g_l10
 

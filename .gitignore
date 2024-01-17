@@ -21,3 +21,4 @@ vignettes/*.pdf
 po/*~
 /*_files/
 *.Rproj
+*.pdf
