@@ -1,8 +1,3 @@
-# Here, I want to see if I can find anything interesting in the
-# other datasets for different values of K. I'm curious if 
-# fastglmpca is much better for K = 4, for instance
-# this could be for either droplets of pbmc
-
 fastglmpca_10_factors <- readr::read_rds(
   "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_10_factors_4500_iter_28_cores_dec_23.rds"
 )
@@ -77,81 +72,81 @@ tissue_colors <- c("royalblue",   # basal
 g1 <- ggplot(fastglmpca_df,aes(x = PC1,y = PC2,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets fastglmpca PCs 1 and 2") +
+  ggtitle("Droplets fastglmpca PCs 1 & 2") +
   cowplot::theme_cowplot(font_size = 10)
 g2 <- ggplot(glmpca_df,aes(x = PC1,y = PC2,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets glmpca PCs 1 and 2") +
+  ggtitle("Droplets glmpca PCs 1 & 2") +
   cowplot::theme_cowplot(font_size = 10)
 g3 <- ggplot(scGBM_df,aes(x = PC1,y = PC2,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets scGBM PCs 1 and 2") +
+  ggtitle("Droplets scGBM PCs 1 & 2") +
   cowplot::theme_cowplot(font_size = 10)
 
 g4 <- ggplot(fastglmpca_df,aes(x = PC3,y = PC4,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets fastglmpca PCs 3 and 4") +
+  ggtitle("Droplets fastglmpca PCs 3 & 4") +
   cowplot::theme_cowplot(font_size = 10)
 g5 <- ggplot(glmpca_df,aes(x = PC3,y = PC4,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets glmpca PCs 3 and 4") +
+  ggtitle("Droplets glmpca PCs 3 & 4") +
   cowplot::theme_cowplot(font_size = 10)
 g6 <- ggplot(scGBM_df,aes(x = PC3,y = PC4,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets scGBM PCs 3 and 4") +
+  ggtitle("Droplets scGBM PCs 3 & 4") +
   cowplot::theme_cowplot(font_size = 10)
 
 g7 <- ggplot(fastglmpca_df,aes(x = PC5,y = PC6,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets fastglmpca PCs 5 and 6") +
+  ggtitle("Droplets fastglmpca PCs 5 & 6") +
   cowplot::theme_cowplot(font_size = 10)
 g8 <- ggplot(glmpca_df,aes(x = PC5,y = PC6,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets glmpca PCs 5 and 6") +
+  ggtitle("Droplets glmpca PCs 5 & 6") +
   cowplot::theme_cowplot(font_size = 10)
 g9 <- ggplot(scGBM_df,aes(x = PC5,y = PC6,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets scGBM PCs 5 and 6") +
+  ggtitle("Droplets scGBM PCs 5 & 6") +
   cowplot::theme_cowplot(font_size = 10)
 
 g10 <- ggplot(fastglmpca_df,aes(x = PC7,y = PC8,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets fastglmpca PCs 7 and 8") +
+  ggtitle("Droplets fastglmpca PCs 7 & 8") +
   cowplot::theme_cowplot(font_size = 10)
 g11 <- ggplot(glmpca_df,aes(x = PC7,y = PC8,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets glmpca PCs 7 and 8") +
+  ggtitle("Droplets glmpca PCs 7 & 8") +
   cowplot::theme_cowplot(font_size = 10)
 g12 <- ggplot(scGBM_df,aes(x = PC7,y = PC8,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets scGBM PCs 7 and 8") +
+  ggtitle("Droplets scGBM PCs 7 & 8") +
   cowplot::theme_cowplot(font_size = 10)
 
 g13 <- ggplot(fastglmpca_df,aes(x = PC9,y = PC10,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets fastglmpca PCs 9 and 10") +
+  ggtitle("Droplets fastglmpca PCs 9 & 10") +
   cowplot::theme_cowplot(font_size = 10)
 g14 <- ggplot(glmpca_df,aes(x = PC9,y = PC10,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets glmpca PCs 9 and 10") +
+  ggtitle("Droplets glmpca PCs 9 & 10") +
   cowplot::theme_cowplot(font_size = 10)
 g15 <- ggplot(scGBM_df,aes(x = PC9,y = PC10,color = tissue)) +
   geom_point(size = 1) +
   scale_color_manual(values = tissue_colors) +
-  ggtitle("Droplets scGBM PCs 9 and 10") +
+  ggtitle("Droplets scGBM PCs 9 & 10") +
   cowplot::theme_cowplot(font_size = 10)
 
 library(ggpubr)
@@ -164,7 +159,4 @@ ggarrange(
   nrow = 5, ncol = 3, 
   common.legend = TRUE, legend = "right"
   )
-
-
-
 
