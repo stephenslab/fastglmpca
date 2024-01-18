@@ -51,7 +51,7 @@ create_dataset_df <- function(
     best_ll <- max(lik_factor_df$loglik)
 
     lik_factor_df <- lik_factor_df %>%
-      dplyr::mutate(dist_from_best_ll = abs(loglik - best_ll + .1))
+      dplyr::mutate(dist_from_best_ll = abs(loglik - best_ll) + 1)
 
     lik_df <- rbind(lik_df, lik_factor_df)
 
@@ -84,7 +84,10 @@ create_plot_list <- function(
 
     g_l10 <- ggplot(data = factor_df) +
       geom_line(aes(x = time / 3600, y = dist_from_best_ll, color = Algorithm)) +
-      scale_y_continuous(trans = "log10") +
+      scale_y_continuous(
+        trans = "log10",
+        breaks = 10 ^ seq(0, floor(log10(max(factor_df$dist_from_best_ll)) + 1))
+      ) +
       scale_x_continuous(breaks = 0:10) + 
       xlab("Time (hours)") +
       ylab("Dist. from Best Log-Lik") +

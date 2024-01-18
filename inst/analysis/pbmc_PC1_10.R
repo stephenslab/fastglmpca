@@ -158,6 +158,12 @@ g15 <- ggplot(scGBM_df,aes(x = PC9,y = PC10,color = celltype)) +
   ggtitle("PBMC 68k scGBM PCs 9 & 10") +
   cowplot::theme_cowplot(font_size = 10)
 
+png(
+  file="~/Documents/fastglmpca/inst/scratch/pbmc_PC1_10.png", 
+  height = 100 * 11,
+  width = 100 * 8.5
+  )
+
 library(ggpubr)
 ggarrange(
   g1, g2, g3, 
@@ -168,3 +174,5 @@ ggarrange(
   nrow = 5, ncol = 3, 
   common.legend = TRUE, legend = "right"
 )
+dev.off()
+
