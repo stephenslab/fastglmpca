@@ -287,13 +287,14 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
   }
 
   # Set up the data structure for recording the algorithm's progress.
-  progress <<- data.frame(iter        = 1:control$maxiter,
-                          loglik      = rep(0,control$maxiter),
-                          time        = rep(0,control$maxiter),
-                          max_deriv_f = rep(as.numeric(NA),control$maxiter),
-                          max_deriv_l = rep(as.numeric(NA),control$maxiter),
-                          max_diff_f  = rep(as.numeric(NA),control$maxiter),
-                          max_diff_l  = rep(as.numeric(NA),control$maxiter))
+  fastglmpca_internal$progress <-
+    data.frame(iter        = 1:control$maxiter,
+               loglik      = rep(0,control$maxiter),
+               time        = rep(0,control$maxiter),
+               max_deriv_f = rep(as.numeric(NA),control$maxiter),
+               max_deriv_l = rep(as.numeric(NA),control$maxiter),
+               max_diff_f  = rep(as.numeric(NA),control$maxiter),
+               max_diff_l  = rep(as.numeric(NA),control$maxiter))
 
   # Set up other data structures used in the calculations below.
   LL_mask <- matrix(1,K,n)
@@ -304,7 +305,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
     FF_mask <- t(FF_mask)
 
   # Perform the updates using fpiter or daarem.
-  main_loop_iter <<- 0
+  fastglmpca_internal$main_loop_iter <- 0
   Y_T <- Matrix::t(Y)
   if (verbose)
     cat(sprintf("Fitting GLM-PCA model to %d x %d count matrix.\n",n,m))
@@ -344,7 +345,8 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
 
   # Prepare the output.
   return(list(fit = par2fit(res$par,LL,FF,update_indices_l,update_indices_f),
-              progress = progress[1:main_loop_iter,],
+              progress = fastglmpca_internal$progress[
+                1:fastglmpca_internal$main_loop_iter,],
               loglik = res$value.objfn))
 }
 
@@ -383,7 +385,7 @@ fpiter_update <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
                            update_indices_l, update_indices_f,
                            loglik_func, loglik_const,
                            control_glmpca_pois, verbose) {
-  main_loop_iter <<- main_loop_iter + 1
+  fastglmpca_internal$main_loop_iter <- fastglmpca_internal$main_loop_iter + 1
   start_time <- proc.time()
 
   # Set up the internal "fit" object.
@@ -398,32 +400,43 @@ fpiter_update <- function (par, LL, FF, LL_mask, FF_mask, Y, Y_T,
 
   # Update the "progress" data frame.
   new_lik <- loglik_func(Y,fit$LL,fit$FF,loglik_const)
-  progress[main_loop_iter,"loglik"] <<- new_lik
+  fastglmpca_internal$progress[fastglmpca_internal$main_loop_iter,"loglik"] <-
+    new_lik
   if (control_glmpca_pois$calc_max_diff) {
-    progress[main_loop_iter,"max_diff_l"] <<- max(abs(fit$LL - fit0$LL))
-    progress[main_loop_iter,"max_diff_f"] <<- max(abs(fit$FF - fit0$FF))
+    fastglmpca_internal$progress[
+      fastglmpca_internal$main_loop_iter,"max_diff_l"] <-
+        max(abs(fit$LL - fit0$LL))
+    fastglmpca_internal$progress[
+      fastglmpca_internal$main_loop_iter,"max_diff_f"] <-
+        max(abs(fit$FF - fit0$FF))
   }
   if (control_glmpca_pois$calc_deriv) {
     if (inherits(Y,"sparseMatrix")) {
-      progress[main_loop_iter,"max_deriv_f"] <<-
-        max(abs((deriv_prod(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
-      progress[main_loop_iter,"max_deriv_l"] <<-
-        max(abs((deriv_prod(fit$FF,fit$LL) -
-                 Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
+      fastglmpca_internal$progress[
+        fastglmpca_internal$main_loop_iter,"max_deriv_f"] <-
+          max(abs((deriv_prod(fit$LL,fit$FF) - fit$LL %*% Y) * FF_mask))
+      fastglmpca_internal$progress[
+        fastglmpca_internal$main_loop_iter,"max_deriv_l"] <-
+          max(abs((deriv_prod(fit$FF,fit$LL) -
+                   Matrix::tcrossprod(fit$FF,Y)) * LL_mask))
     } else {
-      progress[main_loop_iter,"max_deriv_f"] <<-
-        max(abs(crossprod(exp(crossprod(fit$LL,fit$FF)) - Y,
-                          t(fit$LL)) * FF_mask))
-      progress[main_loop_iter,"max_deriv_l"] <<-
-        max(abs(crossprod(exp(crossprod(fit$FF,fit$LL)) - t(Y),
-                          t(fit$FF)) * LL_mask))
+      fastglmpca_internal$progress[
+        fastglmpca_internal$main_loop_iter,"max_deriv_f"] <-
+          max(abs(crossprod(exp(crossprod(fit$LL,fit$FF)) - Y,
+                            t(fit$LL)) * FF_mask))
+      fastglmpca_internal$progress[
+        fastglmpca_internal$main_loop_iter,"max_deriv_l"] <-
+          max(abs(crossprod(exp(crossprod(fit$FF,fit$LL)) - t(Y),
+                            t(fit$FF)) * LL_mask))
     }
   }
   stop_time <- proc.time()
-  progress[main_loop_iter,"time"] <<- (stop_time - start_time)["elapsed"]
+  fastglmpca_internal$progress[
+    fastglmpca_internal$main_loop_iter,"time"] <-
+      (stop_time - start_time)["elapsed"]
   if (verbose)
     cat(sprintf("Iteration %d: log-likelihood = %+0.12e\n",
-                main_loop_iter,new_lik))
+                fastglmpca_internal$main_loop_iter,new_lik))
   return(fit2par(fit,update_indices_l,update_indices_f))
 }
 

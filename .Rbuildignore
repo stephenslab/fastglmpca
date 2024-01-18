@@ -1,4 +1,5 @@
 ^TODO\.txt$
+^README\.md$
 ^LICENSE$
 ^\.github$
 ^_pkgdown\.yml$

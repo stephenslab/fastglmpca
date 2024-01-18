@@ -1,3 +1,7 @@
+fastglmpca_internal <- new.env(parent = emptyenv())
+fastglmpca_internal$main_loop_iter <- 0
+fastglmpca_internal$progress <- NA
+
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
 create_row_intercept <- function (Y)

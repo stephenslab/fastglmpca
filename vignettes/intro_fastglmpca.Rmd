@@ -181,5 +181,5 @@ sessionInfo()
 [zheng-2017]: https://doi.org/10.1038/ncomms14049
 [townes-2019]: https://doi.org/10.1186/s13059-019-1861-6
 [collins-2001]: https://proceedings.neurips.cc/paper_files/paper/2001/file/f410588e48dc83f2822a880a68f78923-Paper.pdf
-[glmpca-pkg]:https://cran.r-project.org/web/packages/glmpca/index.html
-[seurat-pkg]:https://cran.r-project.org/web/packages/Seurat/index.html
+[glmpca-pkg]: https://cran.r-project.org/package=glmpca
+
