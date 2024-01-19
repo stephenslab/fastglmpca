@@ -175,7 +175,7 @@ the help accompanying these functions for details.
   \code{\link[daarem]{daarem}}. In brief, it sets the upper limit on
   the number of CCD updates.}
 
-\item{\code{convtype}}{This is the value of the dQuote{convtype}
+\item{\code{convtype}}{This is the value of the \dQuote{convtype}
   control argument for \code{\link[daarem]{daarem}}. It determines
   whether the stopping criterion is based on the change in the
   estimates or the change in the log-likelihood between two
@@ -222,8 +222,8 @@ the number of threads used in performing the updates.
 }
 \examples{
 set.seed(1)
-n <- 1000
-p <- 500
+n <- 400
+p <- 200
 K <- 3
 dat  <- generate_glmpca_data_pois(n,p,K)
 fit0 <- init_glmpca_pois(dat$Y,K)
@@ -234,7 +234,7 @@ fit  <- fit_glmpca_pois(dat$Y,fit0 = fit0)
 Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
   R. A. (2019). Feature selection and dimension reduction for
   single-cell RNA-Seq based on a multinomial model. \emph{Genome Biology}
-  \bold{20}, 295. \url{https://doi.org/10.1186/s13059-019-1861-6}
+  \bold{20}, 295. \doi{10.1186/s13059-019-1861-6}
 
   Collins, M., Dasgupta, S. and Schapire, R. E. (2002). A
   generalization of principal components analysis to the exponential
