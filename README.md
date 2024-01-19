@@ -16,3 +16,15 @@ repository.
 
 If you have issues downloading or running the package, please post a
 github issue or email ericweine15@gmail.com.
+
+## Developer notes
+
+This is the command used to check the package before submitting to
+CRAN:
+
+```r
+library(rhub)
+check_for_cran(".",show_status = TRUE,
+  env_vars = c(`_R_CHECK_FORCE_SUGGESTS_` = "false",
+               `_R_CHECK_CRAN_INCOMING_USE_ASPELL_` = "true"))
+```

@@ -457,7 +457,7 @@ fit2par <- function (fit, update_indices_l, update_indices_f)
 
 # This implements a single update of LL and FF.
 #
-#' @importFrom MatrixExtra tcrossprod
+#' @importMethodsFrom MatrixExtra tcrossprod
 update_glmpca_pois <- function (LL, FF, Y, Y_T, update_indices_l,
                                 update_indices_f, control) {
   n <- nrow(Y)
