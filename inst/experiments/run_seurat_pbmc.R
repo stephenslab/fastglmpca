@@ -24,12 +24,8 @@ get_seurat_2pcs <- function(counts_mat) {
   
 }
 
-# pbmc_cell_embeddings <- get_seurat_2pcs(
-#   Matrix::t(counts)
-# )
-
-pbmc_cell_embeddings <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_droplets.rds"
+pbmc_cell_embeddings <- get_seurat_2pcs(
+   Matrix::t(counts)
 )
 
 pbmc_df <- data.frame(pbmc_cell_embeddings)

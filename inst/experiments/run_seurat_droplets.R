@@ -1,4 +1,4 @@
-load("~/Documents/data/fastglmpca/droplet.RData")
+load("~/Documents/data/fastglmpca/raw_data/droplet.RData")
 
 library(Seurat)
 set.seed(1)
@@ -26,6 +26,11 @@ get_seurat_2pcs <- function(counts_mat) {
 }
 
 droplets_cell_embeddings <- get_seurat_2pcs(Matrix::t(counts))
+
+readr::write_rds(
+  droplets_cell_embeddings,
+  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_droplets.rds"
+)
 
 tissue_colors <- c("royalblue",   # basal
                    "firebrick",   # ciliated
