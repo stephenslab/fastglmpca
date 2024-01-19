@@ -45,3 +45,10 @@ g2 <- ggplot(data = df_long) +
 
 library(ggpubr)
 ggarrange(g1, g2, common.legend = TRUE, legend = "right", labels = "AUTO")
+ggsave(
+  "~/Documents/fastglmpca/inst/scratch/runtime_scaling.pdf",
+  device = "pdf",
+  width = 15,
+  height = 8
+)
+
