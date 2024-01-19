@@ -43,3 +43,5 @@ g2 <- ggplot(data = df_long) +
   xlab("Number of Factors") +
   ylab("Time (s)")
 
+library(ggpubr)
+ggarrange(g1, g2, common.legend = TRUE, legend = "right", labels = "AUTO")
