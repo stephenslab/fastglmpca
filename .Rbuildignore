@@ -13,3 +13,4 @@
 ^inst/analysis$
 ^inst/experiments$
 ^inst/scratch$
+^cran-comments\.md$
