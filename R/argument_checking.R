@@ -30,6 +30,20 @@ verify.count.matrix <- function (x, arg.name = deparse(substitute(x))) {
     stop(msg)
   else if (any(x < 0))
     stop(msg)
+  
+  if (any(Matrix::rowSums(x) == 0)) 
+    stop(
+      paste(
+        "Input argument",arg.name,"cannot have any rows with all 0 entries"
+      )
+    )
+  if (any(Matrix::colSums(x) == 0)) 
+    stop(
+      paste(
+        "Input argument",arg.name,"cannot have any columns with all 0 entries"
+      )
+    )
+  
   return(TRUE)
 }
 
