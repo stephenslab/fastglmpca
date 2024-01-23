@@ -51,7 +51,7 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$loglik - ll_const
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- mod$time - mod$time[1]
 
-      if (factors == 2) {
+      if (factors == 10 || factors == 2) {
 
         pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- mod$V
 
@@ -62,7 +62,7 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$lik
       pbmc_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- cumsum(c(0, mod$time))
 
-      if (factors == 2) {
+      if (factors == 10 || factors == 2) {
 
         tmp_mod <- fastglmpca:::orthonormalize(
           as.matrix(mod$loadings), as.matrix(mod$factors)
@@ -151,7 +151,7 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$loglik - ll_const
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- mod$time - mod$time[1]
 
-      if (factors == 2) {
+      if (factors == 10 || factors == 2) {
 
         droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["V"]] <- mod$V
 
@@ -162,7 +162,7 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["loglik"]] <- mod$lik
       droplets_res_list[[model]][[glue::glue("{factors}_factors")]][["time"]] <- cumsum(c(0, mod$time))
 
-      if (factors == 2) {
+      if (factors == 10 || factors == 2) {
 
         tmp_mod <- fastglmpca:::orthonormalize(
           as.matrix(mod$loadings), as.matrix(mod$factors)
@@ -200,8 +200,53 @@ for (model in c("scGBM", "glmpca", "fastglmpca_1_core", "fastglmpca_28_cores")) 
 
 }
 
+# Here, I want to add more data to the lists without breaking anything
+
+fit_10hr_exact <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_10_factors_4500_iter_28_cores_dec_23.rds"
+)
+
+droplets_res_list$fastglmpca_28_cores[["PCs_10"]]$V <- fit_10hr_exact$V
+
+fit_10hr_exact <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_fastglmpca_fit_10_factors_358_iter_28_cores_dec_23.rds"
+)
+
+pbmc_res_list$fastglmpca_28_cores[["PCs_10"]]$V <- fit_10hr_exact$V
+
+
+fit_10hr_exact <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_2_factors_23135_iter_28_cores_dec_23.rds"
+)
+
+droplets_res_list$fastglmpca_28_cores[["PCs_2"]]$V <- fit_10hr_exact$V
+
+fit_10hr_exact <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_fastglmpca_fit_2_factors_1921_iter_28_cores_dec_23.rds"
+)
+
+pbmc_res_list$fastglmpca_28_cores[["PCs_2"]]$V <- fit_10hr_exact$V
+
+
+droplets_res_list$seurat <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_droplets.rds"
+)
+
+pbmc_res_list$seurat <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_pbmc.rds"
+)
+
+runtime_scaling_res <- list()
+runtime_scaling_res$ncells <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/num_cells_scaling_df.rds"
+)
+runtime_scaling_res$nfactors <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/num_factors_scaling_df.rds"
+)
+
 save(
   pbmc_res_list,
   droplets_res_list,
+  runtime_scaling_res,
   file = "~/Documents/fastglmpca/inst/analysis/results.RData"
 )

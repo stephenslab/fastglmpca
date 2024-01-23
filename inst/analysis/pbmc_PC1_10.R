@@ -1,18 +1,10 @@
-fastglmpca_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_fastglmpca_fit_10_factors_358_iter_28_cores_dec_23.rds"
-)
+load("~/Documents/fastglmpca/inst/analysis/results.RData")
 
-glmpca_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_glmpca_fit_10_factors_10_hrs_avagrad_optimizer_minibatch_stochastic_dec_23.rds"
-)
+fastglmpca_10_factors <- pbmc_res_list$fastglmpca_28_cores$PCs_10
 
-scGMB_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_scGBM_fit_10_factors_no_beta_infer_10_hrs.rds"
-)
+glmpca_mod <- pbmc_res_list$glmpca$`10_factors`
 
-glmpca_mod <- fastglmpca:::orthonormalize(
-  as.matrix(glmpca_10_factors$loadings), as.matrix(glmpca_10_factors$factors)
-)
+scGMB_10_factors <- pbmc_res_list$scGBM$`10_factors`
 
 load("~/Documents/data/fastglmpca/raw_data/pbmc_68k.RData")
 

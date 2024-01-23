@@ -1,14 +1,10 @@
-fastglmpca_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_10_factors_4500_iter_28_cores_dec_23.rds"
-)
+load("~/Documents/fastglmpca/inst/analysis/results.RData")
 
-glmpca_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/droplets_glmpca_fit_10_factors_10_hrs_avagrad_optimizer_minibatch_stochastic_dec_23.rds"
-)
+fastglmpca_10_factors <- droplets_res_list$fastglmpca_28_cores$PCs_10
 
-scGMB_10_factors <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/droplets_scGBM_fit_10_factors_no_beta_infer_10_hrs.rds"
-)
+glmpca_mod <- droplets_res_list$glmpca$`10_factors`
+
+scGMB_10_factors <- droplets_res_list$scGBM$`10_factors`
 
 load("~/Documents/data/fastglmpca/raw_data/droplet.RData")
 
@@ -18,10 +14,6 @@ fastglmpca_df <- data.frame(
   PC4 = fastglmpca_10_factors$V[,4],
   PC5 = fastglmpca_10_factors$V[,5],
   PC6 = fastglmpca_10_factors$V[,6]
-)
-
-glmpca_mod <- fastglmpca:::orthonormalize(
-  as.matrix(glmpca_10_factors$loadings), as.matrix(glmpca_10_factors$factors)
 )
 
 glmpca_df <- data.frame(
