@@ -222,8 +222,8 @@ the number of threads used in performing the updates.
 }
 \examples{
 set.seed(1)
-n <- 400
-p <- 200
+n <- 200
+p <- 100
 K <- 3
 dat  <- generate_glmpca_data_pois(n,p,K)
 fit0 <- init_glmpca_pois(dat$Y,K)
