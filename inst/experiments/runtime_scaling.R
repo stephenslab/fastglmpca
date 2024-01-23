@@ -91,10 +91,10 @@ time_n_cells_df <- data.frame(
 
 readr::write_rds(time_n_cells_df, "num_cells_scaling_df.rds")
 
-# added 15 extra cell to account for cells that will be excluded since
+# added 15 extra genes to account for cells that will be excluded since
 # they have no counts > 0
-ncells <- 1515
-ngenes <- 2000
+ngenes <- 1515
+ncells <- 2000
 
 K_vec <- c(seq(2, 10), 15, 20, 25, 50)
 
@@ -113,7 +113,7 @@ for (K in K_vec) {
   for (i in 1:nsims_per_exp) {
     
     sim_data <- fastglmpca::generate_glmpca_data_pois(
-      n = ncells, p = ngenes, K = 10
+      n = ngenes, p = ncells, K = 10
     )
     
     counts <- as(sim_data$Y, "sparseMatrix")
