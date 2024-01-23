@@ -5,15 +5,11 @@ library(dplyr)
 
 load("~/Documents/fastglmpca/inst/analysis/results.RData")
 
-pbmc_cell_embeddings <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_pbmc.rds"
-)
+pbmc_cell_embeddings <- pbmc_res_list$seurat
 
 pbmc_df <- data.frame(pbmc_cell_embeddings)
 
-droplets_cell_embeddings <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/seurat_pca_droplets.rds"
-)
+droplets_cell_embeddings <- droplets_res_list$seurat
 
 droplets_df <- data.frame(droplets_cell_embeddings)
 
@@ -42,9 +38,7 @@ samples$celltype <- as.factor(dplyr::if_else(
 pbmc_df$celltype <- samples$celltype
 
 res1 <- pbmc_res_list$glmpca$`2_factors`
-res2 <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_fastglmpca_fit_2_factors_1921_iter_28_cores_dec_23.rds"
-)
+res2 <- pbmc_res_list$fastglmpca_28_cores$PCs_2
 res3 <- pbmc_res_list$scGBM$`2_factors`
 
 pdat1 <- data.frame(celltype = samples$celltype,
@@ -96,9 +90,7 @@ tissue_colors <- c("royalblue",   # basal
 load("~/Documents/data/fastglmpca/raw_data/droplet.RData")
 
 res1 <- droplets_res_list$glmpca$`2_factors`
-res2 <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_2_factors_23135_iter_28_cores_dec_23.rds"
-)
+res2 <- droplets_res_list$fastglmpca_28_cores$PCs_2
 res3 <- droplets_res_list$scGBM$`2_factors`
 
 droplets_df$tissue <- samples$tissue

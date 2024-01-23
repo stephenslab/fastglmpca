@@ -1,6 +1,6 @@
-df <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/num_cells_scaling_df.rds"
-)
+load("~/Documents/fastglmpca/inst/analysis/results.RData")
+
+df <- runtime_scaling_res$ncells
 
 df_long <- data.frame(
   ncells = rep(df$ncells, 3),
@@ -22,9 +22,7 @@ g1 <- ggplot(data = df_long) +
   ylab("Time (s)")
 
 
-df <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/num_factors_scaling_df.rds"
-)
+df <- runtime_scaling_res$nfactors
 
 df_long <- data.frame(
   K = rep(df$K, 3),
