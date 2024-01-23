@@ -104,15 +104,23 @@ Once we have initialized the model, we are ready to run the
 optimization algorithm to fit the model (i.e., estimate the model
 parameters). This is accomplished by a call to `fit_glmpca_pois()`:
 
-```{r fit-glmpca-1, results="hide"}
+```{r fit-glmpca-1, results="hide", eval=FALSE}
 fit <- fit_glmpca_pois(counts,fit0 = fit0)
+```
+
+If you prefer not to wait for the model optimization (it may take
+several minutes to run), you are welcome to load the previously fitted
+model (which is the output from the `fit_glmpca_pois` call above):
+
+```{r fit-glmpca-2}
+fit <- pbmc_facs$fit
 ```
 
 The return value of `fit_glmpca_pois()` resembles the output of
 `svd()` and similar functions, with a few other outputs giving
 additional information about the model:
 
-```{r fit-glmpca-2}
+```{r fit-glmpca-3}
 names(fit)
 ```
 

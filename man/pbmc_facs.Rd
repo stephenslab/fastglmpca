@@ -24,7 +24,10 @@
      set of 100 cells.}
 
   \item{genes}{Data frame containing information and the genes,
-    including gene symbol and Ensembl identifier.}}
+    including gene symbol and Ensembl identifier.}
+
+  \item{fit}{GLM-PCA model that was fit to the UMI count data in
+    the vignette.}}
 }
 \source{
 \url{https://www.10xgenomics.com/resources/datasets}
