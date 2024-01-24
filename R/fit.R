@@ -361,7 +361,7 @@ fit_glmpca_pois_control_default <- function()
        mon.tol = 0.05,
        convtype = "objfn",
        line_search = TRUE,
-       ls_alpha = 0.01,
+       ls_alpha = 0.001,
        ls_beta = 0.5,
        num_ccd_iter = 3,
        ccd_iter_tol = 0,
