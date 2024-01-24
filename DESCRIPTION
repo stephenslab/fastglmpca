@@ -10,8 +10,12 @@ Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
              person("Matthew","Stephens",role="aut"))
 Description: Implements fast, scalable optimization algorithms for
     fitting generalized principal components analysis (GLM-PCA) models,
-    as described in Townes FW, Hicks SC, Aryee MJ, Irizarry RA (2019) <doi:10.1186/s13059-019-1861-6>
-    and Collins M, Dasgupta S, Schapire RE (2001) <https:proceedings.neurips.cc/paper_files/paper/2001/file/f410588e48dc83f2822a880a68f78923-Paper.pdf>.
+    as described in "A Generalization of Principal Components
+    Analysis to the Exponential Family" Collins M, Dasgupta S, Schapire RE
+    (2002, ISBN:9780262271738), and subsequently "Feature Selection 
+    and Dimension Reduction for Single-Cell RNA-Seq Based on a Multinomial
+    Model" Townes FW, Hicks SC, Aryee MJ, Irizarry RA (2019)
+    <doi:10.1186/s13059-019-1861-6>.
 License: GPL (>= 2)
 URL: https://github.com/stephenslab/fastglmpca
 BugReports: https://github.com/stephenslab/fastglmpca/issues
