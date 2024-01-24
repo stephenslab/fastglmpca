@@ -11,7 +11,7 @@ Authors@R: c(person("Eric","Weine",role=c("aut","cre"),
 Description: Implements fast, scalable optimization algorithms for
     fitting generalized principal components analysis (GLM-PCA) models,
     as described in Townes FW, Hicks SC, Aryee MJ, Irizarry RA (2019) <doi:10.1186/s13059-019-1861-6>
-    and Collins M, Dasgupta S, Schapire RE (2001) <https:https://proceedings.neurips.cc/paper_files/paper/2001/file/f410588e48dc83f2822a880a68f78923-Paper.pdf>.
+    and Collins M, Dasgupta S, Schapire RE (2001) <https:proceedings.neurips.cc/paper_files/paper/2001/file/f410588e48dc83f2822a880a68f78923-Paper.pdf>.
 License: GPL (>= 2)
 URL: https://github.com/stephenslab/fastglmpca
 BugReports: https://github.com/stephenslab/fastglmpca/issues
