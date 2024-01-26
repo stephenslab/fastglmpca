@@ -28,7 +28,7 @@ get_seurat_pcs <- function(counts_mat, npcs) {
 pbmc_cell_embeddings <- get_seurat_pcs(Matrix::t(counts), 10)
 
 readr::write_rds(
-  droplets_cell_embeddings,
+  pbmc_cell_embeddings,
   "~/Documents/data/fastglmpca/experiment_results/seurat_pca_pbmc.rds"
 )
 
