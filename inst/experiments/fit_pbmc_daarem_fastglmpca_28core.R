@@ -39,7 +39,7 @@ fit2 <- fastglmpca::fit_glmpca_pois(
   fit0 = fit1,
   control = list(
     use_daarem = TRUE,
-    maxiter = maxiter - 100,
+    maxiter = n_iter - 100,
     tol = 0,
     mon.tol = 0.05,
     convtype = "objfn",
