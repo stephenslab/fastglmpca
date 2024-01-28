@@ -244,6 +244,37 @@ runtime_scaling_res$nfactors <- readr::read_rds(
   "~/Documents/data/fastglmpca/experiment_results/num_factors_scaling_df.rds"
 )
 
+# add daarem results
+
+droplets_daarem <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/droplets_fastglmpca_fit_10_factors_5250_iter_28_cores_daarem_jan_24.rds"
+)
+
+idx_10hr <- min(which(cumsum(droplets_daarem$progress$time) > (60 * 60 * 10))) - 1
+
+droplets_res_list$fastglmpca_28_cores$daarem <- list()
+
+droplets_res_list$fastglmpca_28_cores$daarem[["10_factors"]] <- list()
+
+droplets_res_list$fastglmpca_28_cores$daarem$`10_factors`$time <- cumsum(droplets_daarem$progress$time)[1:idx_10hr]
+
+droplets_res_list$fastglmpca_28_cores$daarem$`10_factors`$loglik <- droplets_daarem$progress$loglik[1:idx_10hr]
+
+pbmc_daarem <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_fastglmpca_fit_10_factors_500_iter_28_cores_daarem_jan_24.rds"
+)
+
+idx_10hr <- min(which(cumsum(pbmc_daarem$progress$time) > (60 * 60 * 10))) - 1
+
+pbmc_res_list$fastglmpca_28_cores$daarem <- list()
+
+pbmc_res_list$fastglmpca_28_cores$daarem[["10_factors"]] <- list()
+
+pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$time <- cumsum(pbmc_daarem$progress$time)[1:idx_10hr]
+
+pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$loglik <- pbmc_daarem$progress$loglik[1:idx_10hr]
+
+
 save(
   pbmc_res_list,
   droplets_res_list,
