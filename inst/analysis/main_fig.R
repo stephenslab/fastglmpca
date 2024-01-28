@@ -108,29 +108,35 @@ create_dataset_df <- function(
     
     scGBM_fit <- results[["scGBM"]][[factors_str]]
     
+    fastglmpca_28core_daarem_fit <- results[["fastglmpca_28_cores"]][["daarem"]][[factors_str]]
+    
     lik_factor_df <- data.frame(
       factors = rep(
         n_factor,
         length(fastglmpca_28cores_fit$time) + length(fastglmpca_1core_fit$time) +
-          length(scGBM_fit$time) + length(glmpca_fit$time)
+          length(scGBM_fit$time) + length(glmpca_fit$time) + 
+          length(fastglmpca_28core_daarem_fit$time)
       ),
       Algorithm = c(
         rep("fastglmpca-28core", length(fastglmpca_28cores_fit$time)),
         rep("fastglmpca-1core", length(fastglmpca_1core_fit$time)),
         rep("scGBM", length(scGBM_fit$time)),
-        rep("glmpca-avagrad-sgd", length(glmpca_fit$time))
+        rep("glmpca-avagrad-sgd", length(glmpca_fit$time)),
+        rep("fastglmpca-28core-daarem", length(fastglmpca_28core_daarem_fit$time))
       ),
       loglik = c(
         fastglmpca_28cores_fit$loglik,
         fastglmpca_1core_fit$loglik,
         scGBM_fit$loglik,
-        glmpca_fit$loglik
+        glmpca_fit$loglik,
+        fastglmpca_28core_daarem_fit$loglik
       ),
       time = c(
         fastglmpca_28cores_fit$time,
         fastglmpca_1core_fit$time,
         scGBM_fit$time,
-        glmpca_fit$time
+        glmpca_fit$time,
+        fastglmpca_28core_daarem_fit$time
       )
     )
     
@@ -164,7 +170,8 @@ create_plot_list <- function(
     factor_df$Algorithm <- factor(
       factor_df$Algorithm,
       levels=c(
-        "scGBM", "glmpca-avagrad-sgd", "fastglmpca-1core", "fastglmpca-28core"
+        "scGBM", "glmpca-avagrad-sgd", "fastglmpca-1core", "fastglmpca-28core",
+        "fastglmpca-28core-daarem"
       )
     )
     
@@ -183,7 +190,8 @@ create_plot_list <- function(
           "royalblue",
           "darkorange",
           "forestgreen",
-          "gold"
+          "gold",
+          "red"
         )
       ) +
       theme(panel.border = element_blank(), axis.line = element_line())
