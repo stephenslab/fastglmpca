@@ -95,11 +95,11 @@ across columns of \code{Y}. Setting \code{col_size_factor = TRUE}
 and \code{row_intercept = TRUE} is intended to replicate the
 default behavior of \code{glmpca}.}
 
-\item{row_intercept}{If \code{row_intercept = TRUE}, add a fixed
-factor accounting for average differences in Poisson rates across
-rows of \code{Y}. Setting \code{col_size_factor = TRUE}
-and \code{row_intercept = TRUE} is intended to replicate the
-default behavior of \code{glmpca}.}
+\item{row_intercept}{If \code{row_intercept = TRUE}, add a factor
+accounting for average differences in Poisson rates across rows of
+\code{Y}. Setting \code{col_size_factor = TRUE} and
+\code{row_intercept = TRUE} is intended to replicate the default
+behavior of \code{glmpca}.}
 }
 \value{
 An object capturing the state of the model fit. It contains
