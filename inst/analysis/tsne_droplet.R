@@ -50,6 +50,6 @@ p3 <- ggplot(pdat3,aes(x = d1,y = d2,color = tissue)) +
   ggtitle("fastglmpca") +
   theme_cowplot(font_size = 9)
 plot_grid(p1,p2,p3,nrow = 1,ncol = 3)
-ggsave("tsne.pdf",
+ggsave("tsne.eps",
        plot_grid(p1,p2,p3,nrow = 1,ncol = 3),
        height = 2,width = 9.25)
