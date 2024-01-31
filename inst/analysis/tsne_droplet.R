@@ -35,17 +35,17 @@ pdat1 <- cbind(samples,Y1)
 pdat2 <- cbind(samples,Y2)
 pdat3 <- cbind(samples,Y3)
 p1 <- ggplot(pdat1,aes(x = -d1,y = d2,color = tissue)) +
-  geom_point(size = 1) +
+  geom_point(size = 0.6) +
   scale_color_manual(values = tissue_colors) +
   ggtitle("scGBM") +
   theme_cowplot(font_size = 9)
 p2 <- ggplot(pdat2,aes(x = d2,y = -d1,color = tissue)) +
-  geom_point(size = 1) +
+  geom_point(size = 0.6) +
   scale_color_manual(values = tissue_colors) +
   ggtitle("glmpca") +
   theme_cowplot(font_size = 9)
 p3 <- ggplot(pdat3,aes(x = d1,y = d2,color = tissue)) +
-  geom_point(size = 1) +
+  geom_point(size = 0.6) +
   scale_color_manual(values = tissue_colors) +
   ggtitle("fastglmpca") +
   theme_cowplot(font_size = 9)
@@ -53,3 +53,6 @@ plot_grid(p1,p2,p3,nrow = 1,ncol = 3)
 ggsave("tsne.eps",
        plot_grid(p1,p2,p3,nrow = 1,ncol = 3),
        height = 2,width = 9.25)
+ggsave("tsne.png",
+       plot_grid(p1,p2,p3,nrow = 1,ncol = 3),
+       height = 2,width = 9.25,dpi  = 600)
