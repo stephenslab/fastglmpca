@@ -1,6 +1,6 @@
-#' @title Generate Data from a GLMCPA Model
+#' @title Generate Data from a GLM-PCA Model
 #' 
-#' @description Generate data from a GLMPCA model with a specified
+#' @description Generate data from a GLM-PCA model with a specified
 #'   rank.
 #'   
 #' @details This function assumes that each column of the data is generated
@@ -16,7 +16,7 @@
 #' 
 #' @param p Number of columns (cells).
 #' 
-#' @param K Rank of the underlying mean structure
+#' @param K Rank of the underlying mean structure.
 #' 
 #' @param link Character vector describing the link between the product 
 #'   of the loading and factors and the mean of the data.

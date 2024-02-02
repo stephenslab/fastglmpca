@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate_data.R
 \name{generate_glmpca_data_pois}
 \alias{generate_glmpca_data_pois}
-\title{Generate Data from a GLMCPA Model}
+\title{Generate Data from a GLM-PCA Model}
 \usage{
 generate_glmpca_data_pois(n, p, K, link = c("log", "log1p"))
 }
@@ -11,7 +11,7 @@ generate_glmpca_data_pois(n, p, K, link = c("log", "log1p"))
 
 \item{p}{Number of columns (cells).}
 
-\item{K}{Rank of the underlying mean structure}
+\item{K}{Rank of the underlying mean structure.}
 
 \item{link}{Character vector describing the link between the product 
 of the loading and factors and the mean of the data.}
@@ -25,7 +25,7 @@ list with the following components
 }
 }
 \description{
-Generate data from a GLMPCA model with a specified
+Generate data from a GLM-PCA model with a specified
   rank.
 }
 \details{
