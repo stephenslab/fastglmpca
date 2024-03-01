@@ -30,12 +30,12 @@ pdat <- cbind(samples,
                          glmpca     = colSums(H2),
                          scgbm      = colSums(H3)))
 p1 <- ggplot(pdat,aes(x = glmpca,y = fastglmpca,color = tissue)) +
-  geom_point() +
+  geom_point(show.legend = FALSE) +
   geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
   scale_color_manual(values = tissue_colors) +
   theme_cowplot(font_size = 12)
 p2 <- ggplot(pdat,aes(x = scgbm,y = fastglmpca,color = tissue)) +
-  geom_point() +
+  geom_point(show.legend = FALSE) +
   geom_abline(intercept = 0,slope = 1,color = "black",linetype = "dotted") +
   scale_color_manual(values = tissue_colors) +
   theme_cowplot(font_size = 12)
@@ -44,6 +44,7 @@ p2 <- ggplot(pdat,aes(x = scgbm,y = fastglmpca,color = tissue)) +
 pdat <- data.frame(fastglmpca = rowSums(H1),
                    glmpca     = rowSums(H2),
                    scgbm      = rowSums(H3))
+pdat <- subset(pdat,scgbm > -1e5)
 p3 <- ggplot(pdat,aes(x = glmpca,y = fastglmpca)) +
   geom_point() +
   geom_abline(intercept = 0,slope = 1,color = "magenta",linetype = "dotted") +
@@ -52,3 +53,5 @@ p4 <- ggplot(pdat,aes(x = scgbm,y = fastglmpca)) +
   geom_point() +
   geom_abline(intercept = 0,slope = 1,color = "magenta",linetype = "dotted") +
   theme_cowplot(font_size = 12)
+
+plot_grid(p1,p2,p3,p4)
