@@ -1,7 +1,7 @@
 # A script to check our log-likelihood calculations for different
 # packages (glmpca, scGBM, fastglmpca).
 library(Matrix)
-library(fastTopics)
+library(fastglmpca)
 source("../code/loglik.R")
 load("~/git/fastTopics-experiments/data/droplet.RData")
 counts <- t(counts)
