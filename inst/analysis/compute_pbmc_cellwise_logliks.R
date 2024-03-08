@@ -1,4 +1,4 @@
-# sinteractive -p mstephens -c 4 --mem=64G --time=2:00:00
+# sinteractive -p mstephens -c 4 --mem=192G --time=24:00:00
 # module load R/3.5.1
 library(dplyr)
 library(Matrix)
