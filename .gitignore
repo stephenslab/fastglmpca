@@ -22,3 +22,4 @@ po/*~
 /*_files/
 *.Rproj
 *.pdf
+*.DS_Store*
