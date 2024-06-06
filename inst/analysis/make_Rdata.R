@@ -274,8 +274,16 @@ pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$time <- cumsum(pbmc_daarem
 
 pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$loglik <- pbmc_daarem$progress$loglik[1:idx_10hr]
 
+pbmc_purified_results <- list()
+pbmc_purified_results[['nmi_res_by_iter']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_res.rds"
+)
+pbmc_purified_results[['fastglmpca_28_cores']][['25_factors']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k25_50iter.rds"
+)
 
 save(
+  pbmc_purified_results,
   pbmc_res_list,
   droplets_res_list,
   runtime_scaling_res,
