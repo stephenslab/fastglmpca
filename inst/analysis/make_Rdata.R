@@ -275,11 +275,37 @@ pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$time <- cumsum(pbmc_daarem
 pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$loglik <- pbmc_daarem$progress$loglik[1:idx_10hr]
 
 pbmc_purified_results <- list()
-pbmc_purified_results[['nmi_res_by_iter']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_res.rds"
+
+pbmc_purified_results[['fastglmpca_28_cores']][['nmi_res_by_iter']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward.rds"
 )
-pbmc_purified_results[['fastglmpca_28_cores']][['25_factors']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k25_50iter.rds"
+
+pbmc_purified_results[['fastglmpca_1_core']][['nmi_res_by_iter']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward_1core.rds"
+)
+
+pbmc_purified_results[['scGBM']][['nmi_res_by_iter']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_scGBM_10hr_res_k10_ward.rds"
+)
+
+pbmc_purified_results[['glmpca']][['nmi_res_by_iter']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_glmpca_10hr_res_k10_ward.rds"
+)
+
+pbmc_purified_results[['fastglmpca_28_cores']][['fit']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k10_10hr_iter.rds"
+)
+
+pbmc_purified_results[['fastglmpca_1_core']][['fit']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k10_10hr_iter_1core.rds"
+)
+
+pbmc_purified_results[['scGBM']][['fit']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_scGBM_k10_10hr_iter.rds"
+)
+
+pbmc_purified_results[['glmpca']][['fit']] <- readr::read_rds(
+  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_glmpca_k10_10hr_iter.rds"
 )
 
 save(
