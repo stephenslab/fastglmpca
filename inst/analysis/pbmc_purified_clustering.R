@@ -5,12 +5,20 @@ library(ggplot2)
 library(cowplot)
 pbmc_colors <- c("dodgerblue","forestgreen","darkmagenta","salmon",
                  "gray","gold","yellow","orange","tomato","red")
+cluster_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
+                    "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a")
 set.seed(1)
 load("results.RData")
 k <- 10
 V_scgbm      <- pbmc_purified_results$scGBM$fit$V
 V_glmpca     <- pbmc_purified_results$glmpca$fit$V
 V_fastglmpca <- pbmc_purified_results$fastglmpca_28_core$fit$V
+clusters_scgbm <-
+  factor(pbmc_purified_results$scGBM$clusters)
+clusters_glmpca <-
+  factor(pbmc_purified_results$glmpca$clusters)
+clusters_fastglmpca <-
+  factor(pbmc_purified_results$fastglmpca_28_cores$clusters)
 colnames(V_scgbm) <- paste0("k",1:k)
 colnames(V_glmpca) <- paste0("k",1:k)
 colnames(V_fastglmpca) <- paste0("k",1:k)
@@ -78,3 +86,9 @@ umap_plot <- function (Y, clusters, colors, title = "") {
 res <- umap(V_fastglmpca,n_neighbors = 20,n_threads = 4,verbose = TRUE)
 colnames(res) <- c("umap1","umap2")
 p1 <- umap_plot(res,cell_type,pbmc_colors,title = "FACS")
+p2 <- umap_plot(res,clusters_scgbm,cluster_colors,title = "scGBM")
+p3 <- umap_plot(res,clusters_glmpca,cluster_colors,title = "glmpca")
+p4 <- umap_plot(res,clusters_fastglmpca,cluster_colors,title = "fastglmpca")
+ggsave("pbmc_purified_clusters_k10.png",
+       plot_grid(p1,p2,p3,p4,nrow = 2,ncol = 2),
+       height = 6,width = 7,dpi = 500,bg = "white")
