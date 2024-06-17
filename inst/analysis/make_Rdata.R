@@ -308,6 +308,21 @@ pbmc_purified_results[['glmpca']][['fit']] <- readr::read_rds(
   "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_glmpca_k10_10hr_iter.rds"
 )
 
+rownames(pbmc_purified_results[['glmpca']][['fit']][['V']]) <- rownames(
+  pbmc_purified_results[['fastglmpca_28_cores']][['fit']][['V']]
+)
+
+load("~/Documents/data/fastglmpca/experiment_results/pbmc_purified_clusters.Rdata")
+
+pbmc_purified_results[['fastglmpca_28_cores']][['clusters']] <- clusters_fastglmpca28
+
+pbmc_purified_results[['fastglmpca_1_core']][['clusters']] <- clusters_fastglmpca1
+
+pbmc_purified_results[['glmpca']][['clusters']] <- clusters_glmpca
+
+pbmc_purified_results[['scGBM']][['clusters']] <- clusters_scGBM
+
+
 save(
   pbmc_purified_results,
   pbmc_res_list,
