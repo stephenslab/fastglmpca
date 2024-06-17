@@ -1,5 +1,4 @@
 load("~/Documents/fastglmpca/inst/analysis/results.RData")
-
 res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$nmi_res_by_iter
 res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$nmi_res_by_iter
 res_glmpca <- pbmc_purified_results$glmpca$nmi_res_by_iter
