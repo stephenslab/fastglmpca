@@ -5,8 +5,8 @@ library(uwot)
 library(ggplot2)
 library(cowplot)
 methods_colors <- c("darkorange","magenta","dodgerblue","darkblue")
-pbmc_colors    <- c("dodgerblue","forestgreen","darkmagenta","salmon",
-                    "gray","gold","yellow","orange","tomato","red")
+pbmc_colors    <- c("dodgerblue","forestgreen","darkmagenta","gray",
+                    "gold","tomato")
 cluster_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                     "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a")
 set.seed(1)
@@ -83,14 +83,14 @@ ggsave("pbmc_purified_nmi_ari.pdf",
        height = 2.1,width = 7)
 
 # Plot the 10 PCs.
-pc_plot <- function (V, k = 1:2, title = "") {
+pc_plot <- function (V, k = 1:2, title = "", show.legend = FALSE) {
   k1 <- k[1]
   k2 <- k[2]
   pdat <- data.frame(cell_type = cell_type,
                      d1 = V[,k1],
                      d2 = V[,k2])
   return(ggplot(pdat,aes(x = d1,y = d2,color = cell_type)) +
-         geom_point(size = 0.5,show.legend = FALSE) +
+         geom_point(size = 0.5,show.legend = show.legend) +
          scale_color_manual(values = pbmc_colors) +
          labs(x = paste("PC",k1),
               y = paste("PC",k2),
@@ -107,6 +107,11 @@ colnames(V_scgbm)      <- paste0("k",1:k)
 colnames(V_glmpca)     <- paste0("k",1:k)
 colnames(V_fastglmpca) <- paste0("k",1:k)
 cell_type <- sapply(strsplit(rownames(V_fastglmpca),"-"),"[[",3)
+cell_type[cell_type == "memory_t" |
+          cell_type == "regulatory_t" |
+          cell_type == "cd4_t_helper" |
+          cell_type == "naive_cytotoxic" |
+          cell_type == "naive_t"] <- "t_cells"
 cell_type <- factor(cell_type)
 
 p1 <- pc_plot(V_scgbm,1:2,title = "scGBM")
@@ -127,20 +132,24 @@ p13 <- pc_plot(V_fastglmpca,5:6,title = "fastglmpca")
 p14 <- pc_plot(V_fastglmpca,7:8,title = "fastglmpca")
 p15 <- pc_plot(V_fastglmpca,9:10,title = "fastglmpca")
 
+p16 <- pc_plot(V_fastglmpca,1:2,show.legend = TRUE)
+
 ggsave("pbmc_purified_pcs_k10.png",
        plot_grid(p1,p2,p3,p4,p5,
                  p6,p7,p8,p9,p10,
                  p11,p12,p13,p14,p15,
                  byrow = FALSE,nrow = 5,ncol = 3),
        height = 10,width = 7,dpi = 500,bg = "white")
+ggsave("pbmc_purified_pcs_k10_legend.png",p16,
+       height = 3,width = 3,dpi = 500,bg = "white")
 
 stop()
 
-clusters_scgbm <- factor(pbmc_purified_results$scGBM$clusters)
-clusters_glmpca <- factor(pbmc_purified_results$glmpca$clusters)
+clusters_scgbm      <- factor(pbmc_purified_results$scGBM$clusters)
+clusters_glmpca     <- factor(pbmc_purified_results$glmpca$clusters)
 clusters_fastglmpca <- factor(pbmc_purified_results$fastglmpca_28_cores$clusters)
 
-# Project the fastglmpca PCs into 2-d using umap.
+# Visualize the clusterings using UMAP.
 umap_plot <- function (Y, clusters, colors, title = "") {
   pdat <- data.frame(cluster = clusters,
                      umap1   = Y[,1],
