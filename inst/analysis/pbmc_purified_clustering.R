@@ -4,6 +4,7 @@ library(Matrix)
 library(uwot)
 library(ggplot2)
 library(cowplot)
+methods_colors <- c("darkorange","magenta","dodgerblue","darkblue")
 pbmc_colors <- c("dodgerblue","forestgreen","darkmagenta","salmon",
                  "gray","gold","yellow","orange","tomato","red")
 cluster_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
@@ -35,13 +36,15 @@ p1 <- ggplot(pdat1,aes(x = time,y = loglik,color = method)) +
   geom_line(size = 0.7) +
   scale_x_continuous(breaks = seq(0,10)) +
   scale_y_continuous(trans = "log10",breaks = 10^seq(0,8)) +
-  scale_color_manual(values = c("darkorange","magenta","dodgerblue","darkblue")) +
+  scale_color_manual(values = methods_colors) +
   labs(x = "running time (h)",y = "distance from best loglik") +
   theme_cowplot(font_size = 10)
 ggsave("pbmc_purified_loglik.pdf",p1,height = 3,width = 4.6)
 
 # Plot the change in the clustering (NMI, ARI) over time.
 n_glmpca <- length(pbmc_purified_results$glmpca$cluster_metrics_by_iter$nmi)
+n1 <- length(pbmc_purified_results$fastglmpca_1_core$fit$progress$time)
+n2 <- length(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)
 pdat2 <-
   rbind(
     data.frame(method = "scGBM",
@@ -63,6 +66,21 @@ pdat2 <-
 pdat2 <- transform(pdat2,
                    method = factor(method),
                    time   = time/60^2)
+p2 <- ggplot(pdat2,aes(x = time,y = nmi,color = method)) +
+  geom_line(size = 0.7) +
+  scale_x_continuous(breaks = seq(0,10)) +
+  scale_color_manual(values = methods_colors) +
+  labs(x = "running time (h)",y = "NMI") +
+  theme_cowplot(font_size = 10)
+p3 <- ggplot(pdat2,aes(x = time,y = ari,color = method)) +
+  geom_line(size = 0.7) +
+  scale_x_continuous(breaks = seq(0,10)) +
+  scale_color_manual(values = methods_colors) +
+  labs(x = "running time (h)",y = "ARI") +
+  theme_cowplot(font_size = 10)
+ggsave("pbmc_purified_nmi_ari.pdf",
+       plot_grid(p2,p3),
+       height = 2.1,width = 7)
 
 # res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
 # res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
