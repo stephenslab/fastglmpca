@@ -1,4 +1,5 @@
-# TO DO: Explain here what this script is for, and how to use it.
+# Generate plots summarizing the results on the "purified" PBMC data,
+# with K = 10.
 library(Matrix)
 library(uwot)
 library(ggplot2)
@@ -9,6 +10,38 @@ cluster_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                     "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a")
 set.seed(1)
 load("results.RData")
+
+# Plot the improvement in the log-likelihoods over time.
+n <- length(pbmc_purified_results$glmpca$fit$loglik)
+pdat1 <-
+  rbind(
+      data.frame(method = "scGBM",
+                   time   = pbmc_purified_results$scGBM$fit$time,
+                   loglik = pbmc_purified_results$scGBM$fit$loglik),
+        data.frame(method = "glmpca",
+                   time   = seq(0,10*60^2,length.out = n),
+                   loglik = pbmc_purified_results$glmpca$fit$loglik),
+        data.frame(method = "fastglmpca_1core",
+                   time   = cumsum(pbmc_purified_results$fastglmpca_1_core$fit$progress$time),
+                   loglik = pbmc_purified_results$fastglmpca_1_core$fit$progress$loglik),
+        data.frame(method = "fastglmpca_28core",
+                   time   = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time),
+                   loglik = pbmc_purified_results$fastglmpca_28_core$fit$progress$loglik))
+pdat1 <- transform(pdat1,
+                   method  = factor(method),
+                   time    = time/60^2,
+                   loglik  = max(loglik) - loglik + 1)
+p1 <- ggplot(pdat1,aes(x = time,y = loglik,color = method)) +
+  geom_line(size = 0.7) +
+  scale_x_continuous(breaks = seq(0,10)) +
+  scale_y_continuous(trans = "log10",breaks = 10^seq(0,8)) +
+  scale_color_manual(values = c("darkorange","magenta","dodgerblue","darkblue")) +
+  labs(x = "running time (h)",y = "distance from best loglik") +
+  theme_cowplot(font_size = 10)
+ggsave("pbmc_purified_loglik.pdf",p1,height = 3,width = 4.6)
+                     
+stop()
+
 k <- 10
 V_scgbm      <- pbmc_purified_results$scGBM$fit$V
 V_glmpca     <- pbmc_purified_results$glmpca$fit$V
