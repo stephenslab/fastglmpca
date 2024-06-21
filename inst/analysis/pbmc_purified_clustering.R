@@ -5,8 +5,8 @@ library(uwot)
 library(ggplot2)
 library(cowplot)
 methods_colors <- c("darkorange","magenta","dodgerblue","darkblue")
-pbmc_colors <- c("dodgerblue","forestgreen","darkmagenta","salmon",
-                 "gray","gold","yellow","orange","tomato","red")
+pbmc_colors    <- c("dodgerblue","forestgreen","darkmagenta","salmon",
+                    "gray","gold","yellow","orange","tomato","red")
 cluster_colors <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
                     "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a")
 set.seed(1)
@@ -14,7 +14,7 @@ load("results.RData")
 
 # Plot the improvement in the log-likelihoods over time.
 n_glmpca <- length(pbmc_purified_results$glmpca$fit$loglik)
-pdat1 <-
+pdat <-
   rbind(
       data.frame(method = "scGBM",
                    time   = pbmc_purified_results$scGBM$fit$time,
@@ -28,11 +28,11 @@ pdat1 <-
         data.frame(method = "fastglmpca_28core",
                    time   = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time),
                    loglik = pbmc_purified_results$fastglmpca_28_core$fit$progress$loglik))
-pdat1 <- transform(pdat1,
-                   method  = factor(method),
-                   time    = time/60^2,
-                   loglik  = max(loglik) - loglik + 1)
-p1 <- ggplot(pdat1,aes(x = time,y = loglik,color = method)) +
+pdat <- transform(pdat,
+                  method  = factor(method),
+                  time    = time/60^2,
+                  loglik  = max(loglik) - loglik + 1)
+p1 <- ggplot(pdat,aes(x = time,y = loglik,color = method)) +
   geom_line(size = 0.7) +
   scale_x_continuous(breaks = seq(0,10)) +
   scale_y_continuous(trans = "log10",breaks = 10^seq(0,8)) +
@@ -45,7 +45,7 @@ ggsave("pbmc_purified_loglik.pdf",p1,height = 3,width = 4.6)
 n_glmpca <- length(pbmc_purified_results$glmpca$cluster_metrics_by_iter$nmi)
 n1 <- length(pbmc_purified_results$fastglmpca_1_core$fit$progress$time)
 n2 <- length(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)
-pdat2 <-
+pdat <-
   rbind(
     data.frame(method = "scGBM",
                time = c(0,pbmc_purified_results$scGBM$fit$time),
@@ -63,49 +63,24 @@ pdat2 <-
                time = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)[-1],
                nmi  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$nmi,
                ari  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$ari))
-pdat2 <- transform(pdat2,
-                   method = factor(method),
-                   time   = time/60^2)
-p2 <- ggplot(pdat2,aes(x = time,y = nmi,color = method)) +
+pdat <- transform(pdat,
+                  method = factor(method),
+                  time   = time/60^2)
+p1 <- ggplot(pdat,aes(x = time,y = nmi,color = method)) +
   geom_line(size = 0.7) +
   scale_x_continuous(breaks = seq(0,10)) +
   scale_color_manual(values = methods_colors) +
   labs(x = "running time (h)",y = "NMI") +
   theme_cowplot(font_size = 10)
-p3 <- ggplot(pdat2,aes(x = time,y = ari,color = method)) +
+p2 <- ggplot(pdat,aes(x = time,y = ari,color = method)) +
   geom_line(size = 0.7) +
   scale_x_continuous(breaks = seq(0,10)) +
   scale_color_manual(values = methods_colors) +
   labs(x = "running time (h)",y = "ARI") +
   theme_cowplot(font_size = 10)
 ggsave("pbmc_purified_nmi_ari.pdf",
-       plot_grid(p2,p3),
+       plot_grid(p1,p2),
        height = 2.1,width = 7)
-
-# res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
-# res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
-# res_glmpca <- pbmc_purified_results$glmpca$cluster_metrics_by_iter
-
-stop()
-
-k <- 10
-V_scgbm      <- pbmc_purified_results$scGBM$fit$V
-V_glmpca     <- pbmc_purified_results$glmpca$fit$V
-V_fastglmpca <- pbmc_purified_results$fastglmpca_28_core$fit$V
-clusters_scgbm <-
-  factor(pbmc_purified_results$scGBM$clusters)
-clusters_glmpca <-
-  factor(pbmc_purified_results$glmpca$clusters)
-clusters_fastglmpca <-
-  factor(pbmc_purified_results$fastglmpca_28_cores$clusters)
-colnames(V_scgbm) <- paste0("k",1:k)
-colnames(V_glmpca) <- paste0("k",1:k)
-colnames(V_fastglmpca) <- paste0("k",1:k)
-cell_type <- sapply(strsplit(rownames(V_fastglmpca),"-"),"[[",3)
-cell_type <- factor(cell_type)
-
-# Plot the improvement in the solutions over time.
-# TO DO.
 
 # Plot the 10 PCs.
 pc_plot <- function (V, k = 1:2, title = "") {
@@ -123,6 +98,16 @@ pc_plot <- function (V, k = 1:2, title = "") {
          theme_cowplot(font_size = 9) +
          theme(plot.title = element_text(face = "plain",size = 9)))
 }
+
+k <- 10
+V_scgbm      <- pbmc_purified_results$scGBM$fit$V
+V_glmpca     <- pbmc_purified_results$glmpca$fit$V
+V_fastglmpca <- pbmc_purified_results$fastglmpca_28_core$fit$V
+colnames(V_scgbm)      <- paste0("k",1:k)
+colnames(V_glmpca)     <- paste0("k",1:k)
+colnames(V_fastglmpca) <- paste0("k",1:k)
+cell_type <- sapply(strsplit(rownames(V_fastglmpca),"-"),"[[",3)
+cell_type <- factor(cell_type)
 
 p1 <- pc_plot(V_scgbm,1:2,title = "scGBM")
 p2 <- pc_plot(V_scgbm,3:4,title = "scGBM")
@@ -148,7 +133,13 @@ ggsave("pbmc_purified_pcs_k10.png",
                  p11,p12,p13,p14,p15,
                  byrow = FALSE,nrow = 5,ncol = 3),
        height = 10,width = 7,dpi = 500,bg = "white")
-       
+
+stop()
+
+clusters_scgbm <- factor(pbmc_purified_results$scGBM$clusters)
+clusters_glmpca <- factor(pbmc_purified_results$glmpca$clusters)
+clusters_fastglmpca <- factor(pbmc_purified_results$fastglmpca_28_cores$clusters)
+
 # Project the fastglmpca PCs into 2-d using umap.
 umap_plot <- function (Y, clusters, colors, title = "") {
   pdat <- data.frame(cluster = clusters,
