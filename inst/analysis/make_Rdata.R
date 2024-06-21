@@ -1,4 +1,4 @@
-
+library(dplyr)
 pbmc_res_list <- list()
 
 load("~/Documents/data/fastglmpca/raw_data/pbmc_68k.RData")
@@ -276,43 +276,63 @@ pbmc_res_list$fastglmpca_28_cores$daarem$`10_factors`$loglik <- pbmc_daarem$prog
 
 pbmc_purified_results <- list()
 
-pbmc_purified_results[['fastglmpca_28_cores']][['nmi_res_by_iter']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward.rds"
+pbmc_purified_results[['fastglmpca_28_cores']][['cluster_metrics_by_iter']] <- readr::read_rds(
+  "pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward.rds"
 )
 
-pbmc_purified_results[['fastglmpca_1_core']][['nmi_res_by_iter']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward_1core.rds"
+pbmc_purified_results[['fastglmpca_1_core']][['cluster_metrics_by_iter']] <- readr::read_rds(
+  "pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward_1core.rds"
 )
 
-pbmc_purified_results[['scGBM']][['nmi_res_by_iter']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_scGBM_10hr_res_k10_ward.rds"
+scgbm_pbmc_purified <- readr::read_rds("scGBM_10hours_pbmc_purified_nmi_ari.rds")
+
+scgbm_metrics_by_iter <- data.frame(
+  iter = 0:length(scgbm_pbmc_purified$loglik),
+  nmi = c(0, scgbm_pbmc_purified$nmi[1:length(scgbm_pbmc_purified$loglik)]),
+  ari = c(0, scgbm_pbmc_purified$ari[1:length(scgbm_pbmc_purified$loglik)])
 )
 
-pbmc_purified_results[['glmpca']][['nmi_res_by_iter']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_nmi_glmpca_10hr_res_k10_ward.rds"
+pbmc_purified_results[['scGBM']][['cluster_metrics_by_iter']] <- scgbm_metrics_by_iter
+
+glmpca_metrics_by_iter <- readr::read_rds("pbmc_purified_nmi_glmpca_10hr_res_k10_ward.rds")
+
+pbmc_purified_results[['glmpca']][['cluster_metrics_by_iter']] <- (
+  glmpca_metrics_by_iter %>% dplyr::select(-loglik)
 )
 
 pbmc_purified_results[['fastglmpca_28_cores']][['fit']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k10_10hr_iter.rds"
+  "pbmc_purified_k10_10hr_iter.rds"
 )
 
 pbmc_purified_results[['fastglmpca_1_core']][['fit']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_k10_10hr_iter_1core.rds"
+  "pbmc_purified_k10_10hr_iter_1core.rds"
 )
 
-pbmc_purified_results[['scGBM']][['fit']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_scGBM_k10_10hr_iter.rds"
-)
+load("~/Documents/data/fastglmpca/raw_data/pbmc_purified.RData")
 
-pbmc_purified_results[['glmpca']][['fit']] <- readr::read_rds(
-  "~/Documents/data/fastglmpca/experiment_results/pbmc_purified_glmpca_k10_10hr_iter.rds"
-)
+scgbm_pbmc_purified_fit <- list()
+scgbm_pbmc_purified_fit$U <- scgbm_pbmc_purified$U
+scgbm_pbmc_purified_fit$D <- scgbm_pbmc_purified$D
+scgbm_pbmc_purified_fit$V <- scgbm_pbmc_purified$V
+scgbm_pbmc_purified_fit$time <- scgbm_pbmc_purified$time
+scgbm_pbmc_purified_fit$loglik <- scgbm_pbmc_purified$loglik - sum(MatrixExtra::mapSparse(counts, lfactorial))
+
+pbmc_purified_results[['scGBM']][['fit']] <- scgbm_pbmc_purified_fit
+
+glmpca_fit_pbmc_purified <- readr::read_rds("pbmc_purified_glmpca_k10_10hr_iter.rds")
+glmpca_pbmc_purified_fit <- list()
+glmpca_pbmc_purified_fit$U <- glmpca_fit_pbmc_purified$U
+glmpca_pbmc_purified_fit$d <- glmpca_fit_pbmc_purified$d
+glmpca_pbmc_purified_fit$V <- glmpca_fit_pbmc_purified$V
+glmpca_pbmc_purified_fit$loglik <- glmpca_metrics_by_iter$loglik
+
+pbmc_purified_results[['glmpca']][['fit']] <- glmpca_pbmc_purified_fit
 
 rownames(pbmc_purified_results[['glmpca']][['fit']][['V']]) <- rownames(
   pbmc_purified_results[['fastglmpca_28_cores']][['fit']][['V']]
 )
 
-load("~/Documents/data/fastglmpca/experiment_results/pbmc_purified_clusters.Rdata")
+load("pbmc_purified_clusters.Rdata")
 
 pbmc_purified_results[['fastglmpca_28_cores']][['clusters']] <- clusters_fastglmpca28
 

@@ -22,19 +22,24 @@ fit0 <- init_glmpca_pois(
 )
 
 nmi_vec <- c()
-
+ari_vec <- c()
 total_time <- 0
 
 # while the total time is less than 10 hours
 while (total_time < (10 * 60 * 60)) {
   
-  d <- distances(fit0$V)
+  d <- distances(fit0$V %*% diag(fit0$d))
   dm <- distance_matrix(d)
   clust_tree <- fastcluster::hclust(dm, method="ward.D2")
   clusts <- cutree(clust_tree, k = 10)
   nmi <- NMI(celltype, clusts)
   nmi_vec <- c(nmi_vec, nmi)
-  
+  ari <- ARI(celltype, clusts)
+  ari_vec <- c(ari_vec, ari)  
+  print(nmi)
+  print(ari)
+
+
   start_iter_time <- Sys.time()
   # update fit
   fit0 <- fit_glmpca_pois(
@@ -51,7 +56,8 @@ while (total_time < (10 * 60 * 60)) {
 
 res_df <- data.frame(
   iter = 0:(length(nmi_vec) - 1),
-  nmi = nmi_vec
+  nmi = nmi_vec,
+  ari = ari_vec
 )
 
 readr::write_rds(res_df, "pbmc_purified_nmi_fastglmpca_10hr_res_k10_ward.rds")

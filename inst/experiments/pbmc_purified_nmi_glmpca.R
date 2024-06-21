@@ -22,7 +22,8 @@ fit0 <- init_glmpca_pois(
 )
 
 nmi_vec <- c()
-
+ari_vec <- c()
+loglik_vec <- c()
 total_time <- 0
 
 iter <- 0
@@ -32,15 +33,19 @@ while (total_time < (10 * 60 * 60)) {
   
   print(iter)
   iter <- iter + 1
-  
-  d <- distances(fit0$V)
+ 
+  init_fit <- fastglmpca::init_glmpca_pois(Y = counts, U = fit0$U %*% diag(sqrt(fit0$d)), V = fit0$V %*% diag(sqrt(fit0$d)))
+  loglik_vec <- c(loglik_vec, init_fit$loglik) 
+  d <- distances(fit0$V %*% diag(fit0$d))
   dm <- distance_matrix(d)
   clust_tree <- fastcluster::hclust(dm, method="ward.D2")
   #clust_tree <- hclust(dm, method="ward.D2")
   clusts <- cutree(clust_tree, k = 10)
   nmi <- NMI(celltype, clusts)
   nmi_vec <- c(nmi_vec, nmi)
-  
+  ari <- ARI(celltype, clusts)
+  ari_vec <- c(ari_vec, ari)  
+
   start_iter_time <- Sys.time()
   # update fit with glmpca
   if (iter > 1) {
@@ -103,7 +108,11 @@ while (total_time < (10 * 60 * 60)) {
   total_time <- total_time + as.numeric(
     difftime(end_iter_time, start_iter_time, units = "secs")
   )
-  
+
+  # here, I want to compute the log-likelihood
+  #init_fit <- fastglmpca::init_glmpca_pois(Y = counts, K = 10, init_U = fit0$U %*% diag(sqrt(fit0$d)), init_V = fit0$V %*% diag(sqrt(fit0$d)))
+  #loglik_vec <- c(loglik_vec, init_fit$loglik) 
+
   fit0$U <- tmp_mod$U
   fit0$V <- tmp_mod$V
   fit0$d <- tmp_mod$d
@@ -112,7 +121,9 @@ while (total_time < (10 * 60 * 60)) {
 
 res_df <- data.frame(
   iter = 0:(length(nmi_vec) - 1),
-  nmi = nmi_vec
+  nmi = nmi_vec,
+  ari = ari_vec,
+  loglik = loglik_vec
 )
 
 readr::write_rds(res_df, "pbmc_purified_nmi_glmpca_10hr_res_k10_ward.rds")
