@@ -1,13 +1,13 @@
 load("~/Documents/fastglmpca/inst/analysis/results.RData")
-res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$nmi_res_by_iter
-res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$nmi_res_by_iter
-res_glmpca <- pbmc_purified_results$glmpca$nmi_res_by_iter
-res_scGBM <- pbmc_purified_results$scGBM$nmi_res_by_iter
+res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
+res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
+res_glmpca <- pbmc_purified_results$glmpca$cluster_metrics_by_iter
+res_scGBM <- pbmc_purified_results$scGBM$cluster_metrics_by_iter
 
-res_1core_fastglmpca$hour <- seq(0, 10, length.out = 13)
-res_28core_fastglmpca$hour <- seq(0, 10, length.out = 220)
-res_glmpca$hour <- seq(0, 10, length.out = 247)
-res_scGBM$hour <- seq(0, 10, length.out = 82)
+res_1core_fastglmpca$hour <- seq(0, 10, length.out = nrow(res_1core_fastglmpca))
+res_28core_fastglmpca$hour <- seq(0, 10, length.out = nrow(res_28core_fastglmpca))
+res_glmpca$hour <- seq(0, 10, length.out = nrow(res_glmpca))
+res_scGBM$hour <- seq(0, 10, length.out = nrow(res_scGBM))
 
 res_df <- data.frame(
   hour = c(
@@ -22,18 +22,33 @@ res_df <- data.frame(
     res_glmpca$nmi,
     res_scGBM$nmi
   ),
+  ari = c(
+    res_1core_fastglmpca$ari,
+    res_28core_fastglmpca$ari,
+    res_glmpca$ari,
+    res_scGBM$ari
+  ),
   method = c(
-    rep("fastglmpca-1core", 13),
-    rep("fastglmpca-28core", 220),
-    rep("glmpca-avagrad", 247),
-    rep("scGBM", 82)
+    rep("fastglmpca-1core", nrow(res_1core_fastglmpca)),
+    rep("fastglmpca-28core", nrow(res_28core_fastglmpca)),
+    rep("glmpca-avagrad", nrow(res_glmpca)),
+    rep("scGBM", nrow(res_scGBM))
   )
 )
 
 library(ggplot2)
 
-ggplot(data = res_df, aes(x = hour, y = nmi)) +
+g1 <- ggplot(data = res_df, aes(x = hour, y = nmi)) +
   geom_line(aes(color = method)) +
   xlab("Time (Hours)") +
   ylab("NMI") +
   cowplot::theme_cowplot()
+
+g2 <- ggplot(data = res_df, aes(x = hour, y = ari)) +
+  geom_line(aes(color = method)) +
+  xlab("Time (Hours)") +
+  ylab("ARI") +
+  cowplot::theme_cowplot()
+
+library(ggpubr)
+ggarrange(g1, g2, nrow = 1, labels = "AUTO", common.legend = TRUE, legend = "right")
