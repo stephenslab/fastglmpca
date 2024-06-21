@@ -12,14 +12,14 @@ set.seed(1)
 load("results.RData")
 
 # Plot the improvement in the log-likelihoods over time.
-n <- length(pbmc_purified_results$glmpca$fit$loglik)
+n_glmpca <- length(pbmc_purified_results$glmpca$fit$loglik)
 pdat1 <-
   rbind(
       data.frame(method = "scGBM",
                    time   = pbmc_purified_results$scGBM$fit$time,
                    loglik = pbmc_purified_results$scGBM$fit$loglik),
         data.frame(method = "glmpca",
-                   time   = seq(0,10*60^2,length.out = n),
+                   time   = seq(0,10*60^2,length.out = n_glmpca),
                    loglik = pbmc_purified_results$glmpca$fit$loglik),
         data.frame(method = "fastglmpca_1core",
                    time   = cumsum(pbmc_purified_results$fastglmpca_1_core$fit$progress$time),
@@ -41,19 +41,32 @@ p1 <- ggplot(pdat1,aes(x = time,y = loglik,color = method)) +
 ggsave("pbmc_purified_loglik.pdf",p1,height = 3,width = 4.6)
 
 # Plot the change in the clustering (NMI, ARI) over time.
-n_scgbm <- length(pbmc_purified_results$scGBM$cluster_metrics_by_iter$nmi)
+n_glmpca <- length(pbmc_purified_results$glmpca$cluster_metrics_by_iter$nmi)
 pdat2 <-
   rbind(
     data.frame(method = "scGBM",
-               time = seq(0,max(pbmc_purified_results$scGBM$fit$time)/60^2,length.out = n_scgbm),
+               time = c(0,pbmc_purified_results$scGBM$fit$time),
                nmi  = pbmc_purified_results$scGBM$cluster_metrics_by_iter$nmi,
-               ari  = pbmc_purified_results$scGBM$cluster_metrics_by_iter$ari))
-      
-res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
-res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
-res_glmpca <- pbmc_purified_results$glmpca$cluster_metrics_by_iter
-res_scGBM <- 
+               ari  = pbmc_purified_results$scGBM$cluster_metrics_by_iter$ari),
+    data.frame(method = "glmpca",
+               time = seq(0,10*60^2,length.out = n_glmpca),
+               nmi  = pbmc_purified_results$glmpca$cluster_metrics_by_iter$nmi,
+               ari  = pbmc_purified_results$glmpca$cluster_metrics_by_iter$ari),
+    data.frame(method = "fastglmpca_1core",
+               time = cumsum(pbmc_purified_results$fastglmpca_1_core$fit$progress$time)[-1],
+               nmi  = pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter$nmi,
+               ari  = pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter$ari),
+    data.frame(method = "fastglmpca_28core",
+               time = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)[-1],
+               nmi  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$nmi,
+               ari  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$ari))
+pdat2 <- transform(pdat2,
+                   method = factor(method),
+                   time   = time/60^2)
 
+# res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
+# res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
+# res_glmpca <- pbmc_purified_results$glmpca$cluster_metrics_by_iter
 
 stop()
 
