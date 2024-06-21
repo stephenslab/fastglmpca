@@ -1,5 +1,5 @@
-# Generate plots summarizing the results on the "purified" PBMC data,
-# with K = 10.
+# Generate plots summarizing results on the "purified" PBMC data, with
+# K = 10.
 library(Matrix)
 library(uwot)
 library(ggplot2)
@@ -39,7 +39,22 @@ p1 <- ggplot(pdat1,aes(x = time,y = loglik,color = method)) +
   labs(x = "running time (h)",y = "distance from best loglik") +
   theme_cowplot(font_size = 10)
 ggsave("pbmc_purified_loglik.pdf",p1,height = 3,width = 4.6)
-                     
+
+# Plot the change in the clustering (NMI, ARI) over time.
+n_scgbm <- length(pbmc_purified_results$scGBM$cluster_metrics_by_iter$nmi)
+pdat2 <-
+  rbind(
+    data.frame(method = "scGBM",
+               time = seq(0,max(pbmc_purified_results$scGBM$fit$time)/60^2,length.out = n_scgbm),
+               nmi  = pbmc_purified_results$scGBM$cluster_metrics_by_iter$nmi,
+               ari  = pbmc_purified_results$scGBM$cluster_metrics_by_iter$ari))
+      
+res_1core_fastglmpca <- pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter
+res_28core_fastglmpca <- pbmc_purified_results$fastglmpca_28_cores$cluster_metrics_by_iter
+res_glmpca <- pbmc_purified_results$glmpca$cluster_metrics_by_iter
+res_scGBM <- 
+
+
 stop()
 
 k <- 10
