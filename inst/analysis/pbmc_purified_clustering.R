@@ -142,32 +142,3 @@ ggsave("pbmc_purified_pcs_k10.png",
        height = 10,width = 7,dpi = 500,bg = "white")
 ggsave("pbmc_purified_pcs_k10_legend.png",p16,
        height = 3,width = 3,dpi = 500,bg = "white")
-
-stop()
-
-clusters_scgbm      <- factor(pbmc_purified_results$scGBM$clusters)
-clusters_glmpca     <- factor(pbmc_purified_results$glmpca$clusters)
-clusters_fastglmpca <- factor(pbmc_purified_results$fastglmpca_28_cores$clusters)
-
-# Visualize the clusterings using UMAP.
-umap_plot <- function (Y, clusters, colors, title = "") {
-  pdat <- data.frame(cluster = clusters,
-                     umap1   = Y[,1],
-                     umap2   = Y[,2])
-  return(ggplot(pdat,aes(x = umap1,y = umap2,color = cluster)) +
-         geom_point(size = 0.5) +
-         scale_color_manual(values = colors) +
-         ggtitle(title) +
-         theme_cowplot(font_size = 9) +
-         theme(plot.title = element_text(face = "plain",size = 9)))
-         
-}
-res <- umap(V_fastglmpca,n_neighbors = 20,n_threads = 4,verbose = TRUE)
-colnames(res) <- c("umap1","umap2")
-p1 <- umap_plot(res,cell_type,pbmc_colors,title = "FACS")
-p2 <- umap_plot(res,clusters_scgbm,cluster_colors,title = "scGBM")
-p3 <- umap_plot(res,clusters_glmpca,cluster_colors,title = "glmpca")
-p4 <- umap_plot(res,clusters_fastglmpca,cluster_colors,title = "fastglmpca")
-ggsave("pbmc_purified_clusters_k10.png",
-       plot_grid(p1,p2,p3,p4,nrow = 2,ncol = 2),
-       height = 6,width = 7,dpi = 500,bg = "white")
