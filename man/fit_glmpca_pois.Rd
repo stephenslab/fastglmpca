@@ -34,7 +34,7 @@ init_glmpca_pois(
 \arguments{
 \item{Y}{The n x m matrix of counts; all entries of \code{Y} should
 be non-negative. It can be a sparse matrix (class
-\code{"dgCMatrix"}) or dense matrix (class \code{"matrix"}).}
+\code{"dsparseMatrix"}) or dense matrix (class \code{"matrix"}).}
 
 \item{K}{Integer 1 or greater specifying the rank of the matrix
 factorization. This should only be provided if the initial fit
