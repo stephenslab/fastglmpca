@@ -1,7 +1,7 @@
 # Return true if x is a compressed, sparse, column-oriented numeric
 # matrix.
 is.sparse.matrix <- function (x)
-  inherits(x,"dgCMatrix") && is.numeric(x@x)
+  inherits(x,"dsparseMatrix") && is.numeric(x@x)
 
 # Verify that x is matrix with finite, numeric entries.
 verify.matrix <- function (x, arg.name = deparse(substitute(x))) {
