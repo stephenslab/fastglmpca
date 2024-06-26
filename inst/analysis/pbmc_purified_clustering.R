@@ -56,11 +56,11 @@ pdat <-
                nmi  = pbmc_purified_results$glmpca$cluster_metrics_by_iter$nmi,
                ari  = pbmc_purified_results$glmpca$cluster_metrics_by_iter$ari),
     data.frame(method = "fastglmpca_1core",
-               time = cumsum(pbmc_purified_results$fastglmpca_1_core$fit$progress$time)[1:(n1 - 1)],
+               time = cumsum(pbmc_purified_results$fastglmpca_1_core$fit$progress$time)[-n1],
                nmi  = pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter$nmi,
                ari  = pbmc_purified_results$fastglmpca_1_core$cluster_metrics_by_iter$ari),
     data.frame(method = "fastglmpca_28core",
-               time = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)[1:(n2 - 1)],
+               time = cumsum(pbmc_purified_results$fastglmpca_28_core$fit$progress$time)[-n2],
                nmi  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$nmi,
                ari  = pbmc_purified_results$fastglmpca_28_core$cluster_metrics_by_iter$ari))
 pdat <- transform(pdat,
