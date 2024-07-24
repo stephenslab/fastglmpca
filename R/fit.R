@@ -340,7 +340,8 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  verbose = verbose)
   if (!res$convergence)
     warning(sprintf(paste("fit_glmpca_pois failed to meet convergence",
-                          "criterion within %d iterations"),
+                          "criterion within %d iterations.",
+                          "This may be okay for downstream tasks like clustering."),
                     control$maxiter))
 
   # Prepare the output.
