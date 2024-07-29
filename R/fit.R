@@ -71,6 +71,15 @@
 #'   control argument for \code{\link[daarem]{daarem}}. This setting
 #'   determines to what extent the monotonicity condition can be
 #'   violated.}
+#'   
+#' \item{\code{training_frac}}{Fraction of the columns of input data \code{Y}
+#'   to fit initial model on. If set to \code{1} (default), the model is fit
+#'   by optimizing the parameters on the entire dataset. If set between \code{0}
+#'   and \code{1}, the model is optimized by first fitting a model on a randomly
+#'   selected fraction of the columns of \code{Y}, and then projecting the 
+#'   remaining columns of \code{Y} onto the solution. Setting this to a smaller
+#'   value will increase speed but decrease accuracy.
+#' }
 #'
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent updates to
 #'   be made to parameters at each iteration of the algorithm.}
@@ -196,7 +205,7 @@ fit_glmpca_pois <- function(
   # Check and process input argument "control".
   control <- modifyList(fit_glmpca_pois_control_default(),
                         control,keep.null = TRUE)
-
+  
   # Set up the internal fit.
   D <- sqrt(fit0$d)
   if (K == 1)
@@ -205,7 +214,7 @@ fit_glmpca_pois <- function(
     D <- diag(D)
   LL <- t(cbind(fit0$U %*% D,fit0$X,fit0$W))
   FF <- t(cbind(fit0$V %*% D,fit0$B,fit0$Z))
-
+  
   # Determine which rows of LL and FF are "clamped".
   fixed_l <- numeric(0)
   fixed_f <- numeric(0)
@@ -217,9 +226,91 @@ fit_glmpca_pois <- function(
   fixed_f <- c(fixed_f,K + fit0$fixed_b_cols)
   if (nz > 0)
     fixed_f <- c(fixed_f,K + nx + seq(1,nz))
-
-  # Perform the updates.
-  res <- fit_glmpca_pois_main_loop(LL,FF,Y,fixed_l,fixed_f,verbose,control)
+  
+  if (control$training_frac == 1) {
+    
+    # Perform the updates.
+    res <- fit_glmpca_pois_main_loop(LL,FF,Y,fixed_l,fixed_f,verbose,control)
+    
+  } else {
+    
+    if (control$training_frac <= 0 || control$training_frac > 1)
+      stop("control argument \"training_frac\" should be between 0 and 1")
+    
+    train_idx <- sample(
+      1:ncol(Y), 
+      size = ceiling(ncol(Y) * control$training_frac)
+    )
+    
+    Y_train <- Y[, train_idx]
+    FF_train <- FF[, train_idx]
+    FF_test <- FF[, -train_idx]
+    Y_test <- Y[, -train_idx]
+    
+    test_idx <- 1:ncol(Y)
+    test_idx <- test_idx[-train_idx]
+    
+    # Perform the updates.
+    res <- fit_glmpca_pois_main_loop(
+      LL,
+      FF_train,
+      Y_train,
+      fixed_l,
+      fixed_f,
+      verbose,
+      control
+    )
+    
+    update_indices_f <- sort(setdiff(1:K,fixed_f))
+    
+    FF_to_update <- FF_test
+    #browser()
+    
+    # now, I just need to project the results back
+    update_factors_faster_parallel(
+      L_T = t(res$fit$LL),
+      FF = FF_to_update,
+      M = as.matrix(res$fit$LL[update_indices_f,,drop = FALSE] %*% Y_test),
+      update_indices = update_indices_f - 1,
+      num_iter = 1000,
+      line_search = TRUE,
+      alpha = .01,
+      beta = .25
+    )
+    
+    # now, I need to reconstruct FF, and hopefully compute the log-likelihood
+    FF[, train_idx] <- FF_train
+    FF[, test_idx] <- FF_to_update
+    res$fit$FF <- FF
+    
+    print(glue::glue("train loglik = {res$loglik}"))
+    
+    if (inherits(Y,"sparseMatrix")) {
+      test_loglik_const <- sum(mapSparse(Y_test,lfactorial))
+      loglik_func  <- lik_glmpca_pois_log_sp
+    } else {
+      test_loglik_const <- sum(lfactorial(Y_test))
+      loglik_func  <- lik_glmpca_pois_log
+    }
+    
+    test_loglik <- loglik_func(Y_test,res$fit$LL,FF_to_update,test_loglik_const)
+    print(glue::glue("test loglik = {test_loglik}"))
+    
+    print(glue::glue("Expected total loglik = {res$loglik + test_loglik}"))
+    
+    if (inherits(Y,"sparseMatrix")) {
+      loglik_const <- sum(mapSparse(Y,lfactorial))
+      loglik_func  <- lik_glmpca_pois_log_sp
+    } else {
+      loglik_const <- sum(lfactorial(Y))
+      loglik_func  <- lik_glmpca_pois_log
+    }
+    
+    res$loglik <- loglik_func(Y,res$fit$LL,res$fit$FF,loglik_const)
+    
+    print(glue::glue("Calculated loglik = {res$loglik}"))
+    
+  }
   
   # Prepare the final output.
   res$progress$iter <- max(fit0$progress$iter) + res$progress$iter
@@ -258,8 +349,11 @@ fit_glmpca_pois <- function(
     dimnames(fit$W) <- dimnames(fit0$W)
   }
   class(fit) <- c("glmpca_pois_fit","list")
+  
   return(fit)
+  
 }
+
 
 # This implements the core part of fit_glmpca_pois.
 #
@@ -358,6 +452,7 @@ fit_glmpca_pois_control_default <- function()
   list(use_daarem = FALSE,
        maxiter = 100,
        tol = 1e-4,
+       training_frac = 1,
        mon.tol = 0.05,
        convtype = "objfn",
        line_search = TRUE,
