@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">fastglmpca</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-76</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-106</span>
       </span>
     </div>
 
@@ -41,6 +41,9 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">Home</a>
+</li>
+<li>
+  <a href="../articles/index.html">Vignettes</a>
 </li>
 <li>
   <a href="../reference/index.html">Functions</a>
@@ -68,7 +71,7 @@ fastglmpca</h1>
                         <h4 data-toc-skip class="author">Eric Weine and
 Peter Carbonetto</h4>
             
-            <h4 data-toc-skip class="date">2023-11-09</h4>
+            <h4 data-toc-skip class="date">2024-07-29</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stephenslab/fastglmpca/blob/HEAD/vignettes/intro_fastglmpca.Rmd" class="external-link"><code>vignettes/intro_fastglmpca.Rmd</code></a></small>
       <div class="hidden name"><code>intro_fastglmpca.Rmd</code></div>
@@ -85,13 +88,13 @@ fitting GLM-PCA model to single-cell RNA-seq data using
 model.)</p>
 <p>To begin, load the packages that are needed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://Matrix.R-forge.R-project.org/" class="external-link">Matrix</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/stephenslab/fastglmpca" class="external-link">fastglmpca</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://Matrix.R-forge.R-project.org" class="external-link">Matrix</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/stephenslab/fastglmpca" class="external-link">fastglmpca</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></span></code></pre></div>
 <p>Set the seed so that the results can be reproduced.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="the-example-data-set">The example data set<a class="anchor" aria-label="anchor" href="#the-example-data-set"></a>
 </h2>
@@ -107,25 +110,25 @@ m\)</span> sparse matrix, where <span class="math inline">\(n\)</span>
 is the number of genes and <span class="math inline">\(m\)</span> is the
 number of cells:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span><span class="op">)</span>
-<span class="co"># [1] 16791  3774</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span><span class="op">)</span></span>
+<span><span class="co"># [1] 16791  3774</span></span></code></pre></div>
 <p>The UMI counts are “sparse”—that is, most of the counts are zero.
 Indeed, over 95% of the UMI counts are zero:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span>
-<span class="co"># [1] 0.04265257</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="co"># [1] 0.04265257</span></span></code></pre></div>
 <p>For the purposes of this vignette only, we randomly subset the data
 further to reduce the running time:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">counts</span> <span class="op">&lt;-</span> <span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span>
-<span class="va">n</span>      <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span>
-<span class="va">rows</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">n</span>,<span class="fl">3000</span><span class="op">)</span>
-<span class="va">counts</span> <span class="op">&lt;-</span> <span class="va">counts</span><span class="op">[</span><span class="va">rows</span>,<span class="op">]</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="va">pbmc_facs</span><span class="op">$</span><span class="va">counts</span></span>
+<span><span class="va">n</span>      <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span></span>
+<span><span class="va">rows</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="va">n</span>,<span class="fl">3000</span><span class="op">)</span></span>
+<span><span class="va">counts</span> <span class="op">&lt;-</span> <span class="va">counts</span><span class="op">[</span><span class="va">rows</span>,<span class="op">]</span></span></code></pre></div>
 <p>Now we have a 3,000 x 3,774 counts matrix:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span>
-<span class="co"># [1] 3000 3774</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span></span>
+<span><span class="co"># [1] 3000 3774</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="initializating-and-fitting-the-glm-pca-model">Initializating and fitting the GLM-PCA model<a class="anchor" aria-label="anchor" href="#initializating-and-fitting-the-glm-pca-model"></a>
@@ -136,10 +139,10 @@ log-transformation), the first step is to initialize the model fit using
 and options, but here we will keep all settings at the defaults, and we
 set K, the rank of the matrix factorization, to 2:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">init_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">init_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,K <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p>By default, <code><a href="../reference/fit_glmpca_pois.html">init_glmpca_pois()</a></code> adds gene- (or row-)
 specific intercept, and a fixed cell- (or column-) specific size-factor.
-This is intended to mimic the defaults in <a href="https://cran.r-project.org/web/packages/glmpca/index.html" class="external-link">glmpca</a>.
+This is intended to mimic the defaults in <a href="https://cran.r-project.org/package=glmpca" class="external-link">glmpca</a>.
 <code><a href="../reference/fit_glmpca_pois.html">init_glmpca_pois()</a></code> has many other options which we do not
 demonstrate here.</p>
 <p>Once we have initialized the model, we are ready to run the
@@ -147,55 +150,61 @@ optimization algorithm to fit the model (i.e., estimate the model
 parameters). This is accomplished by a call to
 <code><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois()</a></code>:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois</a></span><span class="op">(</span><span class="va">counts</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span></span></code></pre></div>
+<p>If you prefer not to wait for the model optimization (it may take
+several minutes to run), you are welcome to load the previously fitted
+model (which is the output from the <code>fit_glmpca_pois</code> call
+above):</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="va">pbmc_facs</span><span class="op">$</span><span class="va">fit</span></span></code></pre></div>
 <p>The return value of <code><a href="../reference/fit_glmpca_pois.html">fit_glmpca_pois()</a></code> resembles the
 output of <code><a href="https://rdrr.io/r/base/svd.html" class="external-link">svd()</a></code> and similar functions, with a few other
 outputs giving additional information about the model:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>
-<span class="co">#  [1] "U"            "V"            "fixed_b_cols" "fixed_w_cols" "loglik"      </span>
-<span class="co">#  [6] "progress"     "X"            "B"            "Z"            "W"           </span>
-<span class="co"># [11] "d"</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#  [1] "U"            "V"            "fixed_b_cols" "fixed_w_cols" "loglik"      </span></span>
+<span><span class="co">#  [6] "progress"     "X"            "B"            "Z"            "W"           </span></span>
+<span><span class="co"># [11] "d"</span></span></code></pre></div>
 <p>In particular, the outputs that are capital letters the low-rank
 reconstruction of the counts matrix:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">fitted_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">fit</span>,
-  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">U</span> <span class="op"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>,<span class="va">V</span><span class="op">)</span> <span class="op">+</span>
-      <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">B</span><span class="op">)</span> <span class="op">+</span>
-      <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">W</span>,<span class="va">Z</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fitted_counts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">fit</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">U</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span>,<span class="va">V</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">X</span>,<span class="va">B</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/matrix-products.html" class="external-link">tcrossprod</a></span><span class="op">(</span><span class="va">W</span>,<span class="va">Z</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s compare (a random subset of) the reconstructed (“fitted”)
 counts versus the observed counts:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">)</span>,<span class="fl">2e4</span><span class="op">)</span>
-<span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>obs    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,
-                   fitted <span class="op">=</span> <span class="va">fitted_counts</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">obs</span>,y <span class="op">=</span> <span class="va">fitted</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0</span>,slope <span class="op">=</span> <span class="fl">1</span>,color <span class="op">=</span> <span class="st">"magenta"</span>,linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"observed count"</span>,y <span class="op">=</span> <span class="st">"fitted count"</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/prod.html" class="external-link">prod</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">)</span>,<span class="fl">2e4</span><span class="op">)</span></span>
+<span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>obs    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">counts</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,</span>
+<span>                   fitted <span class="op">=</span> <span class="va">fitted_counts</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">obs</span>,y <span class="op">=</span> <span class="va">fitted</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0</span>,slope <span class="op">=</span> <span class="fl">1</span>,color <span class="op">=</span> <span class="st">"magenta"</span>,linetype <span class="op">=</span> <span class="st">"dotted"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"observed count"</span>,y <span class="op">=</span> <span class="st">"fitted count"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
 <p><img src="intro_fastglmpca_files/figure-html/fitted-vs-observed-1.png" width="360" style="display: block; margin: auto;"></p>
 <p>The U and V outputs in particular are interesting because they give
 low-dimensional (in this case, 2-d) embeddings of the genes and cells,
 respectively. Let’s compare this 2-d embedding of the cells the provided
 cell-type labels:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">celltype_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"forestgreen"</span>,<span class="st">"dodgerblue"</span>,<span class="st">"darkmagenta"</span>,
-                     <span class="st">"gray"</span>,<span class="st">"hotpink"</span>,<span class="st">"red"</span><span class="op">)</span>
-<span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">celltype</span><span class="op">)</span>
-<span class="va">celltype</span><span class="op">[</span><span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD25 T Reg"</span> <span class="op">|</span>
-         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+ T Helper2"</span> <span class="op">|</span>
-         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD8+/CD45RA+ Naive Cytotoxic"</span> <span class="op">|</span>
-         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD45RA+/CD25- Naive T"</span> <span class="op">|</span>
-         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD45RO+ Memory"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"T cell"</span>
-<span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">celltype</span><span class="op">)</span>
-<span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>celltype <span class="op">=</span> <span class="va">celltype</span>,
-                   pc1 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">V</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,
-                   pc2 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">V</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span>
-<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pc1</span>,y <span class="op">=</span> <span class="va">pc2</span>,color <span class="op">=</span> <span class="va">celltype</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">celltype_colors</span><span class="op">)</span> <span class="op">+</span>
-  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">celltype_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"forestgreen"</span>,<span class="st">"dodgerblue"</span>,<span class="st">"darkmagenta"</span>,</span>
+<span>                     <span class="st">"gray"</span>,<span class="st">"hotpink"</span>,<span class="st">"red"</span><span class="op">)</span></span>
+<span><span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">pbmc_facs</span><span class="op">$</span><span class="va">samples</span><span class="op">$</span><span class="va">celltype</span><span class="op">)</span></span>
+<span><span class="va">celltype</span><span class="op">[</span><span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD25 T Reg"</span> <span class="op">|</span></span>
+<span>         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+ T Helper2"</span> <span class="op">|</span></span>
+<span>         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD8+/CD45RA+ Naive Cytotoxic"</span> <span class="op">|</span></span>
+<span>         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD45RA+/CD25- Naive T"</span> <span class="op">|</span></span>
+<span>         <span class="va">celltype</span> <span class="op">==</span> <span class="st">"CD4+/CD45RO+ Memory"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"T cell"</span></span>
+<span><span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">celltype</span><span class="op">)</span></span>
+<span><span class="va">pdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>celltype <span class="op">=</span> <span class="va">celltype</span>,</span>
+<span>                   pc1 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">V</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>,</span>
+<span>                   pc2 <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">V</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pdat</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">pc1</span>,y <span class="op">=</span> <span class="va">pc2</span>,color <span class="op">=</span> <span class="va">celltype</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_color_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="va">celltype_colors</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://wilkelab.org/cowplot/reference/theme_cowplot.html" class="external-link">theme_cowplot</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p><img src="intro_fastglmpca_files/figure-html/plot-v-1.png" width="540" style="display: block; margin: auto;"></p>
 <p>The 2-d embedding separates well the CD34+ and CD14+ cells from the
 others, and somewhat distinguishes the other cell types (B cells, T
@@ -206,47 +215,49 @@ cells, NK cells).</p>
 </h2>
 <p>This is the version of R and the packages that were used to generate
 these results.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span>
-<span class="co"># R version 3.6.2 (2019-12-12)</span>
-<span class="co"># Platform: x86_64-apple-darwin15.6.0 (64-bit)</span>
-<span class="co"># Running under: macOS Catalina 10.15.7</span>
-<span class="co"># </span>
-<span class="co"># Matrix products: default</span>
-<span class="co"># BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib</span>
-<span class="co"># LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib</span>
-<span class="co"># </span>
-<span class="co"># locale:</span>
-<span class="co"># [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span>
-<span class="co"># </span>
-<span class="co"># attached base packages:</span>
-<span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span>
-<span class="co"># </span>
-<span class="co"># other attached packages:</span>
-<span class="co"># [1] cowplot_1.1.1     ggplot2_3.3.6     fastglmpca_0.1-76 Matrix_1.3-4     </span>
-<span class="co"># </span>
-<span class="co"># loaded via a namespace (and not attached):</span>
-<span class="co">#  [1] Rcpp_1.0.8           lattice_0.20-38      assertthat_0.2.1    </span>
-<span class="co">#  [4] rprojroot_2.0.3      digest_0.6.23        RhpcBLASctl_0.20-137</span>
-<span class="co">#  [7] utf8_1.1.4           R6_2.4.1             distr_2.8.0         </span>
-<span class="co"># [10] evaluate_0.14        highr_0.8            pillar_1.6.2        </span>
-<span class="co"># [13] rlang_1.0.6          jquerylib_0.1.4      rmarkdown_2.21      </span>
-<span class="co"># [16] pkgdown_2.0.7        desc_1.2.0           labeling_0.3        </span>
-<span class="co"># [19] stringr_1.4.0        munsell_0.5.0        compiler_3.6.2      </span>
-<span class="co"># [22] xfun_0.36            pkgconfig_2.0.3      systemfonts_1.0.2   </span>
-<span class="co"># [25] htmltools_0.5.4      tidyselect_1.1.1     tibble_3.1.3        </span>
-<span class="co"># [28] MatrixExtra_0.1.9-1  fansi_0.4.0          crayon_1.4.1        </span>
-<span class="co"># [31] dplyr_1.0.7          withr_2.5.0          MASS_7.3-51.4       </span>
-<span class="co"># [34] grid_3.6.2           jsonlite_1.7.2       gtable_0.3.0        </span>
-<span class="co"># [37] lifecycle_1.0.3      DBI_1.1.0            magrittr_2.0.1      </span>
-<span class="co"># [40] scales_1.1.0         RcppParallel_5.1.5   cli_3.5.0           </span>
-<span class="co"># [43] stringi_1.4.3        farver_2.0.1         fs_1.5.2            </span>
-<span class="co"># [46] bslib_0.3.1          ellipsis_0.3.2       ragg_0.3.1          </span>
-<span class="co"># [49] vctrs_0.3.8          generics_0.0.2       tools_3.6.2         </span>
-<span class="co"># [52] float_0.2-4          glue_1.4.2           purrr_0.3.4         </span>
-<span class="co"># [55] sfsmisc_1.1-14       parallel_3.6.2       fastmap_1.1.0       </span>
-<span class="co"># [58] yaml_2.2.0           colorspace_1.4-1     memoise_1.1.0       </span>
-<span class="co"># [61] knitr_1.37           sass_0.4.0           startupmsg_0.9.6</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># R version 4.3.3 (2024-02-29)</span></span>
+<span><span class="co"># Platform: aarch64-apple-darwin20 (64-bit)</span></span>
+<span><span class="co"># Running under: macOS Sonoma 14.5</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Matrix products: default</span></span>
+<span><span class="co"># BLAS:   /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRblas.0.dylib </span></span>
+<span><span class="co"># LAPACK: /Library/Frameworks/R.framework/Versions/4.3-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.11.0</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># locale:</span></span>
+<span><span class="co"># [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># time zone: America/Chicago</span></span>
+<span><span class="co"># tzcode source: internal</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># attached base packages:</span></span>
+<span><span class="co"># [1] stats     graphics  grDevices utils     datasets  methods   base     </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># other attached packages:</span></span>
+<span><span class="co"># [1] cowplot_1.1.3      ggplot2_3.5.0      fastglmpca_0.1-106 Matrix_1.6-5      </span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># loaded via a namespace (and not attached):</span></span>
+<span><span class="co">#  [1] sass_0.4.8          utf8_1.2.4          generics_0.1.3     </span></span>
+<span><span class="co">#  [4] lattice_0.22-5      startupmsg_0.9.6.1  digest_0.6.34      </span></span>
+<span><span class="co">#  [7] magrittr_2.0.3      evaluate_0.23       grid_4.3.3         </span></span>
+<span><span class="co"># [10] daarem_0.7          float_0.3-2         fastmap_1.1.1      </span></span>
+<span><span class="co"># [13] sfsmisc_1.1-18      jsonlite_1.8.8      purrr_1.0.2        </span></span>
+<span><span class="co"># [16] fansi_1.0.6         scales_1.3.0        RhpcBLASctl_0.23-42</span></span>
+<span><span class="co"># [19] textshaping_0.3.7   jquerylib_0.1.4     cli_3.6.2          </span></span>
+<span><span class="co"># [22] rlang_1.1.3         munsell_0.5.0       withr_3.0.0        </span></span>
+<span><span class="co"># [25] cachem_1.0.8        yaml_2.3.8          tools_4.3.3        </span></span>
+<span><span class="co"># [28] parallel_4.3.3      memoise_2.0.1       dplyr_1.1.4        </span></span>
+<span><span class="co"># [31] colorspace_2.1-0    distr_2.9.3         vctrs_0.6.5        </span></span>
+<span><span class="co"># [34] R6_2.5.1            lifecycle_1.0.4     fs_1.6.3           </span></span>
+<span><span class="co"># [37] MASS_7.3-60.0.1     ragg_1.2.7          MatrixExtra_0.1.15 </span></span>
+<span><span class="co"># [40] pkgconfig_2.0.3     desc_1.4.3          pkgdown_2.0.7      </span></span>
+<span><span class="co"># [43] RcppParallel_5.1.7  bslib_0.6.1         pillar_1.9.0       </span></span>
+<span><span class="co"># [46] gtable_0.3.4        glue_1.7.0          Rcpp_1.0.12        </span></span>
+<span><span class="co"># [49] systemfonts_1.0.6   highr_0.10          xfun_0.42          </span></span>
+<span><span class="co"># [52] tibble_3.2.1        tidyselect_1.2.1    knitr_1.45         </span></span>
+<span><span class="co"># [55] farver_2.1.1        htmltools_0.5.7     labeling_0.4.3     </span></span>
+<span><span class="co"># [58] rmarkdown_2.26      compiler_4.3.3</span></span></code></pre></div>
 </div>
   </div>
 

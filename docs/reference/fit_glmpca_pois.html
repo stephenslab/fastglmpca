@@ -17,13 +17,16 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">fastglmpca</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-76</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1-106</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav"><li>
   <a href="../index.html">Home</a>
+</li>
+<li>
+  <a href="../articles/index.html">Vignettes</a>
 </li>
 <li>
   <a href="../reference/index.html">Functions</a>
@@ -50,33 +53,30 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">fit_glmpca_pois</span><span class="op">(</span>
-  <span class="va">Y</span>,
-  <span class="va">K</span>,
-  fit0 <span class="op">=</span> <span class="fu">init_glmpca_pois</span><span class="op">(</span><span class="va">Y</span>, <span class="va">K</span><span class="op">)</span>,
-  tol <span class="op">=</span> <span class="fl">0.0001</span>,
-  min_iter <span class="op">=</span> <span class="fl">1</span>,
-  max_iter <span class="op">=</span> <span class="fl">100</span>,
-  verbose <span class="op">=</span> <span class="cn">TRUE</span>,
-  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>
-<span class="op">)</span>
-
-<span class="fu">fit_glmpca_pois_control_default</span><span class="op">(</span><span class="op">)</span>
-
-<span class="fu">init_glmpca_pois</span><span class="op">(</span>
-  <span class="va">Y</span>,
-  <span class="va">K</span>,
-  <span class="va">U</span>,
-  <span class="va">V</span>,
-  X <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  Z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  B <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  W <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  fixed_b_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  fixed_w_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,
-  col_size_factor <span class="op">=</span> <span class="cn">TRUE</span>,
-  row_intercept <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fit_glmpca_pois</span><span class="op">(</span></span>
+<span>  <span class="va">Y</span>,</span>
+<span>  <span class="va">K</span>,</span>
+<span>  fit0 <span class="op">=</span> <span class="fu">init_glmpca_pois</span><span class="op">(</span><span class="va">Y</span>, <span class="va">K</span><span class="op">)</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">fit_glmpca_pois_control_default</span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">init_glmpca_pois</span><span class="op">(</span></span>
+<span>  <span class="va">Y</span>,</span>
+<span>  <span class="va">K</span>,</span>
+<span>  <span class="va">U</span>,</span>
+<span>  <span class="va">V</span>,</span>
+<span>  X <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  Z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  B <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  W <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  fixed_b_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  fixed_w_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  col_size_factor <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  row_intercept <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -84,7 +84,7 @@
     <dl><dt>Y</dt>
 <dd><p>The n x m matrix of counts; all entries of <code>Y</code> should
 be non-negative. It can be a sparse matrix (class
-<code>"dgCMatrix"</code>) or dense matrix (class <code>"matrix"</code>).</p></dd>
+<code>"dsparseMatrix"</code>) or dense matrix (class <code>"matrix"</code>).</p></dd>
 
 
 <dt>K</dt>
@@ -98,20 +98,6 @@ factorization. This should only be provided if the initial fit
 “glmpca_fit_pois”, such as an output from
 <code>init_glmpca_pois</code> or a previous call to
 <code>fit_glmpca_pois</code>.</p></dd>
-
-
-<dt>tol</dt>
-<dd><p>The optimization stops when the change in the
-log-likelihood between two successive iterations is less than this
-amount.</p></dd>
-
-
-<dt>min_iter</dt>
-<dd><p>Minimum number of updates to be performed.</p></dd>
-
-
-<dt>max_iter</dt>
-<dd><p>Maximum number of updates to be performed.</p></dd>
 
 
 <dt>verbose</dt>
@@ -187,11 +173,11 @@ default behavior of <code>glmpca</code>.</p></dd>
 
 
 <dt>row_intercept</dt>
-<dd><p>If <code>row_intercept = TRUE</code>, add a fixed
-factor accounting for average differences in Poisson rates across
-rows of <code>Y</code>. Setting <code>col_size_factor = TRUE</code>
-and <code>row_intercept = TRUE</code> is intended to replicate the
-default behavior of <code>glmpca</code>.</p></dd>
+<dd><p>If <code>row_intercept = TRUE</code>, add a factor
+accounting for average differences in Poisson rates across rows of
+<code>Y</code>. Setting <code>col_size_factor = TRUE</code> and
+<code>row_intercept = TRUE</code> is intended to replicate the default
+behavior of <code>glmpca</code>.</p></dd>
 
 </dl></div>
     <div id="value">
@@ -241,14 +227,54 @@ orthogonality constraints for \(U\) and \(V\) and the
 additional constraints on \(D\) that the entries are positive and
 decreasing. This is accomplished by iteratively fitting a series of
 Poisson GLMs, where each of these individual Poissons GLMs is fitted
-using a fast cyclic co-ordinate descent (CCD) algorithm.</p>
+using a fast “cyclic co-ordinate descent” (CCD) algorithm.</p>
 <p>The <code>control</code> argument is a list in which any of the following
 named components will override the default optimization algorithm
-settings (as they are defined by <code>fit_glmpca_pois_control_default</code>):</p>
-<dl><dt><code>num_ccd_iter</code></dt>
-<dd><p>Number of co-ordinate descent
- updates to be made to parameters at each iteration of 
- the algorithm.</p></dd>
+settings (as they are defined by
+<code>fit_glmpca_pois_control_default</code>). Additional control
+arguments not listed here can be used to control the behaviour of
+<code><a href="https://rdrr.io/pkg/daarem/man/fpiter.html" class="external-link">fpiter</a></code> or <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code>; see
+the help accompanying these functions for details.</p>
+<dl><dt><code>use_daarem</code></dt>
+<dd><p>If <code>use_daarem = TRUE</code>, the updates
+  are accelerated using DAAREM; see <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code> for
+  details.</p></dd>
+
+
+<dt><code>tol</code></dt>
+<dd><p>This is the value of the “tol” control
+  argument for <code><a href="https://rdrr.io/pkg/daarem/man/fpiter.html" class="external-link">fpiter</a></code> or
+  <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code> that determines when to stop the
+  optimization. In brief, the optimization stops when the change in
+  the estimates or in the log-likelihood between two successive
+  updates is less than “tol”.</p></dd>
+
+
+<dt><code>maxiter</code></dt>
+<dd><p>This is the value of the “maxiter”
+  control argument for <code><a href="https://rdrr.io/pkg/daarem/man/fpiter.html" class="external-link">fpiter</a></code> or
+  <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code>. In brief, it sets the upper limit on
+  the number of CCD updates.</p></dd>
+
+
+<dt><code>convtype</code></dt>
+<dd><p>This is the value of the “convtype”
+  control argument for <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code>. It determines
+  whether the stopping criterion is based on the change in the
+  estimates or the change in the log-likelihood between two
+  successive updates.</p></dd>
+
+
+<dt><code>mon.tol</code></dt>
+<dd><p>This is the value of the “mon.tol”
+  control argument for <code><a href="https://rdrr.io/pkg/daarem/man/daarem.html" class="external-link">daarem</a></code>. This setting
+  determines to what extent the monotonicity condition can be
+  violated.</p></dd>
+
+
+<dt><code>num_ccd_iter</code></dt>
+<dd><p>Number of co-ordinate descent updates to
+  be made to parameters at each iteration of the algorithm.</p></dd>
 
 
 <dt><code>line_search</code></dt>
@@ -257,25 +283,25 @@ settings (as they are defined by <code>fit_glmpca_pois_control_default</code>):<
   guarantee improvement in the objective (the log-likelihood).</p></dd>
 
 
-<dt><code>alpha</code></dt>
+<dt><code>ls_alpha</code></dt>
 <dd><p>alpha parameter for backtracking line search.
   (Should be a number between 0 and 0.5, typically a number near
   zero.)</p></dd>
 
 
-<dt><code>beta</code></dt>
+<dt><code>ls_beta</code></dt>
 <dd><p>beta parameter for backtracking line search
   controlling the rate at which the step size is decreased.
   (Should be a number between 0 and 0.5.)</p></dd>
 
-  
+
 <dt><code>calc_deriv</code></dt>
 <dd><p>If <code>calc_deriv = TRUE</code>, the maximum
   gradient of \(U\) and \(V\) is calculated and stored after each
   update. This may be useful for assessing convergence of the
   optimization, though increases overhead.</p></dd>
 
-  
+
 <dt><code>calc_max_diff</code></dt>
 <dd><p>If <code>calc_max_diff = TRUE</code>, the
   largest change in \(U\) and \(V\) after each update is
@@ -286,17 +312,19 @@ settings (as they are defined by <code>fit_glmpca_pois_control_default</code>):<
 <dt><code>orthonormalize</code></dt>
 <dd><p>If <code>orthonormalize = TRUE</code>, the
   matrices \(U\) and \(V\) are made to be orthogonal after each
-  update step. This generally improves the speed of convergence
-  while incurring minimal overhead.</p></dd>
+  update step. This improves the speed of convergence without the
+  DAAREM acceleration; however, should not be used when
+  <code>use_daarem = TRUE</code>.</p></dd>
 
-
-</dl></div>
+</dl><p>You may use function <code><a href="set_fastglmpca_threads.html">set_fastglmpca_threads</a></code> to adjust
+the number of threads used in performing the updates.</p>
+    </div>
     <div id="references">
     <h2>References</h2>
     <p>Townes, F. W., Hicks, S. C., Aryee, M. J. and Irizarry,
   R. A. (2019). Feature selection and dimension reduction for
   single-cell RNA-Seq based on a multinomial model. <em>Genome Biology</em>
-  <b>20</b>, 295. <a href="https://doi.org/10.1186/s13059-019-1861-6" class="external-link">https://doi.org/10.1186/s13059-019-1861-6</a></p>
+  <b>20</b>, 295. <a href="https://doi.org/10.1186/s13059-019-1861-6" class="external-link">doi:10.1186/s13059-019-1861-6</a></p>
 <p>Collins, M., Dasgupta, S. and Schapire, R. E. (2002). A
   generalization of principal components analysis to the exponential
   family. In <em>Advances in Neural Information Processing Systems</em> 14.</p>
@@ -308,86 +336,115 @@ settings (as they are defined by <code>fit_glmpca_pois_control_default</code>):<
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
-<span class="r-in"><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">500</span></span>
-<span class="r-in"><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">3</span></span>
-<span class="r-in"><span class="va">dat</span>  <span class="op">&lt;-</span> <span class="fu"><a href="generate_glmpca_data_pois.html">generate_glmpca_data_pois</a></span><span class="op">(</span><span class="va">n</span>,<span class="va">p</span>,<span class="va">K</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu">init_glmpca_pois</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">Y</span>,<span class="va">K</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">fit</span>  <span class="op">&lt;-</span> <span class="fu">fit_glmpca_pois</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">Y</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Fitting GLM-PCA model to 1000 x 500 count matrix.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 1: log-likelihood = -7.545705756902e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 2: log-likelihood = -5.881488243774e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 3: log-likelihood = -5.750941070175e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 4: log-likelihood = -5.674175424878e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 5: log-likelihood = -5.632980720695e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 6: log-likelihood = -5.612572786791e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 7: log-likelihood = -5.602690873177e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 8: log-likelihood = -5.597851880160e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 9: log-likelihood = -5.595411110457e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 10: log-likelihood = -5.594128823879e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 11: log-likelihood = -5.593421361361e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 12: log-likelihood = -5.593008809284e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 13: log-likelihood = -5.592753590856e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 14: log-likelihood = -5.592586189133e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 15: log-likelihood = -5.592470378957e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 16: log-likelihood = -5.592386606051e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 17: log-likelihood = -5.592323870206e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 18: log-likelihood = -5.592275680357e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 19: log-likelihood = -5.592237998686e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 20: log-likelihood = -5.592208173963e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 21: log-likelihood = -5.592184375099e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 22: log-likelihood = -5.592165281303e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 23: log-likelihood = -5.592149906656e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 24: log-likelihood = -5.592137496191e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 25: log-likelihood = -5.592127461263e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 26: log-likelihood = -5.592119337166e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 27: log-likelihood = -5.592112753987e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 28: log-likelihood = -5.592107415588e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 29: log-likelihood = -5.592103084010e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 30: log-likelihood = -5.592099567568e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 31: log-likelihood = -5.592096711562e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 32: log-likelihood = -5.592094390981e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 33: log-likelihood = -5.592092504708e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 34: log-likelihood = -5.592090970898e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 35: log-likelihood = -5.592089723254e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 36: log-likelihood = -5.592088708044e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 37: log-likelihood = -5.592087881696e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 38: log-likelihood = -5.592087208871e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 39: log-likelihood = -5.592086660882e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 40: log-likelihood = -5.592086214439e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 41: log-likelihood = -5.592085850624e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 42: log-likelihood = -5.592085554066e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 43: log-likelihood = -5.592085312269e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 44: log-likelihood = -5.592085115073e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 45: log-likelihood = -5.592084954213e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 46: log-likelihood = -5.592084822964e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 47: log-likelihood = -5.592084715853e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 48: log-likelihood = -5.592084628423e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 49: log-likelihood = -5.592084557043e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 50: log-likelihood = -5.592084498756e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 51: log-likelihood = -5.592084451152e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 52: log-likelihood = -5.592084412266e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 53: log-likelihood = -5.592084380497e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 54: log-likelihood = -5.592084354537e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 55: log-likelihood = -5.592084333320e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 56: log-likelihood = -5.592084315978e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 57: log-likelihood = -5.592084301801e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 58: log-likelihood = -5.592084290209e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 59: log-likelihood = -5.592084280731e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 60: log-likelihood = -5.592084272980e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 61: log-likelihood = -5.592084266639e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 62: log-likelihood = -5.592084261454e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 63: log-likelihood = -5.592084257214e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 64: log-likelihood = -5.592084253745e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 65: log-likelihood = -5.592084250912e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 66: log-likelihood = -5.592084248594e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 67: log-likelihood = -5.592084246697e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 68: log-likelihood = -5.592084245146e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 69: log-likelihood = -5.592084243879e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 70: log-likelihood = -5.592084242845e+05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 71: log-likelihood = -5.592084241996e+05</span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">200</span></span></span>
+<span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">100</span></span></span>
+<span class="r-in"><span><span class="va">K</span> <span class="op">&lt;-</span> <span class="fl">3</span></span></span>
+<span class="r-in"><span><span class="va">dat</span>  <span class="op">&lt;-</span> <span class="fu"><a href="generate_glmpca_data_pois.html">generate_glmpca_data_pois</a></span><span class="op">(</span><span class="va">n</span>,<span class="va">p</span>,<span class="va">K</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit0</span> <span class="op">&lt;-</span> <span class="fu">init_glmpca_pois</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">Y</span>,<span class="va">K</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">fit</span>  <span class="op">&lt;-</span> <span class="fu">fit_glmpca_pois</span><span class="op">(</span><span class="va">dat</span><span class="op">$</span><span class="va">Y</span>,fit0 <span class="op">=</span> <span class="va">fit0</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Fitting GLM-PCA model to 200 x 100 count matrix.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 1: log-likelihood = -9.150188547370e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 2: log-likelihood = -4.053287865351e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 3: log-likelihood = -3.613824011415e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 4: log-likelihood = -3.544135095378e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 5: log-likelihood = -3.524332761304e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 6: log-likelihood = -3.516524199745e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 7: log-likelihood = -3.512755108135e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 8: log-likelihood = -3.510690088392e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 9: log-likelihood = -3.509464345815e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 10: log-likelihood = -3.508696785545e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 11: log-likelihood = -3.508196851573e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 12: log-likelihood = -3.507860615708e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 13: log-likelihood = -3.507627979214e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 14: log-likelihood = -3.507462749014e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 15: log-likelihood = -3.507342462213e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 16: log-likelihood = -3.507252834177e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 17: log-likelihood = -3.507184585954e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 18: log-likelihood = -3.507131570026e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 19: log-likelihood = -3.507089635393e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 20: log-likelihood = -3.507055926109e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 21: log-likelihood = -3.507028440341e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 22: log-likelihood = -3.507005748682e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 23: log-likelihood = -3.506986811658e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 24: log-likelihood = -3.506970859857e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 25: log-likelihood = -3.506957313873e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 26: log-likelihood = -3.506945730176e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 27: log-likelihood = -3.506935764094e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 28: log-likelihood = -3.506927144065e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 29: log-likelihood = -3.506919653339e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 30: log-likelihood = -3.506913116934e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 31: log-likelihood = -3.506907392091e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 32: log-likelihood = -3.506902361308e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 33: log-likelihood = -3.506897927068e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 34: log-likelihood = -3.506894007835e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 35: log-likelihood = -3.506890535058e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 36: log-likelihood = -3.506887450650e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 37: log-likelihood = -3.506884705228e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 38: log-likelihood = -3.506882256615e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 39: log-likelihood = -3.506880068601e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 40: log-likelihood = -3.506878109978e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 41: log-likelihood = -3.506876353786e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 42: log-likelihood = -3.506874776663e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 43: log-likelihood = -3.506873358261e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 44: log-likelihood = -3.506872080834e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 45: log-likelihood = -3.506870928857e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 46: log-likelihood = -3.506869888712e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 47: log-likelihood = -3.506868948441e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 48: log-likelihood = -3.506868097488e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 49: log-likelihood = -3.506867326566e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 50: log-likelihood = -3.506866627429e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 51: log-likelihood = -3.506865992786e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 52: log-likelihood = -3.506865416168e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 53: log-likelihood = -3.506864891821e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 54: log-likelihood = -3.506864414612e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 55: log-likelihood = -3.506863979961e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 56: log-likelihood = -3.506863583749e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 57: log-likelihood = -3.506863222343e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 58: log-likelihood = -3.506862892469e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 59: log-likelihood = -3.506862591170e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 60: log-likelihood = -3.506862315804e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 61: log-likelihood = -3.506862063999e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 62: log-likelihood = -3.506861833595e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 63: log-likelihood = -3.506861622658e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 64: log-likelihood = -3.506861429453e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 65: log-likelihood = -3.506861252396e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 66: log-likelihood = -3.506861090065e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 67: log-likelihood = -3.506860941160e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 68: log-likelihood = -3.506860804513e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 69: log-likelihood = -3.506860679059e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 70: log-likelihood = -3.506860563833e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 71: log-likelihood = -3.506860457963e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 72: log-likelihood = -3.506860360654e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 73: log-likelihood = -3.506860271175e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 74: log-likelihood = -3.506860188870e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 75: log-likelihood = -3.506860113136e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 76: log-likelihood = -3.506860043428e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 77: log-likelihood = -3.506859979246e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 78: log-likelihood = -3.506859920134e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 79: log-likelihood = -3.506859865677e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 80: log-likelihood = -3.506859815491e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 81: log-likelihood = -3.506859769230e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 82: log-likelihood = -3.506859726579e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 83: log-likelihood = -3.506859687240e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 84: log-likelihood = -3.506859650954e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 85: log-likelihood = -3.506859617475e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 86: log-likelihood = -3.506859586570e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 87: log-likelihood = -3.506859558047e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 88: log-likelihood = -3.506859531707e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 89: log-likelihood = -3.506859507379e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 90: log-likelihood = -3.506859484907e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 91: log-likelihood = -3.506859464145e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 92: log-likelihood = -3.506859444962e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 93: log-likelihood = -3.506859427229e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 94: log-likelihood = -3.506859410832e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 95: log-likelihood = -3.506859395670e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 96: log-likelihood = -3.506859381645e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 97: log-likelihood = -3.506859368671e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 98: log-likelihood = -3.506859356667e+04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Iteration 99: log-likelihood = -3.506859345558e+04</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>fit_glmpca_pois failed to meet convergence criterion within 100 iterations</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
