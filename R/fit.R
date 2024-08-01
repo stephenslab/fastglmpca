@@ -339,7 +339,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
                  loglik_const = loglik_const,
                  verbose = verbose)
   if (!res$convergence)
-    cat(sprintf(paste("Note that the specified convergence criteria was not",
+    message(sprintf(paste("Note that the specified convergence criteria was not",
                           "met within %d iterations."),
                     control$maxiter))
 
