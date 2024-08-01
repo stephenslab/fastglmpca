@@ -279,11 +279,9 @@ fit_glmpca_pois <- function(
     )
     
     # now, I need to reconstruct FF, and hopefully compute the log-likelihood
-    FF[, train_idx] <- FF_train
+    FF[, train_idx] <- res$fit$FF
     FF[, test_idx] <- FF_to_update
     res$fit$FF <- FF
-    
-    print(glue::glue("train loglik = {res$loglik}"))
     
     if (inherits(Y,"sparseMatrix")) {
       test_loglik_const <- sum(mapSparse(Y_test,lfactorial))
@@ -294,21 +292,7 @@ fit_glmpca_pois <- function(
     }
     
     test_loglik <- loglik_func(Y_test,res$fit$LL,FF_to_update,test_loglik_const)
-    print(glue::glue("test loglik = {test_loglik}"))
-    
-    print(glue::glue("Expected total loglik = {res$loglik + test_loglik}"))
-    
-    if (inherits(Y,"sparseMatrix")) {
-      loglik_const <- sum(mapSparse(Y,lfactorial))
-      loglik_func  <- lik_glmpca_pois_log_sp
-    } else {
-      loglik_const <- sum(lfactorial(Y))
-      loglik_func  <- lik_glmpca_pois_log
-    }
-    
-    res$loglik <- loglik_func(Y,res$fit$LL,res$fit$FF,loglik_const)
-    
-    print(glue::glue("Calculated loglik = {res$loglik}"))
+    res$loglik <- res$loglik + test_loglik
     
   }
   

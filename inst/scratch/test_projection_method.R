@@ -13,7 +13,7 @@ set.seed(1)
 fit2 <- fit_glmpca_pois(
   Y = pbmc_facs$counts, 
   K = 2,
-  control = list(training_frac = 0.99, maxiter = 10)
+  control = list(training_frac = 0.99, maxiter = 5)
 )
 # 
 # df1 <- data.frame(
