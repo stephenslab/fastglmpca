@@ -263,13 +263,10 @@ fit_glmpca_pois <- function(
     
     update_indices_f <- sort(setdiff(1:K,fixed_f))
     
-    FF_to_update <- FF_test
-    #browser()
-    
     # now, I just need to project the results back
     update_factors_faster_parallel(
       L_T = t(res$fit$LL),
-      FF = FF_to_update,
+      FF = FF_test,
       M = as.matrix(res$fit$LL[update_indices_f,,drop = FALSE] %*% Y_test),
       update_indices = update_indices_f - 1,
       num_iter = 1000,
@@ -280,7 +277,7 @@ fit_glmpca_pois <- function(
     
     # now, I need to reconstruct FF, and hopefully compute the log-likelihood
     FF[, train_idx] <- res$fit$FF
-    FF[, test_idx] <- FF_to_update
+    FF[, test_idx] <- FF_test
     res$fit$FF <- FF
     
     if (inherits(Y,"sparseMatrix")) {
@@ -291,7 +288,7 @@ fit_glmpca_pois <- function(
       loglik_func  <- lik_glmpca_pois_log
     }
     
-    test_loglik <- loglik_func(Y_test,res$fit$LL,FF_to_update,test_loglik_const)
+    test_loglik <- loglik_func(Y_test,res$fit$LL,FF_test,test_loglik_const)
     res$loglik <- res$loglik + test_loglik
     
   }
