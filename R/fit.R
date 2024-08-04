@@ -80,6 +80,12 @@
 #'   remaining columns of \code{Y} onto the solution. Setting this to a smaller
 #'   value will increase speed but decrease accuracy.
 #' }
+#' 
+#' \item{\code{num_projection_ccd_iter}}{Number of co-ordinate descent updates
+#'   be made to elements of \code{V} if and when a subset of \code{Y} is 
+#'   projected onto \code{U}. Only used if \code{training_frac} is less than 
+#'   \code{1}.
+#' }
 #'
 #' \item{\code{num_ccd_iter}}{Number of co-ordinate descent updates to
 #'   be made to parameters at each iteration of the algorithm.}
@@ -269,10 +275,10 @@ fit_glmpca_pois <- function(
       FF = FF_test,
       M = as.matrix(res$fit$LL[update_indices_f,,drop = FALSE] %*% Y_test),
       update_indices = update_indices_f - 1,
-      num_iter = 1000,
-      line_search = TRUE,
-      alpha = .01,
-      beta = .25
+      num_iter = control$num_projection_ccd_iter,
+      line_search = control$line_search,
+      alpha = control$ls_alpha,
+      beta = control$ls_beta
     )
     
     # now, I need to reconstruct FF, and hopefully compute the log-likelihood
@@ -434,6 +440,7 @@ fit_glmpca_pois_control_default <- function()
        maxiter = 100,
        tol = 1e-4,
        training_frac = 1,
+       num_projection_ccd_iter = 10,
        mon.tol = 0.05,
        convtype = "objfn",
        line_search = TRUE,

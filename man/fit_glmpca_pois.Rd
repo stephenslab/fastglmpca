@@ -195,6 +195,12 @@ the help accompanying these functions for details.
   value will increase speed but decrease accuracy.
 }
 
+\item{\code{num_projection_ccd_iter}}{Number of co-ordinate descent updates
+  be made to elements of \code{V} if and when a subset of \code{Y} is 
+  projected onto \code{U}. Only used if \code{training_frac} is less than 
+  \code{1}.
+}
+
 \item{\code{num_ccd_iter}}{Number of co-ordinate descent updates to
   be made to parameters at each iteration of the algorithm.}
 
