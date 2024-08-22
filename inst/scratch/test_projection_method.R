@@ -1,10 +1,12 @@
 library(fastglmpca)
 
 set.seed(1)
+cc <- pbmc_facs$counts[Matrix::rowSums(pbmc_facs$counts) > 10, ]
+
 fit1 <- fit_glmpca_pois(
-  Y = pbmc_facs$counts, 
+  Y = cc, 
   K = 2,
-  control = list(training_frac = 1, maxiter = 10)
+  control = list(training_frac = 0.99, maxiter = 10)
 )
 
 # for some reason the calculated log-likelihood and the expected

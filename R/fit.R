@@ -248,7 +248,21 @@ fit_glmpca_pois <- function(
       size = ceiling(ncol(Y) * control$training_frac)
     )
     
+    browser()
     Y_train <- Y[, train_idx]
+    
+    if (any(Matrix::rowSums(Y_train) == 0) || any(Matrix::colSums(Y_train) == 0)) {
+      
+      stop(
+        "After subsetting, the remaining values of \"Y\" ",
+        "contain a row or a column where all counts are 0. This can cause ",
+        "problems with optimization. Please either remove rows / columns ",
+        "with few non-zero counts from \"Y\", or set \"training_frac\" to ",
+        "a larger value."
+        )
+      
+    }
+    
     FF_train <- FF[, train_idx]
     FF_test <- FF[, -train_idx]
     Y_test <- Y[, -train_idx]
