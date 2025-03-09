@@ -300,7 +300,7 @@ fit_glmpca_pois <- function(
     res$fit$FF <- FF
     
     if (inherits(Y,"sparseMatrix")) {
-      test_loglik_const <- sum(mapSparse(Y_test,lfactorial))
+      test_loglik_const <- sum(lfactorial(Y_test@x))
       loglik_func  <- lik_glmpca_pois_log_sp
     } else {
       test_loglik_const <- sum(lfactorial(Y_test))
