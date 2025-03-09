@@ -323,3 +323,27 @@ test_that("Results are the same with different classes of sparse matrices",{
   expect_equal(fit_quick_dgC$d, fit_quick_dgT$d)
   expect_equal(fit_quick_dgC$V, fit_quick_dgT$V)
 })
+
+test_that("Subset fitting works", {
+  
+  set.seed(1)
+  dat <- generate_glmpca_data_pois(500, 250, 2)
+  
+  set.seed(1)
+  suppressWarnings(capture.output(fit1 <- fit_glmpca_pois(
+    Y = dat$Y, 
+    K = 2,
+    control = list(training_frac = 0.99, maxiter = 100)
+  )))
+  
+  set.seed(1)
+  suppressWarnings(capture.output(fit2 <- fit_glmpca_pois(
+    Y = dat$Y, 
+    K = 2,
+    control = list(training_frac = 1, maxiter = 100)
+  )))
+  
+  expect_equal(fit1$U, fit2$U, tolerance = 0.05)
+  expect_equal(fit1$V, fit2$V, tolerance = 0.05)
+  
+})
