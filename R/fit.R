@@ -359,7 +359,6 @@ fit_glmpca_pois <- function(
 # This implements the core part of fit_glmpca_pois.
 #
 #' @importFrom Matrix t
-#' @importFrom MatrixExtra mapSparse
 #' @importFrom daarem fpiter
 #' @importFrom daarem daarem
 fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
@@ -374,7 +373,7 @@ fit_glmpca_pois_main_loop <- function (LL, FF, Y, fixed_l, fixed_f,
 
   # These variables are used to compute the log-likelihood below.
   if (inherits(Y,"sparseMatrix")) {
-    loglik_const <- sum(mapSparse(Y,lfactorial))
+    loglik_const <- sum(lfactorial(Y@x))
     loglik_func  <- lik_glmpca_pois_log_sp
   } else {
     loglik_const <- sum(lfactorial(Y))
@@ -554,7 +553,7 @@ fit2par <- function (fit, update_indices_l, update_indices_f)
 
 # This implements a single update of LL and FF.
 #
-#' @importMethodsFrom MatrixExtra tcrossprod
+#' @importMethodsFrom Matrix tcrossprod
 update_glmpca_pois <- function (LL, FF, Y, Y_T, update_indices_l,
                                 update_indices_f, control) {
   n <- nrow(Y)
