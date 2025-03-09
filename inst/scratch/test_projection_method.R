@@ -1,12 +1,20 @@
 library(fastglmpca)
-
-set.seed(1)
 cc <- pbmc_facs$counts[Matrix::rowSums(pbmc_facs$counts) > 10, ]
 
+set.seed(1)
+# leave out a single sample from fitting
 fit1 <- fit_glmpca_pois(
   Y = cc, 
   K = 2,
-  control = list(training_frac = 0.99, maxiter = 10)
+  control = list(training_frac = 0.75, maxiter = 100)
+)
+
+set.seed(1)
+# leave out a single sample from fitting
+fit2 <- fit_glmpca_pois(
+  Y = cc, 
+  K = 2,
+  control = list(training_frac = 1, maxiter = 100)
 )
 
 # for some reason the calculated log-likelihood and the expected

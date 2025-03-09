@@ -248,8 +248,7 @@ fit_glmpca_pois <- function(
       size = ceiling(ncol(Y) * control$training_frac)
     )
     
-    browser()
-    Y_train <- Y[, train_idx]
+    Y_train <- Y[, train_idx, drop = FALSE]
     
     if (any(Matrix::rowSums(Y_train) == 0) || any(Matrix::colSums(Y_train) == 0)) {
       
@@ -263,9 +262,9 @@ fit_glmpca_pois <- function(
       
     }
     
-    FF_train <- FF[, train_idx]
-    FF_test <- FF[, -train_idx]
-    Y_test <- Y[, -train_idx]
+    FF_train <- FF[, train_idx, drop = FALSE]
+    FF_test <- FF[, -train_idx, drop = FALSE]
+    Y_test <- Y[, -train_idx, drop = FALSE]
     
     test_idx <- 1:ncol(Y)
     test_idx <- test_idx[-train_idx]
