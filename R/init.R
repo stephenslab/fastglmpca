@@ -54,7 +54,6 @@
 #'
 #' @importFrom Matrix rowSums
 #' @importFrom Matrix colMeans
-#' @importFrom MatrixExtra mapSparse
 #' @importFrom stats rnorm
 #'
 #' @export
@@ -190,7 +189,7 @@ init_glmpca_pois <- function(
   FF <- t(cbind(V,B,Z))
   if (inherits(Y,"sparseMatrix"))
     loglik <-
-      lik_glmpca_pois_log_sp(Y,LL,FF,sum(mapSparse(Y,lfactorial)))
+      lik_glmpca_pois_log_sp(Y,LL,FF,sum(lfactorial(Y@x)))
   else
     loglik <- lik_glmpca_pois_log(Y,LL,FF,sum(lfactorial(Y)))
 
