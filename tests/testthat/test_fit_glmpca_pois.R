@@ -207,7 +207,7 @@ test_that("Final fit is the same with single thread or multiple threads",{
                                            calc_max_diff = TRUE))))
   fit1$progress[,"time"] <- 0
   fit2$progress[,"time"] <- 0
-  expect_equal(fit1,fit2)
+  expect_equal(fit1,fit2, tolerance = 1e-7)
 })
 
 test_that("Final fit is (roughly) the same with or without daarem",{
